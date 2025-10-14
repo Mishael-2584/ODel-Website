@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { FaBars, FaTimes, FaGraduationCap, FaBook, FaUser, FaHome, FaInfoCircle, FaPhone } from 'react-icons/fa'
+import NotificationCenter from './NotificationCenter'
+import { FaBars, FaTimes, FaGraduationCap, FaBook, FaUser, FaHome, FaInfoCircle, FaPhone, FaTh } from 'react-icons/fa'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -10,6 +11,7 @@ export default function Navbar() {
   const navLinks = [
     { href: '/', label: 'Home', icon: FaHome },
     { href: '/courses', label: 'Courses', icon: FaBook },
+    { href: '/dashboard', label: 'Dashboard', icon: FaTh },
     { href: '/about', label: 'About', icon: FaInfoCircle },
     { href: '/contact', label: 'Contact', icon: FaPhone },
   ]
@@ -32,7 +34,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-6">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -43,11 +45,12 @@ export default function Navbar() {
                 <span>{link.label}</span>
               </Link>
             ))}
+            <NotificationCenter />
             <Link href="/login" className="btn-outline !py-2 !px-4">
               <FaUser className="inline mr-2" />
               Login
             </Link>
-            <Link href="/register" className="btn-primary !py-2 !px-4">
+            <Link href="/register" className="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-gold hover:shadow-xl-gold">
               Get Started
             </Link>
           </div>
