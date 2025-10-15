@@ -15,7 +15,7 @@ export default function Footer() {
                 <FaGraduationCap className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">UEAB ODel</h3>
+                <h3 className="text-xl font-bold">UEAB ODeL</h3>
                 <p className="text-xs text-gray-300">eLearning Platform</p>
               </div>
             </div>

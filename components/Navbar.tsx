@@ -15,8 +15,8 @@ export default function Navbar() {
 
   const publicNavLinks = [
     { href: '/', label: 'Home', icon: FaHome },
-    { href: '/courses', label: 'Courses', icon: FaBook },
-    { href: '/about', label: 'About', icon: FaInfoCircle },
+    { href: '/courses', label: 'Programs', icon: FaBook },
+    { href: '/about', label: 'About UEAB', icon: FaInfoCircle },
     { href: '/contact', label: 'Contact', icon: FaPhone },
   ]
 
@@ -49,8 +49,8 @@ export default function Navbar() {
                 <FaGraduationCap className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-primary-600">UEAB ODel</h1>
-                <p className="text-xs text-gray-500">eLearning Platform</p>
+                  <h1 className="text-xl font-bold text-primary-600">UEAB ODeL</h1>
+                  <p className="text-xs text-gray-500">eLearning Platform</p>
               </div>
             </Link>
           </div>

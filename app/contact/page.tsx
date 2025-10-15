@@ -1,9 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaPaperPlane } from 'react-icons/fa'
+import { 
+  FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock, FaUniversity,
+  FaBuilding, FaUser, FaPaperPlane, FaCheckCircle, FaInfoCircle,
+  FaGraduationCap, FaBook, FaCalendarAlt
+} from 'react-icons/fa'
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -11,104 +16,209 @@ export default function ContactPage() {
     email: '',
     phone: '',
     subject: '',
-    message: ''
+    message: '',
+    inquiryType: 'general'
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Contact form:', formData)
-    // Handle form submission
+    setIsSubmitting(true)
+    
+    // Simulate form submission
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    setIsSubmitting(false)
+    setIsSubmitted(true)
+    
+    // Reset form
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      subject: '',
+      message: '',
+      inquiryType: 'general'
+    })
   }
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
 
+  const contactInfo = [
+    {
+      icon: FaMapMarkerAlt,
+      title: 'Address',
+      details: [
+        'P.O. Box 2500',
+        '30100 Eldoret, Kenya'
+      ],
+      color: 'text-primary-600'
+    },
+    {
+      icon: FaPhone,
+      title: 'Phone',
+      details: [
+        '+254 714 333 111',
+        '+254 781 333 777'
+      ],
+      color: 'text-green-600'
+    },
+    {
+      icon: FaEnvelope,
+      title: 'Email',
+      details: [
+        'info@ueab.ac.ke',
+        'admissions@ueab.ac.ke'
+      ],
+      color: 'text-blue-600'
+    },
+    {
+      icon: FaClock,
+      title: 'Office Hours',
+      details: [
+        'Monday - Friday: 8:00 AM - 5:00 PM',
+        'Saturday: 9:00 AM - 1:00 PM'
+      ],
+      color: 'text-purple-600'
+    }
+  ]
+
+  const departments = [
+    {
+      name: 'Admissions Office',
+      email: 'admissions@ueab.ac.ke',
+      phone: '+254 714 333 111',
+      description: 'General admissions, program inquiries, and application support'
+    },
+    {
+      name: 'Academic Affairs',
+      email: 'academic@ueab.ac.ke',
+      phone: '+254 714 333 112',
+      description: 'Academic programs, course registration, and academic policies'
+    },
+    {
+      name: 'Student Affairs',
+      email: 'studentaffairs@ueab.ac.ke',
+      phone: '+254 714 333 113',
+      description: 'Student services, housing, and campus life'
+    },
+    {
+      name: 'Financial Aid',
+      email: 'financialaid@ueab.ac.ke',
+      phone: '+254 714 333 114',
+      description: 'Scholarships, financial assistance, and fee inquiries'
+    },
+    {
+      name: 'ODeL Support',
+      email: 'odel@ueab.ac.ke',
+      phone: '+254 714 333 115',
+      description: 'Technical support for online learning platform'
+    },
+    {
+      name: 'Library Services',
+      email: 'library@ueab.ac.ke',
+      phone: '+254 714 333 116',
+      description: 'Library resources, research support, and digital access'
+    }
+  ]
+
+  const inquiryTypes = [
+    { value: 'general', label: 'General Inquiry' },
+    { value: 'admissions', label: 'Admissions' },
+    { value: 'academic', label: 'Academic Programs' },
+    { value: 'financial', label: 'Financial Aid' },
+    { value: 'technical', label: 'Technical Support' },
+    { value: 'other', label: 'Other' }
+  ]
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">Get In Touch</h1>
-          <p className="text-xl text-gray-200 max-w-3xl mx-auto">
-            Have questions? We're here to help you start your learning journey
-          </p>
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900"></div>
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+          <div className="text-center text-white">
+            <div className="inline-flex items-center bg-gold-500/20 backdrop-blur-sm border border-gold-500/30 rounded-full px-4 py-2 mb-6">
+              <span className="text-gold-300 text-sm font-semibold">Contact UEAB</span>
+            </div>
+            
+            <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
+              Get in <span className="text-gold-400">Touch</span>
+            </h1>
+            
+            <p className="text-xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
+              Have questions about our programs, admissions, or need support? 
+              We're here to help you on your educational journey.
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* Contact Info & Form */}
-      <section className="py-20 bg-gray-50">
+      {/* Contact Information */}
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Contact Information */}
-            <div className="space-y-6">
-              <div className="card">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-primary-100 p-3 rounded-lg">
-                    <FaMapMarkerAlt className="h-6 w-6 text-primary-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 mb-2">Visit Us</h3>
-                    <p className="text-gray-600 text-sm">
-                      University of Eastern Africa, Baraton<br />
-                      P.O. Box 2500, 30100<br />
-                      Eldoret, Kenya
-                    </p>
-                  </div>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Contact Information</h2>
+            <p className="text-xl text-gray-600">Multiple ways to reach us</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {contactInfo.map((info, index) => (
+              <div key={index} className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow duration-300">
+                <div className={`inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-6`}>
+                  <info.icon className={`h-8 w-8 ${info.color}`} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">{info.title}</h3>
+                <div className="space-y-2">
+                  {info.details.map((detail, idx) => (
+                    <p key={idx} className="text-gray-600">{detail}</p>
+                  ))}
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-              <div className="card">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-gold-100 p-3 rounded-lg">
-                    <FaPhone className="h-6 w-6 text-gold-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 mb-2">Call Us</h3>
-                    <p className="text-gray-600 text-sm">
-                      +254 714 333 111<br />
-                      +254 781 333 777<br />
-                      +254 717 333 111
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="card">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-green-100 p-3 rounded-lg">
-                    <FaEnvelope className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 mb-2">Email Us</h3>
-                    <p className="text-gray-600 text-sm">
-                      info@ueab.ac.ke<br />
-                      admissions@ueab.ac.ke<br />
-                      odel@ueab.ac.ke
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="card">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-purple-100 p-3 rounded-lg">
-                    <FaClock className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 mb-2">Office Hours</h3>
-                    <p className="text-gray-600 text-sm">
-                      Monday - Friday: 8:00 AM - 5:00 PM<br />
-                      Saturday: 9:00 AM - 1:00 PM<br />
-                      Sunday: Closed
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+      {/* Contact Form and Map */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12">
             {/* Contact Form */}
-            <div className="lg:col-span-2">
-              <div className="card">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Send Us a Message</h2>
+            <div>
+              <div className="mb-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">Send us a Message</h2>
+                <p className="text-lg text-gray-600">
+                  Fill out the form below and we'll get back to you as soon as possible.
+                </p>
+              </div>
+
+              {isSubmitted ? (
+                <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
+                  <FaCheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+                  <h3 className="text-2xl font-bold text-green-900 mb-2">Message Sent!</h3>
+                  <p className="text-green-700 mb-6">
+                    Thank you for contacting us. We'll get back to you within 24 hours.
+                  </p>
+                  <button
+                    onClick={() => setIsSubmitted(false)}
+                    className="btn-primary"
+                  >
+                    Send Another Message
+                  </button>
+                </div>
+              ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
@@ -118,14 +228,14 @@ export default function ContactPage() {
                       <input
                         type="text"
                         id="name"
+                        name="name"
                         value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="input-field"
-                        placeholder="John Doe"
+                        onChange={handleInputChange}
                         required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Your full name"
                       />
                     </div>
-
                     <div>
                       <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
                         Email Address *
@@ -133,11 +243,12 @@ export default function ContactPage() {
                       <input
                         type="email"
                         id="email"
+                        name="email"
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="input-field"
-                        placeholder="john@example.com"
+                        onChange={handleInputChange}
                         required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="your.email@example.com"
                       />
                     </div>
                   </div>
@@ -150,32 +261,48 @@ export default function ContactPage() {
                       <input
                         type="tel"
                         id="phone"
+                        name="phone"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="input-field"
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         placeholder="+254 700 000 000"
                       />
                     </div>
-
                     <div>
-                      <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-2">
-                        Subject *
+                      <label htmlFor="inquiryType" className="block text-sm font-semibold text-gray-700 mb-2">
+                        Inquiry Type *
                       </label>
                       <select
-                        id="subject"
-                        value={formData.subject}
-                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                        className="input-field"
+                        id="inquiryType"
+                        name="inquiryType"
+                        value={formData.inquiryType}
+                        onChange={handleInputChange}
                         required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       >
-                        <option value="">Select a subject</option>
-                        <option value="admissions">Admissions Inquiry</option>
-                        <option value="courses">Course Information</option>
-                        <option value="technical">Technical Support</option>
-                        <option value="financial">Financial Aid</option>
-                        <option value="other">Other</option>
+                        {inquiryTypes.map((type) => (
+                          <option key={type.value} value={type.value}>
+                            {type.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Subject *
+                    </label>
+                    <input
+                      type="text"
+                      id="subject"
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      placeholder="Brief description of your inquiry"
+                    />
                   </div>
 
                   <div>
@@ -184,39 +311,157 @@ export default function ContactPage() {
                     </label>
                     <textarea
                       id="message"
+                      name="message"
                       value={formData.message}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="input-field"
-                      rows={6}
-                      placeholder="Tell us how we can help you..."
+                      onChange={handleInputChange}
                       required
-                    ></textarea>
+                      rows={6}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      placeholder="Please provide details about your inquiry..."
+                    />
                   </div>
 
-                  <button type="submit" className="btn-primary inline-flex items-center">
-                    <FaPaperPlane className="mr-2" />
-                    Send Message
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full btn-primary flex items-center justify-center group"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Sending Message...
+                      </>
+                    ) : (
+                      <>
+                        <FaPaperPlane className="mr-2 group-hover:translate-x-1 transition-transform" />
+                        Send Message
+                      </>
+                    )}
                   </button>
                 </form>
+              )}
+            </div>
+
+            {/* Map and Additional Info */}
+            <div className="space-y-8">
+              {/* Campus Map Placeholder */}
+              <div className="bg-gradient-to-br from-primary-100 to-gold-100 rounded-2xl p-8 text-center border-2 border-dashed border-primary-300">
+                <FaMapMarkerAlt className="h-24 w-24 text-primary-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-gray-700 mb-2">Campus Location</h3>
+                <p className="text-gray-600 mb-4">Interactive campus map will be displayed here</p>
+                <p className="text-sm text-gray-500">📍 P.O. Box 2500, 30100 Eldoret, Kenya</p>
+                <div className="mt-6">
+                  <button className="btn-primary">
+                    <FaMapMarkerAlt className="mr-2" />
+                    Get Directions
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick Info */}
+              <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">Quick Information</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <FaInfoCircle className="h-5 w-5 text-primary-600" />
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Response Time</h4>
+                      <p className="text-gray-600">We typically respond within 24 hours</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <FaGraduationCap className="h-5 w-5 text-primary-600" />
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Admissions</h4>
+                      <p className="text-gray-600">Open year-round for most programs</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <FaBook className="h-5 w-5 text-primary-600" />
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Programs</h4>
+                      <p className="text-gray-600">200+ programs across 5 schools</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <FaCalendarAlt className="h-5 w-5 text-primary-600" />
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Campus Tours</h4>
+                      <p className="text-gray-600">Available Monday to Friday</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Map Section */}
-      <section className="py-20 bg-white">
+      {/* Departments Section */}
+      <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="section-title">Find Us</h2>
-            <p className="section-subtitle">Located in the beautiful highlands of Eldoret, Kenya</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Departments & Services</h2>
+            <p className="text-xl text-gray-600">Contact specific departments for specialized assistance</p>
           </div>
-          <div className="bg-gray-200 rounded-xl overflow-hidden shadow-lg h-96 flex items-center justify-center">
-            <div className="text-center">
-              <FaMapMarkerAlt className="h-16 w-16 text-primary-500 mx-auto mb-4" />
-              <p className="text-gray-600">Map integration placeholder</p>
-              <p className="text-sm text-gray-500 mt-2">Coordinates: 0.3736° N, 35.2428° E</p>
-            </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {departments.map((dept, index) => (
+              <div key={index} className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="bg-primary-100 p-3 rounded-lg">
+                    <FaBuilding className="h-6 w-6 text-primary-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">{dept.name}</h3>
+                </div>
+                
+                <p className="text-gray-600 mb-6">{dept.description}</p>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <FaEnvelope className="h-4 w-4 text-gray-400" />
+                    <a href={`mailto:${dept.email}`} className="text-primary-600 hover:text-primary-700 transition-colors">
+                      {dept.email}
+                    </a>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <FaPhone className="h-4 w-4 text-gray-400" />
+                    <a href={`tel:${dept.phone}`} className="text-primary-600 hover:text-primary-700 transition-colors">
+                      {dept.phone}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center bg-gold-500/20 text-gold-300 px-4 py-2 rounded-full text-sm font-semibold mb-6">
+            🎓 Ready to Apply?
+          </div>
+          
+          <h2 className="text-4xl font-bold text-white mb-6">
+            Start Your UEAB Journey Today
+          </h2>
+          
+          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+            Don't wait! Join thousands of students who have chosen UEAB for their education. 
+            Apply now and take the first step toward your academic success.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/register" className="btn-gold inline-flex items-center group">
+              <FaGraduationCap className="mr-2 group-hover:scale-110 transition-transform" />
+              Apply Now
+            </Link>
+            <Link href="/courses" className="btn-outline-white inline-flex items-center group">
+              <FaBook className="mr-2 group-hover:rotate-12 transition-transform" />
+              Explore Programs
+            </Link>
           </div>
         </div>
       </section>
@@ -225,4 +470,3 @@ export default function ContactPage() {
     </div>
   )
 }
-
