@@ -1,5 +1,13 @@
 # 🚀 Backend Implementation Guide for UEAB ODel
+You have access t my .env these are my keys for supabase
 
+@https://vsirtnqfvimtkgabxpzy.supabase.co =Project url
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzaXJ0bnFmdmltdGtnYWJ4cHp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0MTM3OTksImV4cCI6MjA3NTk4OTc5OX0.HXVwXtP3bKdvhYsN197Y3xBcm8wY6zn7vq8wWd22fK4 = API key
+
+vsirtnqfvimtkgabxpzy = Project id
+
+Do the needful
 ## 📋 Table of Contents
 1. [Backend Options Comparison](#backend-options-comparison)
 2. [Recommended Solution](#recommended-solution)
