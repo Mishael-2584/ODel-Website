@@ -134,7 +134,7 @@ ODel Website/
 
 ### Environment Variables
 
-Create a `.env.local` file in the root directory:
+Create a `.env` file in the root directory:
 
 ```env
 # App Configuration

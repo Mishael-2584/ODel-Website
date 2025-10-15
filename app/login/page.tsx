@@ -22,13 +22,13 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    const { error } = await signIn(formData.email, formData.password)
+    const { error } = await signIn(formData.email, formData.password, formData.remember)
     
     if (error) {
       setError(error.message || 'Login failed')
+      setLoading(false)
     }
-    
-    setLoading(false)
+    // Don't set loading to false on success - the redirect will happen
   }
 
   const handleSocialLogin = async (provider: 'google' | 'github') => {
@@ -95,7 +95,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+              <span className="px-2 bg-white text-gray-500">Continue with email</span>
             </div>
           </div>
 

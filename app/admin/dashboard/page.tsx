@@ -51,13 +51,22 @@ export default function AdminDashboard() {
     pendingApprovals: 0
   })
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'courses'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'courses' | 'notifications'>('overview')
+  const [showNotificationModal, setShowNotificationModal] = useState(false)
+  const [notificationForm, setNotificationForm] = useState({
+    title: '',
+    message: '',
+    type: 'announcement',
+    targetRole: 'all'
+  })
+  const [sentNotifications, setSentNotifications] = useState<any[]>([])
 
   useEffect(() => {
     if (profile) {
       fetchStats()
       fetchUsers()
       fetchCourses()
+      fetchSentNotifications()
     }
   }, [profile])
 
@@ -153,6 +162,94 @@ export default function AdminDashboard() {
     }
   }
 
+  const fetchSentNotifications = async () => {
+    try {
+      // Fetch all notifications to show what the admin has sent
+      // We'll group them by title/message to avoid duplicates
+      const { data: notifications, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      // Group notifications by title and message to show unique sent notifications
+      const groupedNotifications = new Map()
+      notifications?.forEach(notification => {
+        const key = `${notification.title}|${notification.message}|${notification.type}`
+        if (!groupedNotifications.has(key)) {
+          groupedNotifications.set(key, {
+            id: notification.id,
+            title: notification.title,
+            message: notification.message,
+            type: notification.type,
+            targetRole: 'all', // We'll determine this based on the recipients
+            created_at: notification.created_at,
+            recipientCount: 1
+          })
+        } else {
+          groupedNotifications.get(key).recipientCount++
+        }
+      })
+
+      setSentNotifications(Array.from(groupedNotifications.values()))
+    } catch (error) {
+      console.error('Error fetching sent notifications:', error)
+    }
+  }
+
+  const sendNotification = async () => {
+    try {
+      // Get target users based on role
+      let targetUsers
+      if (notificationForm.targetRole === 'all') {
+        const { data: allUsers } = await supabase
+          .from('profiles')
+          .select('id')
+        targetUsers = allUsers || []
+      } else {
+        const { data: roleUsers } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('role', notificationForm.targetRole)
+        targetUsers = roleUsers || []
+      }
+
+      // Create notifications for all target users
+      const notifications = targetUsers.map(user => ({
+        user_id: user.id,
+        type: notificationForm.type,
+        title: notificationForm.title,
+        message: notificationForm.message,
+        read: false,
+        created_at: new Date().toISOString()
+      }))
+
+      const { error } = await supabase
+        .from('notifications')
+        .insert(notifications)
+
+      if (error) throw error
+
+      // Refresh sent notifications
+      await fetchSentNotifications()
+
+      // Reset form and close modal
+      setNotificationForm({
+        title: '',
+        message: '',
+        type: 'announcement',
+        targetRole: 'all'
+      })
+      setShowNotificationModal(false)
+
+      alert('Notification sent successfully!')
+    } catch (error) {
+      console.error('Error sending notification:', error)
+      alert('Failed to send notification. Please try again.')
+    }
+  }
+
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'admin': return 'bg-red-100 text-red-800'
@@ -219,7 +316,8 @@ export default function AdminDashboard() {
             {[
               { id: 'overview', name: 'Overview', icon: FaChartBar },
               { id: 'users', name: 'Users', icon: FaUsers },
-              { id: 'courses', name: 'Courses', icon: FaBook }
+              { id: 'courses', name: 'Courses', icon: FaBook },
+              { id: 'notifications', name: 'Notifications', icon: FaComments }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -478,7 +576,167 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
+        {/* Notifications Tab */}
+        {activeTab === 'notifications' && (
+          <div className="bg-white rounded-xl shadow-sm p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Notification Management</h3>
+              <button
+                onClick={() => setShowNotificationModal(true)}
+                className="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-2"
+              >
+                <FaComments className="h-4 w-4" />
+                <span>Send Notification</span>
+              </button>
+            </div>
+            
+            {/* Sent Notifications Section */}
+            <div className="mb-8">
+              <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                <FaComments className="mr-2 text-primary-600" />
+                Sent Notifications
+              </h4>
+              
+              {sentNotifications.length === 0 ? (
+                <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                  <FaComments className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-600 mb-4">No notifications sent yet</p>
+                  <button
+                    onClick={() => setShowNotificationModal(true)}
+                    className="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    Send Your First Notification
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {sentNotifications.map((notification) => (
+                    <div key={notification.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="flex justify-between items-start mb-2">
+                        <h5 className="font-semibold text-gray-900">{notification.title}</h5>
+                        <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
+                          {notification.type}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 text-sm mb-3">{notification.message}</p>
+                      <div className="flex justify-between items-center text-xs text-gray-500">
+                        <span>Recipients: {notification.recipientCount} user{notification.recipientCount !== 1 ? 's' : ''}</span>
+                        <span>Sent: {new Date(notification.created_at).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Quick Send Section */}
+            <div className="border-t pt-8">
+              <h4 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                <FaComments className="mr-2 text-primary-600" />
+                Quick Send
+              </h4>
+              <div className="text-center py-8 bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg border border-primary-200">
+                <FaComments className="h-12 w-12 text-primary-400 mx-auto mb-4" />
+                <h5 className="text-lg font-semibold text-gray-900 mb-2">Send Platform Notifications</h5>
+                <p className="text-gray-600 mb-6">Create and send notifications to users based on their roles</p>
+                <button
+                  onClick={() => setShowNotificationModal(true)}
+                  className="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                >
+                  Create Notification
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Notification Modal */}
+      {showNotificationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Send Notification</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  value={notificationForm.title}
+                  onChange={(e) => setNotificationForm({ ...notificationForm, title: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter notification title"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Message *
+                </label>
+                <textarea
+                  value={notificationForm.message}
+                  onChange={(e) => setNotificationForm({ ...notificationForm, message: e.target.value })}
+                  rows={4}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter notification message"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Type
+                </label>
+                <select
+                  value={notificationForm.type}
+                  onChange={(e) => setNotificationForm({ ...notificationForm, type: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="announcement">Announcement</option>
+                  <option value="course">Course Update</option>
+                  <option value="deadline">Deadline Reminder</option>
+                  <option value="achievement">Achievement</option>
+                  <option value="warning">Warning</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Target Audience
+                </label>
+                <select
+                  value={notificationForm.targetRole}
+                  onChange={(e) => setNotificationForm({ ...notificationForm, targetRole: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="all">All Users</option>
+                  <option value="student">Students Only</option>
+                  <option value="instructor">Instructors Only</option>
+                  <option value="admin">Admins Only</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex space-x-4 mt-8">
+              <button
+                onClick={() => setShowNotificationModal(false)}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={sendNotification}
+                disabled={!notificationForm.title.trim() || !notificationForm.message.trim()}
+                className="flex-1 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Send Notification
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

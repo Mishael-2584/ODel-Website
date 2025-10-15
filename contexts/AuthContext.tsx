@@ -9,7 +9,7 @@ interface AuthContextType {
   user: User | null
   profile: Profile | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<{ error: any }>
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: any }>
   signUp: (email: string, password: string, fullName: string, role: UserRole) => Promise<{ error: any }>
   signInWithProvider: (provider: 'google' | 'github') => Promise<{ error: any }>
   signOut: () => Promise<void>
@@ -65,20 +65,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (error) return { error }
+      if (error) {
+        console.error('Login error:', error)
+        return { error }
+      }
 
       if (data.user) {
+        // Set session persistence based on remember me
+        if (rememberMe) {
+          // Keep session for 30 days
+          await supabase.auth.setSession({
+            access_token: data.session?.access_token || '',
+            refresh_token: data.session?.refresh_token || ''
+          })
+        }
+
+        // Fetch user profile
         const profile = await fetchProfile(data.user.id)
         
-        // Redirect based on role
         if (profile) {
+          // Redirect based on role
           switch (profile.role) {
             case 'admin':
               router.push('/admin/dashboard')
@@ -89,11 +102,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             default:
               router.push('/student/dashboard')
           }
+        } else {
+          // If no profile exists, create one
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              username: data.user.email?.split('@')[0] || 'user',
+              full_name: data.user.user_metadata?.full_name || 'User',
+              role: 'student',
+              updated_at: new Date().toISOString()
+            })
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError)
+          } else {
+            // Redirect to student dashboard after profile creation
+            router.push('/student/dashboard')
+          }
         }
       }
 
       return { error: null }
     } catch (error: any) {
+      console.error('Unexpected login error:', error)
       return { error }
     }
   }
