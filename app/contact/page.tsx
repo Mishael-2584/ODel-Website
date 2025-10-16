@@ -158,8 +158,8 @@ export default function ContactPage() {
             </h1>
             
             <p className="text-xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-              Have questions about our programs, admissions, or need support? 
-              We're here to help you on your educational journey.
+              Have questions about our ODeL programs, admissions, or need technical support? 
+              Our dedicated team is here to help you succeed in your online learning journey.
             </p>
           </div>
         </div>
@@ -344,17 +344,64 @@ export default function ContactPage() {
 
             {/* Map and Additional Info */}
             <div className="space-y-8">
-              {/* Campus Map Placeholder */}
-              <div className="bg-gradient-to-br from-primary-100 to-gold-100 rounded-2xl p-8 text-center border-2 border-dashed border-primary-300">
-                <FaMapMarkerAlt className="h-24 w-24 text-primary-400 mx-auto mb-4" />
-                <h3 className="text-2xl font-bold text-gray-700 mb-2">Campus Location</h3>
-                <p className="text-gray-600 mb-4">Interactive campus map will be displayed here</p>
-                <p className="text-sm text-gray-500">📍 P.O. Box 2500, 30100 Eldoret, Kenya</p>
-                <div className="mt-6">
-                  <button className="btn-primary">
-                    <FaMapMarkerAlt className="mr-2" />
-                    Get Directions
-                  </button>
+              {/* Interactive Campus Map */}
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
+                <div className="p-6 border-b border-gray-200">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Find UEAB Campus</h3>
+                  <p className="text-gray-600">📍 P.O. Box 2500, 30100 Eldoret, Kenya</p>
+                </div>
+                
+                <div className="relative">
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.7832!2d35.2856!3d0.5149!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sUniversity%20of%20Eastern%20Africa%2C%20Baraton!5e0!3m2!1sen!2ske!4v1234567890123!5m2!1sen!2ske"
+                    width="100%"
+                    height="300"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    className="w-full"
+                    title="UEAB Campus Location"
+                  ></iframe>
+                  
+                  {/* Map Overlay Controls */}
+                  <div className="absolute top-4 right-4 bg-white rounded-lg px-3 py-2 shadow-md">
+                    <a
+                      href="https://www.google.com/maps/dir//University+of+Eastern+Africa+Baraton+Eldoret+Kenya"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center"
+                    >
+                      <FaMapMarkerAlt className="h-4 w-4 mr-1" />
+                      Get Directions
+                    </a>
+                  </div>
+                </div>
+                
+                <div className="p-6 bg-gray-50">
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a
+                      href="https://www.google.com/maps/dir//University+of+Eastern+Africa+Baraton+Eldoret+Kenya"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+                    >
+                      <FaMapMarkerAlt className="h-4 w-4 mr-2" />
+                      Directions
+                    </a>
+                    <a
+                      href="https://www.google.com/maps/place/University+of+Eastern+Africa+Baraton+Eldoret+Kenya"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center px-4 py-2 bg-gold-600 text-white rounded-lg hover:bg-gold-700 transition-colors text-sm font-medium"
+                    >
+                      <FaGlobe className="h-4 w-4 mr-2" />
+                      View on Google Maps
+                    </a>
+                  </div>
+                  <p className="text-center text-sm text-gray-600 mt-3">
+                    Click the buttons above to get directions or view the full map
+                  </p>
                 </div>
               </div>
 

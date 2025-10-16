@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { 
@@ -15,43 +16,43 @@ export default function Home() {
   const schools = [
     {
       icon: FaBuilding,
-      title: 'School of Business',
-      description: 'Comprehensive business programs from undergraduate to graduate levels with practical industry applications.',
+      title: 'School of Business and Technology',
+      description: 'Comprehensive business and technology programs including BBA, MBA specializations, and IT programs.',
       color: 'from-blue-500 to-blue-700',
       iconBg: 'bg-blue-500',
-      programs: ['BBA', 'MBA', 'PhD in Business']
+      programs: ['BBA Marketing', 'MBA Finance', 'BBIT', 'BSc Electronics']
     },
     {
       icon: FaBook,
-      title: 'School of Education, Humanities and Social Sciences',
-      description: 'Teacher education and humanities programs preparing educators and social science professionals.',
+      title: 'School of Education, Arts and Humanities',
+      description: 'Teacher education, arts, and humanities programs preparing educators and professionals.',
       color: 'from-green-500 to-green-700',
       iconBg: 'bg-green-500',
-      programs: ['B.Ed', 'M.Ed', 'PhD in Education']
+      programs: ['B.Ed Science/Arts', 'M.Ed Curriculum', 'BA Journalism', 'BA Theology']
     },
     {
       icon: FaStethoscope,
-      title: 'School of Nursing and Health Sciences',
-      description: 'Healthcare programs including nursing, nutrition, and public health with clinical training components.',
+      title: 'School of Health Sciences',
+      description: 'Healthcare programs including nursing, public health, and medical laboratory sciences.',
       color: 'from-red-500 to-red-700',
       iconBg: 'bg-red-500',
-      programs: ['BSc Nursing', 'MSc Public Health', 'PhD in Health Sciences']
+      programs: ['BSc Nursing', 'MPH', 'BSc Public Health', 'BSc Medical Lab']
     },
     {
       icon: FaMicroscope,
-      title: 'School of Science and Technology',
-      description: 'STEM programs in computing, mathematics, chemistry, physics, and applied sciences.',
+      title: 'School of Sciences',
+      description: 'STEM programs in mathematics, chemistry, biology, and environmental sciences.',
       color: 'from-purple-500 to-purple-700',
       iconBg: 'bg-purple-500',
-      programs: ['BSc Computer Science', 'MSc IT', 'PhD in Technology']
+      programs: ['BSc Mathematics', 'BSc Chemistry', 'BSc Biology', 'BSc Environmental']
     },
     {
       icon: FaGraduationCap,
-      title: 'School of Graduate Studies and Research',
-      description: 'Advanced research programs and doctoral studies across all disciplines.',
+      title: 'School of Agriculture and Hospitality',
+      description: 'Agriculture, agribusiness, hospitality, and nutrition programs.',
       color: 'from-gold-500 to-gold-700',
       iconBg: 'bg-gold-500',
-      programs: ['Master\'s Programs', 'PhD Programs', 'Research Fellowships']
+      programs: ['BSc Agriculture', 'BSc Agribusiness', 'BSc Hospitality', 'BSc Nutrition']
     }
   ]
 
@@ -110,55 +111,47 @@ export default function Home() {
   const popularPrograms = [
     {
       title: 'Bachelor of Business Administration',
-      school: 'School of Business',
+      school: 'School of Business and Technology',
       students: 450,
       rating: 4.8,
       duration: '4 years',
       level: 'Undergraduate',
       image: '🏢',
       credits: 120,
-      price: 'KES 180,000/year',
-      instructor: 'Dr. Sarah Kimani',
       badge: 'Most Popular'
     },
     {
-      title: 'Bachelor of Science in Computer Science',
-      school: 'School of Science & Technology',
+      title: 'Bachelor of Science in Nursing',
+      school: 'School of Health Sciences',
       students: 380,
       rating: 4.9,
       duration: '4 years',
       level: 'Undergraduate',
-      image: '💻',
+      image: '🏥',
       credits: 120,
-      price: 'KES 200,000/year',
-      instructor: 'Prof. John Mwangi',
-      badge: 'Trending'
+      badge: 'High Demand'
     },
     {
-      title: 'Bachelor of Science in Nursing',
-      school: 'School of Nursing & Health Sciences',
+      title: 'Bachelor of Education (Science)',
+      school: 'School of Education, Arts and Humanities',
       students: 320,
       rating: 4.7,
       duration: '4 years',
       level: 'Undergraduate',
-      image: '🏥',
+      image: '📚',
       credits: 120,
-      price: 'KES 220,000/year',
-      instructor: 'Dr. Mary Wanjiku',
-      badge: 'High Demand'
+      badge: 'Professional'
     },
     {
-      title: 'Master of Education',
-      school: 'School of Education',
+      title: 'Master of Business Administration',
+      school: 'School of Business and Technology',
       students: 180,
       rating: 4.8,
       duration: '2 years',
       level: 'Graduate',
-      image: '📚',
+      image: '💼',
       credits: 60,
-      price: 'KES 150,000/year',
-      instructor: 'Prof. James Ochieng',
-      badge: 'Professional'
+      badge: 'Executive'
     }
   ]
 
@@ -166,128 +159,151 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       <Navbar />
       
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900"></div>
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+      {/* Hero Banner Section with ODeL Building Background */}
+      <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="/images/campus/ODeLbuilding.jpg"
+            alt="UEAB ODeL Building"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-900/85 via-primary-800/75 to-primary-900/85"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+        </div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="text-white">
-              <div className="inline-flex items-center bg-gold-500/20 backdrop-blur-sm border border-gold-500/30 rounded-full px-4 py-2 mb-6">
-                <span className="text-gold-300 text-sm font-semibold">🎓 Premier Open Distance eLearning Platform</span>
-              </div>
-              
-              <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight">
-                Transform Your Future with <span className="text-gold-400 bg-gradient-to-r from-gold-400 to-gold-300 bg-clip-text text-transparent animate-pulse">UEAB ODeL</span>
-              </h1>
-              
-              <p className="text-xl text-gray-300 mb-8 leading-relaxed">
-                Join the University of Eastern Africa, Baraton's cutting-edge Open Distance eLearning platform. 
-                Access world-class education from anywhere, anytime with flexible learning options.
-              </p>
-              
-              <div className="grid grid-cols-2 gap-6 mb-8">
-                <div className="flex items-center space-x-3 group hover:scale-105 transition-all duration-300 cursor-pointer">
-                  <div className="bg-gold-500/20 p-2 rounded-lg group-hover:bg-gold-500/30 transition-colors duration-300">
-                    <FaTrophy className="h-6 w-6 text-gold-400 group-hover:animate-bounce" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-white group-hover:text-gold-300 transition-colors">Accredited Programs</p>
-                    <p className="text-sm text-gray-300">Internationally Recognized</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-3 group hover:scale-105 transition-all duration-300 cursor-pointer">
-                  <div className="bg-gold-500/20 p-2 rounded-lg group-hover:bg-gold-500/30 transition-colors duration-300">
-                    <FaUniversity className="h-6 w-6 text-gold-400 group-hover:animate-bounce" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-white group-hover:text-gold-300 transition-colors">Five Academic Schools</p>
-                    <p className="text-sm text-gray-300">Comprehensive Programs</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-3 group hover:scale-105 transition-all duration-300 cursor-pointer">
-                  <div className="bg-gold-500/20 p-2 rounded-lg group-hover:bg-gold-500/30 transition-colors duration-300">
-                    <FaGraduationCap className="h-6 w-6 text-gold-400 group-hover:animate-bounce" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-white group-hover:text-gold-300 transition-colors">Bachelor's to PhD</p>
-                    <p className="text-sm text-gray-300">Complete Academic Journey</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-3 group hover:scale-105 transition-all duration-300 cursor-pointer">
-                  <div className="bg-gold-500/20 p-2 rounded-lg group-hover:bg-gold-500/30 transition-colors duration-300">
-                    <FaChalkboardTeacher className="h-6 w-6 text-gold-400 group-hover:animate-bounce" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-white group-hover:text-gold-300 transition-colors">Expert Faculty</p>
-                    <p className="text-sm text-gray-300">PhD Holders & Professionals</p>
+        {/* Background Pattern Overlay */}
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
+        
+        {/* Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10 w-full">
+          <div className="text-center text-white">
+            {/* Badge */}
+            <div className="inline-flex items-center bg-gold-500/25 backdrop-blur-sm border border-gold-500/40 rounded-full px-6 py-3 mb-8 shadow-lg">
+              <span className="text-gold-200 text-sm font-semibold">🎓 Premier Open Distance eLearning Platform</span>
+            </div>
+            
+            {/* Main Heading */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 lg:mb-8 leading-tight">
+              Transform Your Future with <span className="text-gold-300 bg-gradient-to-r from-gold-300 to-gold-200 bg-clip-text text-transparent animate-pulse">UEAB ODeL</span>
+            </h1>
+            
+            {/* Description */}
+            <p className="text-lg sm:text-xl lg:text-2xl text-gray-100 mb-8 lg:mb-10 max-w-5xl mx-auto leading-relaxed">
+              Join the University of Eastern Africa, Baraton's premier Open Distance eLearning platform. 
+              Experience flexible, accessible, and quality education that empowers you to learn from anywhere, 
+              at your own pace, with internationally recognized programs across five comprehensive academic schools.
+            </p>
+            
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center mb-10 lg:mb-12">
+              <Link href="/register" className="btn-gold inline-flex items-center justify-center group text-base lg:text-lg px-6 lg:px-8 py-3 lg:py-4 shadow-xl hover:shadow-2xl transition-all">
+                <FaRocket className="mr-3 group-hover:rotate-12 transition-transform" />
+                Get Started Today
+              </Link>
+              <Link href="/courses" className="btn-outline-white inline-flex items-center justify-center group text-base lg:text-lg px-6 lg:px-8 py-3 lg:py-4 shadow-xl hover:shadow-2xl transition-all">
+                <FaPlay className="mr-3 group-hover:scale-110 transition-transform" />
+                Explore Programs
+              </Link>
+            </div>
+            
+            {/* Achievement Badges */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 max-w-6xl mx-auto mb-10">
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 lg:px-6 py-4 lg:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg">
+                <div className="flex flex-col items-center space-y-2">
+                  <FaTrophy className="h-6 lg:h-8 w-6 lg:w-8 text-gold-300 group-hover:animate-bounce" />
+                  <div className="text-center">
+                    <p className="font-semibold text-white group-hover:text-gold-200 transition-colors text-sm lg:text-base">Accredited Programs</p>
+                    <p className="text-xs lg:text-sm text-gray-200">Internationally Recognized</p>
                   </div>
                 </div>
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/courses" className="btn-primary flex items-center justify-center group">
-                  <FaBookOpen className="mr-2 group-hover:rotate-12 transition-transform" />
-                  Explore Programs
-                  <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <Link href="/register" className="btn-outline-gold flex items-center justify-center group">
-                  <FaUserPlus className="mr-2 group-hover:scale-110 transition-transform" />
-                  Start Your Journey
-                </Link>
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 lg:px-6 py-4 lg:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg">
+                <div className="flex flex-col items-center space-y-2">
+                  <FaUniversity className="h-6 lg:h-8 w-6 lg:w-8 text-gold-300 group-hover:animate-bounce" />
+                  <div className="text-center">
+                    <p className="font-semibold text-white group-hover:text-gold-200 transition-colors text-sm lg:text-base">Five Academic Schools</p>
+                    <p className="text-xs lg:text-sm text-gray-200">Comprehensive Programs</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 lg:px-6 py-4 lg:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg">
+                <div className="flex flex-col items-center space-y-2">
+                  <FaGraduationCap className="h-6 lg:h-8 w-6 lg:w-8 text-gold-300 group-hover:animate-bounce" />
+                  <div className="text-center">
+                    <p className="font-semibold text-white group-hover:text-gold-200 transition-colors text-sm lg:text-base">Bachelor's to PhD</p>
+                    <p className="text-xs lg:text-sm text-gray-200">Complete Academic Journey</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 lg:px-6 py-4 lg:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg">
+                <div className="flex flex-col items-center space-y-2">
+                  <FaChalkboardTeacher className="h-6 lg:h-8 w-6 lg:w-8 text-gold-300 group-hover:animate-bounce" />
+                  <div className="text-center">
+                    <p className="font-semibold text-white group-hover:text-gold-200 transition-colors text-sm lg:text-base">Expert Faculty</p>
+                    <p className="text-xs lg:text-sm text-gray-200">PhD Holders & Professionals</p>
+                  </div>
+                </div>
               </div>
             </div>
             
-            <div className="relative">
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
+            {/* Live Stats Card */}
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 lg:p-8 border border-white/25 shadow-xl">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-3">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
+                    <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                   </div>
-                  <span className="text-white/70 text-sm">✨ Live Now</span>
+                  <span className="text-white/80 text-sm font-medium">✨ Live Now</span>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <FaUserGraduate className="h-6 w-6 text-gold-400" />
-                      <span className="text-white font-semibold">Active Learners</span>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm text-center hover:bg-white/15 transition-all">
+                    <div className="flex flex-col items-center space-y-2">
+                      <FaUserGraduate className="h-5 lg:h-6 w-5 lg:w-6 text-gold-300" />
+                      <span className="text-white font-semibold text-xs lg:text-sm">Active Learners</span>
                     </div>
-                    <p className="text-2xl font-bold text-white">10,000+</p>
+                    <p className="text-xl lg:text-2xl font-bold text-white mt-2">10,000+</p>
                   </div>
                   
-                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <FaCertificate className="h-6 w-6 text-gold-400" />
-                      <span className="text-white font-semibold">Graduates</span>
+                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm text-center hover:bg-white/15 transition-all">
+                    <div className="flex flex-col items-center space-y-2">
+                      <FaCertificate className="h-5 lg:h-6 w-5 lg:w-6 text-gold-300" />
+                      <span className="text-white font-semibold text-xs lg:text-sm">Graduates</span>
                     </div>
-                    <p className="text-2xl font-bold text-white">5,000+</p>
+                    <p className="text-xl lg:text-2xl font-bold text-white mt-2">5,000+</p>
                   </div>
                   
-                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <FaStar className="h-6 w-6 text-gold-400" />
-                      <span className="text-white font-semibold">Student Satisfaction</span>
+                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm text-center hover:bg-white/15 transition-all">
+                    <div className="flex flex-col items-center space-y-2">
+                      <FaStar className="h-5 lg:h-6 w-5 lg:w-6 text-gold-300" />
+                      <span className="text-white font-semibold text-xs lg:text-sm">Student Satisfaction</span>
                     </div>
-                    <p className="text-2xl font-bold text-white">4.8/5.0 ⭐</p>
+                    <p className="text-xl lg:text-2xl font-bold text-white mt-2">4.8/5.0 ⭐</p>
                   </div>
                   
-                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <FaGlobe className="h-6 w-6 text-gold-400" />
-                      <span className="text-white font-semibold">Countries</span>
+                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm text-center hover:bg-white/15 transition-all">
+                    <div className="flex flex-col items-center space-y-2">
+                      <FaGlobe className="h-5 lg:h-6 w-5 lg:w-6 text-gold-300" />
+                      <span className="text-white font-semibold text-xs lg:text-sm">Countries</span>
                     </div>
-                    <p className="text-2xl font-bold text-white">40+</p>
+                    <p className="text-xl lg:text-2xl font-bold text-white mt-2">40+</p>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <div className="w-6 h-10 border-2 border-white/60 rounded-full flex justify-center">
+            <div className="w-1 h-3 bg-white/80 rounded-full mt-2 animate-pulse"></div>
           </div>
         </div>
       </section>
@@ -321,31 +337,32 @@ export default function Home() {
               </div>
               
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                One of the Largest, Most Diverse Universities in Africa
+                Pioneering Open Distance eLearning in East Africa
               </h2>
               
               <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                At UEAB, we understand the importance of holistic education. In addition to our rigorous academic curriculum, 
-                we offer vibrant campus life that promotes personal growth, cultural enrichment, and extracurricular engagement. 
-                Our students have access to a wide range of clubs, organizations, and sports facilities.
+                The University of Eastern Africa, Baraton (UEAB) is a leading Seventh-day Adventist institution committed to 
+                providing quality education through innovative Open Distance eLearning (ODeL) programs. Our ODeL platform 
+                combines academic excellence with technological innovation, making higher education accessible to students 
+                across East Africa and beyond, regardless of geographical or time constraints.
               </p>
               
               <div className="grid grid-cols-2 gap-6 mb-8">
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="h-6 w-6 text-primary-600" />
-                  <span className="text-gray-700 font-medium">Accredited Programs</span>
+                  <span className="text-gray-700 font-medium">Commission for University Education Accredited</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="h-6 w-6 text-primary-600" />
-                  <span className="text-gray-700 font-medium">International Recognition</span>
+                  <span className="text-gray-700 font-medium">Seventh-day Adventist Accrediting Association</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="h-6 w-6 text-primary-600" />
-                  <span className="text-gray-700 font-medium">Expert Faculty</span>
+                  <span className="text-gray-700 font-medium">PhD Qualified Faculty</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="h-6 w-6 text-primary-600" />
-                  <span className="text-gray-700 font-medium">Modern Facilities</span>
+                  <span className="text-gray-700 font-medium">State-of-the-Art Learning Management System</span>
                 </div>
               </div>
               
@@ -356,12 +373,19 @@ export default function Home() {
             </div>
             
             <div className="relative">
-              {/* Placeholder for UEAB campus image */}
-              <div className="bg-gradient-to-br from-primary-100 to-gold-100 rounded-2xl p-8 text-center border-2 border-dashed border-primary-300">
-                <FaUniversity className="h-24 w-24 text-primary-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">UEAB Campus</h3>
-                <p className="text-gray-600">Beautiful campus images will be displayed here</p>
-                <p className="text-sm text-gray-500 mt-2">📍 P.O. Box 2500, 30100 Eldoret, Kenya</p>
+              {/* UEAB ODeL Building Image */}
+              <div className="relative rounded-2xl overflow-hidden shadow-xl">
+                <img
+                  src="/images/campus/odelbuilding.jpg"
+                  alt="UEAB ODeL Building"
+                  className="w-full h-80 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div className="absolute bottom-6 left-6 text-white">
+                  <h3 className="text-2xl font-bold mb-2">UEAB ODeL Building</h3>
+                  <p className="text-lg opacity-90">State-of-the-art facility for online learning</p>
+                  <p className="text-sm opacity-75 mt-1">📍 P.O. Box 2500, 30100 Eldoret, Kenya</p>
+                </div>
               </div>
             </div>
           </div>
@@ -449,9 +473,10 @@ export default function Home() {
               <blockquote className="text-lg text-gray-600 mb-8 leading-relaxed italic border-l-4 border-gold-500 pl-6 relative">
                 <div className="absolute -top-2 -left-2 text-4xl text-gold-400 opacity-50">"</div>
                 "Welcome to the University of Eastern Africa, Baraton's Open Distance eLearning platform. 
-                We are committed to providing quality education that is accessible, flexible, and internationally recognized. 
-                Our ODeL platform brings together the best of traditional academic excellence with modern technology, 
-                ensuring that students can achieve their educational goals regardless of their location or schedule constraints."
+                Our ODeL initiative represents our commitment to making quality higher education accessible to all, 
+                breaking down geographical and temporal barriers. Through innovative technology and our Seventh-day Adventist 
+                values of excellence, service, and integrity, we empower learners to achieve their academic and professional 
+                aspirations while maintaining the highest standards of education."
                 <div className="absolute -bottom-4 -right-2 text-4xl text-gold-400 opacity-50">"</div>
               </blockquote>
               
@@ -646,8 +671,7 @@ export default function Home() {
                     <span className="bg-gray-100 px-2 py-1 rounded-full text-xs group-hover:bg-primary-100 group-hover:text-primary-800 transition-colors">{program.level}</span>
                   </div>
                   
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100 group-hover:border-primary-200 transition-colors duration-300">
-                    <div className="text-primary-600 font-bold group-hover:text-primary-700 transition-colors">{program.price}</div>
+                  <div className="flex justify-end pt-4 border-t border-gray-100 group-hover:border-primary-200 transition-colors duration-300">
                     <Link href={`/courses/${index}`} className="btn-primary text-sm group/link">
                       <span className="group-hover/link:underline">Learn More</span>
                       <FaArrowRight className="ml-2 group-hover/link:translate-x-1 transition-transform duration-300" />

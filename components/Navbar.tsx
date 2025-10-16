@@ -16,7 +16,7 @@ export default function Navbar() {
   const publicNavLinks = [
     { href: '/', label: 'Home', icon: FaHome },
     { href: '/courses', label: 'Programs', icon: FaBook },
-    { href: '/about', label: 'About UEAB', icon: FaInfoCircle },
+    { href: '/about', label: 'About ODeL', icon: FaInfoCircle },
     { href: '/contact', label: 'Contact', icon: FaPhone },
   ]
 

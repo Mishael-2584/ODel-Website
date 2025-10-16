@@ -14,78 +14,117 @@ export default function CourseDetailPage() {
   const [activeTab, setActiveTab] = useState('overview')
   
   const course = {
-    title: 'Business Administration & Management',
-    category: 'Business',
+    title: 'Bachelor of Business Administration',
+    category: 'School of Business and Technology',
     rating: 4.8,
     reviews: 1250,
-    students: 1250,
-    duration: '12 weeks',
-    lessons: 48,
-    level: 'Intermediate',
-    price: 'KES 45,000',
-    originalPrice: 'KES 65,000',
-    instructor: {
-      name: 'Dr. Sarah Kimani',
-      title: 'PhD, Business Administration',
-      image: '👨‍🏫',
-      rating: 4.9,
-      students: 5000,
-      courses: 12
-    },
-    description: 'Master the fundamentals of business management, leadership, and strategic planning with this comprehensive course designed for aspiring managers and entrepreneurs.',
+    students: 450,
+    duration: '4 years',
+    lessons: 120,
+    level: 'Undergraduate',
+    credits: 120,
+    school: 'School of Business and Technology',
+    accreditation: 'CUE Accredited',
+    description: 'Comprehensive business education with specialization in marketing, finance, and management. This program prepares students for leadership roles in various business sectors.',
     whatYouLearn: [
       'Strategic business planning and execution',
       'Financial management and budgeting',
       'Leadership and team management',
       'Marketing strategies and customer relations',
       'Operations and supply chain management',
-      'Business analytics and decision making'
+      'Business analytics and decision making',
+      'Entrepreneurship and innovation',
+      'International business practices'
     ],
     requirements: [
-      'Basic understanding of business concepts',
-      'Access to computer and internet',
-      'Commitment to complete weekly assignments'
+      'KCSE Certificate with C+ and above',
+      'Mathematics C+ and above',
+      'English C+ and above',
+      'Any other two subjects with C+ and above'
+    ],
+    careerOpportunities: [
+      'Business Manager',
+      'Marketing Executive',
+      'Financial Analyst',
+      'Operations Manager',
+      'Entrepreneur',
+      'Business Consultant'
     ],
     features: [
-      { icon: FaPlay, text: '48 HD Video Lectures' },
-      { icon: FaBook, text: '200+ Reading Materials' },
-      { icon: FaDownload, text: 'Downloadable Resources' },
-      { icon: FaCertificate, text: 'Certificate of Completion' },
-      { icon: FaLanguage, text: 'English & Swahili' },
-      { icon: FaClosedCaptioning, text: 'Subtitles Available' }
+      { icon: FaBook, text: 'Comprehensive Curriculum' },
+      { icon: FaCertificate, text: 'CUE Accredited Degree' },
+      { icon: FaUsers, text: 'Expert Faculty' },
+      { icon: FaGraduationCap, text: 'Career Preparation' },
+      { icon: FaLanguage, text: 'Flexible Learning' },
+      { icon: FaTrophy, text: 'Industry Recognition' }
     ]
   }
 
   const curriculum = [
     {
-      module: 'Introduction to Business Management',
-      lessons: 8,
-      duration: '2h 30m',
-      lectures: [
-        { title: 'Welcome and Course Overview', duration: '15:00', isPreview: true, completed: true },
-        { title: 'What is Business Management?', duration: '20:00', isPreview: true, completed: true },
-        { title: 'Types of Business Organizations', duration: '25:00', isPreview: false, completed: false },
-        { title: 'Business Environment Analysis', duration: '30:00', isPreview: false, completed: false },
+      module: 'Year 1 - Foundation Courses',
+      credits: 30,
+      description: 'Core foundation subjects',
+      courses: [
+        { title: 'Principles of Management', credits: 3, type: 'Core' },
+        { title: 'Business Mathematics', credits: 3, type: 'Core' },
+        { title: 'Introduction to Economics', credits: 3, type: 'Core' },
+        { title: 'Business Communication', credits: 3, type: 'Core' },
+        { title: 'Computer Applications', credits: 3, type: 'Core' },
+        { title: 'Introduction to Accounting', credits: 3, type: 'Core' },
+        { title: 'Business Law', credits: 3, type: 'Core' },
+        { title: 'Principles of Marketing', credits: 3, type: 'Core' },
+        { title: 'Statistics for Business', credits: 3, type: 'Core' },
+        { title: 'General Education Courses', credits: 6, type: 'General' }
       ]
     },
     {
-      module: 'Strategic Planning & Leadership',
-      lessons: 10,
-      duration: '3h 15m',
-      lectures: [
-        { title: 'Strategic Planning Process', duration: '30:00', isPreview: false, completed: false },
-        { title: 'SWOT Analysis', duration: '25:00', isPreview: false, completed: false },
-        { title: 'Leadership Styles', duration: '35:00', isPreview: false, completed: false },
+      module: 'Year 2 - Intermediate Business Studies',
+      credits: 30,
+      description: 'Advanced business concepts and practices',
+      courses: [
+        { title: 'Organizational Behavior', credits: 3, type: 'Core' },
+        { title: 'Financial Management', credits: 3, type: 'Core' },
+        { title: 'Marketing Management', credits: 3, type: 'Core' },
+        { title: 'Operations Management', credits: 3, type: 'Core' },
+        { title: 'Human Resource Management', credits: 3, type: 'Core' },
+        { title: 'Business Research Methods', credits: 3, type: 'Core' },
+        { title: 'Microeconomics', credits: 3, type: 'Core' },
+        { title: 'Cost Accounting', credits: 3, type: 'Core' },
+        { title: 'Business Ethics', credits: 3, type: 'Core' },
+        { title: 'Elective Courses', credits: 6, type: 'Elective' }
       ]
     },
     {
-      module: 'Financial Management',
-      lessons: 12,
-      duration: '4h 00m',
-      lectures: [
-        { title: 'Financial Statements', duration: '40:00', isPreview: false, completed: false },
-        { title: 'Budgeting Techniques', duration: '35:00', isPreview: false, completed: false },
-        { title: 'Financial Analysis', duration: '45:00', isPreview: false, completed: false },
+      module: 'Year 3 - Specialized Business Areas',
+      credits: 30,
+      description: 'Specialization and advanced business topics',
+      courses: [
+        { title: 'Strategic Management', credits: 3, type: 'Core' },
+        { title: 'International Business', credits: 3, type: 'Core' },
+        { title: 'Entrepreneurship', credits: 3, type: 'Core' },
+        { title: 'Project Management', credits: 3, type: 'Core' },
+        { title: 'Business Information Systems', credits: 3, type: 'Core' },
+        { title: 'Leadership and Team Building', credits: 3, type: 'Core' },
+        { title: 'Macroeconomics', credits: 3, type: 'Core' },
+        { title: 'Managerial Accounting', credits: 3, type: 'Core' },
+        { title: 'Business Statistics', credits: 3, type: 'Core' },
+        { title: 'Elective Courses', credits: 6, type: 'Elective' }
+      ]
+    },
+    {
+      module: 'Year 4 - Capstone and Integration',
+      credits: 30,
+      description: 'Final year integration and capstone project',
+      courses: [
+        { title: 'Business Policy and Strategy', credits: 3, type: 'Core' },
+        { title: 'Capstone Project', credits: 6, type: 'Core' },
+        { title: 'Business Internship', credits: 3, type: 'Core' },
+        { title: 'Innovation and Change Management', credits: 3, type: 'Core' },
+        { title: 'Global Business Environment', credits: 3, type: 'Core' },
+        { title: 'Business Negotiations', credits: 3, type: 'Core' },
+        { title: 'Corporate Governance', credits: 3, type: 'Core' },
+        { title: 'Elective Courses', credits: 6, type: 'Elective' }
       ]
     }
   ]
@@ -157,7 +196,7 @@ export default function CourseDetailPage() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <FaGraduationCap className="text-gold-400" />
-                  <span>{course.instructor.name}</span>
+                  <span>{course.school}</span>
                 </div>
               </div>
 
@@ -171,63 +210,70 @@ export default function CourseDetailPage() {
               </div>
             </div>
 
-            {/* Right Column - Video Preview */}
+            {/* Right Column - Program Information */}
             <div className="lg:col-span-1">
               <div className="card sticky top-24">
-                <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg mb-4 relative overflow-hidden group cursor-pointer">
+                <div className="aspect-video bg-gradient-to-br from-primary-800 to-primary-900 rounded-lg mb-4 relative overflow-hidden">
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-gold-500 hover:bg-gold-600 w-20 h-20 rounded-full flex items-center justify-center shadow-xl-gold transition-all group-hover:scale-110">
-                      <FaPlay className="h-8 w-8 text-white ml-1" />
+                    <div className="text-center text-white">
+                      <FaGraduationCap className="h-16 w-16 mx-auto mb-4 text-gold-400" />
+                      <h3 className="text-xl font-bold">Academic Program</h3>
+                      <p className="text-gold-200">University Degree</p>
                     </div>
                   </div>
-                  <div className="absolute top-2 right-2 bg-primary-600 text-white px-3 py-1 rounded-full text-xs font-bold">
-                    Preview
+                  <div className="absolute top-2 right-2 bg-gold-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                    {course.accreditation}
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-3xl font-bold text-gold-600">{course.price}</span>
-                    <span className="text-lg text-gray-500 line-through">{course.originalPrice}</span>
+                  <div className="text-center">
+                    <span className="text-2xl font-bold text-primary-600">{course.credits} Credits</span>
+                    <p className="text-sm text-gray-600">Total Program Credits</p>
                   </div>
 
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <p className="text-green-700 font-semibold text-sm">🎉 30% OFF - Limited Time!</p>
+                  <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
+                    <p className="text-primary-700 font-semibold text-sm">📚 Academic Excellence</p>
+                    <p className="text-xs text-primary-600 mt-1">CUE Accredited Program</p>
                   </div>
 
-                  <button className="w-full bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white font-bold py-4 rounded-lg transition-all shadow-gold hover:shadow-xl-gold">
-                    Enroll Now
-                  </button>
-
-                  <button className="w-full btn-outline !py-3">
-                    Add to Wishlist
-                  </button>
-
-                  <div className="pt-4 border-t space-y-3 text-sm">
+                  <div className="space-y-3 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600">Duration:</span>
                       <span className="font-semibold">{course.duration}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Lessons:</span>
-                      <span className="font-semibold">{course.lessons} lectures</span>
+                      <span className="text-gray-600">Credits:</span>
+                      <span className="font-semibold">{course.credits}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600">Level:</span>
                       <span className="font-semibold">{course.level}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Certificate:</span>
-                      <span className="font-semibold text-gold-600">Yes</span>
+                      <span className="text-gray-600">School:</span>
+                      <span className="font-semibold text-primary-600">{course.school}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <h4 className="font-semibold text-gray-900 mb-3">Career Opportunities</h4>
+                    <div className="space-y-2">
+                      {course.careerOpportunities.slice(0, 4).map((career, index) => (
+                        <div key={index} className="flex items-center space-x-2 text-sm">
+                          <FaCheckCircle className="text-gold-500 text-xs" />
+                          <span className="text-gray-700">{career}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
                   <div className="pt-4 border-t flex items-center justify-around text-gray-600">
-                    <button className="flex items-center space-x-1 hover:text-gold-600 transition-colors">
+                    <button className="flex items-center space-x-1 hover:text-primary-600 transition-colors">
                       <FaShareAlt />
                       <span className="text-sm">Share</span>
                     </button>
-                    <button className="flex items-center space-x-1 hover:text-gold-600 transition-colors">
+                    <button className="flex items-center space-x-1 hover:text-primary-600 transition-colors">
                       <FaHeart />
                       <span className="text-sm">Save</span>
                     </button>
@@ -243,7 +289,7 @@ export default function CourseDetailPage() {
       <section className="bg-white border-b sticky top-20 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8 overflow-x-auto">
-            {['overview', 'curriculum', 'instructor', 'reviews'].map((tab) => (
+            {['overview', 'curriculum', 'faculty', 'reviews'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -296,69 +342,128 @@ export default function CourseDetailPage() {
 
               {/* Curriculum Tab */}
               {activeTab === 'curriculum' && (
-                <div className="space-y-4">
-                  {curriculum.map((module, index) => (
+                <div className="space-y-6">
+                  <div className="card">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Program Curriculum</h2>
+                    <p className="text-gray-600 mb-6">
+                      The Bachelor of Business Administration program is structured over four years with a comprehensive 
+                      curriculum designed to provide students with a solid foundation in business principles and practices.
+                    </p>
+                  </div>
+                  
+                  {curriculum.map((year, index) => (
                     <div key={index} className="card">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xl font-bold text-gray-900">{module.module}</h3>
-                        <span className="text-sm text-gray-600">{module.lessons} lessons • {module.duration}</span>
+                        <h3 className="text-xl font-bold text-gray-900">{year.module}</h3>
+                        <span className="text-sm text-gray-600">{year.credits} credits</span>
                       </div>
+                      <p className="text-gray-600 mb-4">{year.description}</p>
                       <div className="space-y-2">
-                        {module.lectures.map((lecture, lectureIndex) => (
-                          <div key={lectureIndex} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        {year.courses.map((course, courseIndex) => (
+                          <div key={courseIndex} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
                             <div className="flex items-center space-x-3">
-                              {lecture.completed ? (
-                                <FaCheckCircle className="text-green-500" />
-                              ) : lecture.isPreview ? (
-                                <FaPlay className="text-gold-500" />
-                              ) : (
-                                <FaLock className="text-gray-400" />
-                              )}
-                              <span className={lecture.completed ? 'text-gray-500' : 'text-gray-900'}>
-                                {lecture.title}
+                              <div className={`w-2 h-2 rounded-full ${
+                                course.type === 'Core' ? 'bg-primary-500' : 
+                                course.type === 'Elective' ? 'bg-gold-500' : 'bg-gray-400'
+                              }`}></div>
+                              <span className="text-gray-900 font-medium">
+                                {course.title}
                               </span>
                             </div>
                             <div className="flex items-center space-x-3">
-                              {lecture.isPreview && (
-                                <span className="text-xs bg-gold-100 text-gold-700 px-2 py-1 rounded">Preview</span>
-                              )}
-                              <span className="text-sm text-gray-600">{lecture.duration}</span>
+                              <span className={`text-xs px-2 py-1 rounded ${
+                                course.type === 'Core' ? 'bg-primary-100 text-primary-700' : 
+                                course.type === 'Elective' ? 'bg-gold-100 text-gold-700' : 'bg-gray-100 text-gray-700'
+                              }`}>
+                                {course.type}
+                              </span>
+                              <span className="text-sm text-gray-600">{course.credits} credits</span>
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   ))}
+                  
+                  <div className="card bg-primary-50 border-primary-200">
+                    <h3 className="text-lg font-bold text-primary-900 mb-2">Program Total</h3>
+                    <p className="text-primary-700">
+                      <strong>120 Credits</strong> - Complete undergraduate degree program
+                    </p>
+                  </div>
                 </div>
               )}
 
-              {/* Instructor Tab */}
-              {activeTab === 'instructor' && (
-                <div className="card">
-                  <div className="flex items-start space-x-6 mb-6">
-                    <div className="text-6xl">{course.instructor.image}</div>
-                    <div className="flex-1">
-                      <h2 className="text-2xl font-bold text-gray-900 mb-1">{course.instructor.name}</h2>
-                      <p className="text-gray-600 mb-4">{course.instructor.title}</p>
-                      <div className="flex items-center space-x-6 text-sm text-gray-600">
-                        <div className="flex items-center space-x-1">
-                          <FaStar className="text-gold-500" />
-                          <span>{course.instructor.rating} Rating</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <FaUsers />
-                          <span>{course.instructor.students} Students</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <FaBook />
-                          <span>{course.instructor.courses} Courses</span>
+              {/* Faculty Tab */}
+              {activeTab === 'faculty' && (
+                <div className="space-y-6">
+                  <div className="card">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Program Faculty & Support</h2>
+                    <p className="text-gray-600 mb-6">
+                      The Bachelor of Business Administration program is delivered by experienced faculty members 
+                      and supported by the ODeL Center's dedicated team.
+                    </p>
+                  </div>
+
+                  <div className="card">
+                    <div className="flex items-start space-x-6 mb-6">
+                      <div className="text-6xl">👨‍🎓</div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-gray-900 mb-1">Dr. Meshack Misoi</h3>
+                        <p className="text-gray-600 mb-4">Director of ODeL Center</p>
+                        <div className="flex items-center space-x-6 text-sm text-gray-600">
+                          <div className="flex items-center space-x-1">
+                            <FaGraduationCap className="text-primary-500" />
+                            <span>Director</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <FaCertificate className="text-gold-500" />
+                            <span>PhD Holder</span>
+                          </div>
                         </div>
                       </div>
                     </div>
+                    <p className="text-gray-700 leading-relaxed">
+                      Dr. Meshack Misoi leads the ODeL Center and oversees the academic quality and delivery 
+                      of all online programs, ensuring students receive excellent education and support.
+                    </p>
                   </div>
-                  <p className="text-gray-700 leading-relaxed">
-                    Dr. Sarah Kimani is a renowned business management expert with over 15 years of experience in both academia and industry. She has helped hundreds of students launch successful careers in business management and entrepreneurship.
-                  </p>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="card">
+                      <div className="flex items-start space-x-4 mb-4">
+                        <div className="text-4xl">👨‍💻</div>
+                        <div>
+                          <h4 className="font-bold text-gray-900">Felix Chepsiror</h4>
+                          <p className="text-gray-600 text-sm">E-learning Coordinator</p>
+                        </div>
+                      </div>
+                      <p className="text-gray-700 text-sm">
+                        Manages the learning management system and coordinates online course delivery.
+                      </p>
+                    </div>
+
+                    <div className="card">
+                      <div className="flex items-start space-x-4 mb-4">
+                        <div className="text-4xl">👨‍🔧</div>
+                        <div>
+                          <h4 className="font-bold text-gray-900">Brian Lelei</h4>
+                          <p className="text-gray-600 text-sm">E-learning Support</p>
+                        </div>
+                      </div>
+                      <p className="text-gray-700 text-sm">
+                        Provides technical support and assistance to students and faculty.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="card bg-gold-50 border-gold-200">
+                    <h3 className="text-lg font-bold text-gold-900 mb-2">Subject Matter Experts</h3>
+                    <p className="text-gold-700 text-sm">
+                      Content for this program is developed by qualified subject matter experts and faculty members 
+                      from the School of Business and Technology, ensuring academic rigor and industry relevance.
+                    </p>
+                  </div>
                 </div>
               )}
 

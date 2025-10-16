@@ -19,11 +19,11 @@ export default function CoursesPage() {
 
   const schools = [
     { id: 'all', name: 'All Schools', icon: FaBook },
-    { id: 'business', name: 'School of Business', icon: FaBuilding },
-    { id: 'education', name: 'School of Education', icon: FaChalkboardTeacher },
-    { id: 'nursing', name: 'School of Nursing', icon: FaStethoscope },
-    { id: 'technology', name: 'School of Science & Technology', icon: FaMicroscope },
-    { id: 'graduate', name: 'Graduate Studies', icon: FaGraduationCap }
+    { id: 'business', name: 'School of Business and Technology', icon: FaBuilding },
+    { id: 'education', name: 'School of Education, Arts and Humanities', icon: FaChalkboardTeacher },
+    { id: 'health', name: 'School of Health Sciences', icon: FaStethoscope },
+    { id: 'sciences', name: 'School of Sciences', icon: FaMicroscope },
+    { id: 'agriculture', name: 'School of Agriculture and Hospitality', icon: FaGraduationCap }
   ]
 
   const levels = [
@@ -34,20 +34,18 @@ export default function CoursesPage() {
   ]
 
   const programs = [
-    // School of Business
+    // School of Business and Technology
     {
       id: 1,
       title: 'Bachelor of Business Administration',
       school: 'business',
-      schoolName: 'School of Business',
+      schoolName: 'School of Business and Technology',
       level: 'undergraduate',
       duration: '4 years',
       credits: 120,
       students: 450,
       rating: 4.8,
-      price: 'KES 180,000/year',
-      instructor: 'Dr. Sarah Kimani',
-      description: 'Comprehensive business education covering management, marketing, finance, and entrepreneurship.',
+      description: 'Comprehensive business education with specialization in marketing, finance, and management.',
       image: '🏢',
       badge: 'Most Popular',
       requirements: ['KCSE C+', 'Mathematics C+', 'English C+'],
@@ -57,15 +55,13 @@ export default function CoursesPage() {
       id: 2,
       title: 'Master of Business Administration',
       school: 'business',
-      schoolName: 'School of Business',
+      schoolName: 'School of Business and Technology',
       level: 'graduate',
       duration: '2 years',
       credits: 60,
       students: 180,
       rating: 4.9,
-      price: 'KES 200,000/year',
-      instructor: 'Prof. John Mwangi',
-      description: 'Advanced business administration program for working professionals seeking leadership roles.',
+      description: 'Advanced MBA with specializations in Finance, HR, MIS, and Business Management.',
       image: '💼',
       badge: 'Professional',
       requirements: ['Bachelor\'s Degree', '2 years work experience', 'GMAT/GRE scores'],
@@ -73,74 +69,82 @@ export default function CoursesPage() {
     },
     {
       id: 3,
-      title: 'PhD in Business Administration',
+      title: 'Bachelor of Business Information Technology',
       school: 'business',
-      schoolName: 'School of Business',
-      level: 'doctoral',
-      duration: '3-5 years',
-      credits: 90,
-      students: 25,
-      rating: 4.9,
-      price: 'KES 150,000/year',
-      instructor: 'Prof. Dr. Mary Wanjiku',
-      description: 'Doctoral program focusing on advanced business research and academic excellence.',
-      image: '🎓',
-      badge: 'Research',
-      requirements: ['Master\'s Degree', 'Research Proposal', 'Academic References'],
-      outcomes: ['Research Expertise', 'Academic Leadership', 'Industry Impact']
+      schoolName: 'School of Business and Technology',
+      level: 'undergraduate',
+      duration: '4 years',
+      credits: 120,
+      students: 200,
+      rating: 4.7,
+      description: 'Combines business knowledge with IT skills for digital transformation careers.',
+      image: '💻',
+      badge: 'Trending',
+      requirements: ['KCSE C+', 'Mathematics C+', 'Physics C+'],
+      outcomes: ['IT Skills', 'Business Analysis', 'Digital Innovation']
     },
 
-    // School of Education
+    // School of Education, Arts and Humanities
     {
       id: 4,
-      title: 'Bachelor of Education',
+      title: 'Bachelor of Education (Science)',
       school: 'education',
-      schoolName: 'School of Education',
+      schoolName: 'School of Education, Arts and Humanities',
       level: 'undergraduate',
       duration: '4 years',
       credits: 120,
       students: 320,
       rating: 4.7,
-      price: 'KES 160,000/year',
-      instructor: 'Dr. James Ochieng',
-      description: 'Comprehensive teacher education program preparing educators for primary and secondary schools.',
+      description: 'Science education program preparing teachers for secondary schools.',
       image: '📚',
       badge: 'High Demand',
-      requirements: ['KCSE C+', 'Mathematics C+', 'English C+'],
-      outcomes: ['Teaching Excellence', 'Curriculum Development', 'Student Assessment']
+      requirements: ['KCSE C+', 'Mathematics C+', 'Physics/Biology C+'],
+      outcomes: ['Teaching Excellence', 'Science Education', 'Student Assessment']
     },
     {
       id: 5,
-      title: 'Master of Education',
+      title: 'Master of Education (Curriculum and Teaching)',
       school: 'education',
-      schoolName: 'School of Education',
+      schoolName: 'School of Education, Arts and Humanities',
       level: 'graduate',
       duration: '2 years',
       credits: 60,
       students: 120,
       rating: 4.8,
-      price: 'KES 150,000/year',
-      instructor: 'Prof. Grace Akinyi',
-      description: 'Advanced education program for teachers seeking leadership and specialization.',
+      description: 'Advanced education program focusing on curriculum development and teaching methodologies.',
       image: '👨‍🏫',
       badge: 'Professional',
       requirements: ['Bachelor\'s Degree', 'Teaching Experience', 'Academic References'],
-      outcomes: ['Educational Leadership', 'Research Skills', 'Policy Development']
+      outcomes: ['Educational Leadership', 'Curriculum Design', 'Research Skills']
     },
-
-    // School of Nursing
     {
       id: 6,
+      title: 'Bachelor of Arts in Journalism and Mass Communication',
+      school: 'education',
+      schoolName: 'School of Education, Arts and Humanities',
+      level: 'undergraduate',
+      duration: '4 years',
+      credits: 120,
+      students: 180,
+      rating: 4.6,
+      description: 'Comprehensive journalism and mass communication program for media professionals.',
+      image: '📰',
+      badge: 'Creative',
+      requirements: ['KCSE C+', 'English B-', 'Any other subject C+'],
+      outcomes: ['Media Skills', 'Communication', 'Journalism Ethics']
+    },
+
+    // School of Health Sciences
+    {
+      id: 7,
       title: 'Bachelor of Science in Nursing',
-      school: 'nursing',
-      schoolName: 'School of Nursing',
+      school: 'health',
+      schoolName: 'School of Health Sciences',
       level: 'undergraduate',
       duration: '4 years',
       credits: 120,
       students: 280,
       rating: 4.8,
-      price: 'KES 220,000/year',
-      instructor: 'Dr. Mary Wanjiku',
       description: 'Comprehensive nursing program with clinical training and healthcare management.',
       image: '🏥',
       badge: 'High Demand',
@@ -148,17 +152,15 @@ export default function CoursesPage() {
       outcomes: ['Clinical Skills', 'Patient Care', 'Healthcare Management']
     },
     {
-      id: 7,
-      title: 'Master of Science in Public Health',
-      school: 'nursing',
-      schoolName: 'School of Nursing',
+      id: 8,
+      title: 'Master of Public Health',
+      school: 'health',
+      schoolName: 'School of Health Sciences',
       level: 'graduate',
       duration: '2 years',
       credits: 60,
       students: 80,
       rating: 4.7,
-      price: 'KES 180,000/year',
-      instructor: 'Prof. Dr. Peter Kamau',
       description: 'Advanced public health program focusing on community health and epidemiology.',
       image: '🌍',
       badge: 'Specialized',
@@ -166,60 +168,72 @@ export default function CoursesPage() {
       outcomes: ['Public Health Leadership', 'Epidemiology', 'Health Policy']
     },
 
-    // School of Science & Technology
-    {
-      id: 8,
-      title: 'Bachelor of Science in Computer Science',
-      school: 'technology',
-      schoolName: 'School of Science & Technology',
-      level: 'undergraduate',
-      duration: '4 years',
-      credits: 120,
-      students: 380,
-      rating: 4.9,
-      price: 'KES 200,000/year',
-      instructor: 'Prof. Samuel Kiprotich',
-      description: 'Comprehensive computer science program covering programming, algorithms, and software engineering.',
-      image: '💻',
-      badge: 'Trending',
-      requirements: ['KCSE B-', 'Mathematics B', 'Physics C+', 'Chemistry C+'],
-      outcomes: ['Programming Skills', 'Software Development', 'System Analysis']
-    },
+    // School of Sciences
     {
       id: 9,
-      title: 'Master of Science in Information Technology',
-      school: 'technology',
-      schoolName: 'School of Science & Technology',
-      level: 'graduate',
-      duration: '2 years',
-      credits: 60,
-      students: 100,
-      rating: 4.8,
-      price: 'KES 190,000/year',
-      instructor: 'Dr. Jane Muthoni',
-      description: 'Advanced IT program focusing on emerging technologies and digital transformation.',
-      image: '🔧',
-      badge: 'Innovation',
-      requirements: ['Bachelor\'s Degree', 'IT Background', 'Programming Experience'],
-      outcomes: ['IT Leadership', 'Digital Innovation', 'Technology Management']
-    },
-    {
-      id: 10,
       title: 'Bachelor of Science in Mathematics',
-      school: 'technology',
-      schoolName: 'School of Science & Technology',
+      school: 'sciences',
+      schoolName: 'School of Sciences',
       level: 'undergraduate',
       duration: '4 years',
       credits: 120,
       students: 150,
       rating: 4.6,
-      price: 'KES 180,000/year',
-      instructor: 'Prof. Dr. Michael Otieno',
       description: 'Comprehensive mathematics program covering pure and applied mathematics.',
       image: '📊',
       badge: 'Analytical',
       requirements: ['KCSE B', 'Mathematics A-', 'Physics C+'],
       outcomes: ['Mathematical Reasoning', 'Problem Solving', 'Statistical Analysis']
+    },
+    {
+      id: 10,
+      title: 'Bachelor of Science in Chemistry',
+      school: 'sciences',
+      schoolName: 'School of Sciences',
+      level: 'undergraduate',
+      duration: '4 years',
+      credits: 120,
+      students: 120,
+      rating: 4.5,
+      description: 'Comprehensive chemistry program with laboratory training and research opportunities.',
+      image: '🧪',
+      badge: 'Scientific',
+      requirements: ['KCSE B-', 'Chemistry B', 'Mathematics B', 'Physics C+'],
+      outcomes: ['Chemical Analysis', 'Laboratory Skills', 'Research Methods']
+    },
+
+    // School of Agriculture and Hospitality
+    {
+      id: 11,
+      title: 'Bachelor of Science in Agriculture',
+      school: 'agriculture',
+      schoolName: 'School of Agriculture and Hospitality',
+      level: 'undergraduate',
+      duration: '4 years',
+      credits: 120,
+      students: 160,
+      rating: 4.4,
+      description: 'Comprehensive agriculture program covering crop production, animal husbandry, and agribusiness.',
+      image: '🌾',
+      badge: 'Practical',
+      requirements: ['KCSE C+', 'Biology C+', 'Chemistry C+', 'Mathematics C+'],
+      outcomes: ['Agricultural Skills', 'Farm Management', 'Agribusiness']
+    },
+    {
+      id: 12,
+      title: 'Bachelor of Science in Hotel and Hospitality Management',
+      school: 'agriculture',
+      schoolName: 'School of Agriculture and Hospitality',
+      level: 'undergraduate',
+      duration: '4 years',
+      credits: 120,
+      students: 140,
+      rating: 4.3,
+      description: 'Comprehensive hospitality management program for tourism and hospitality industry.',
+      image: '🏨',
+      badge: 'Service',
+      requirements: ['KCSE C+', 'English C+', 'Mathematics D+'],
+      outcomes: ['Hospitality Skills', 'Customer Service', 'Hotel Management']
     }
   ]
 
@@ -271,12 +285,12 @@ export default function CoursesPage() {
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-              Explore Our <span className="text-gold-400">Academic Programs</span>
+              Explore Our <span className="text-gold-400">ODeL Programs</span>
             </h1>
             
             <p className="text-xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-              Discover comprehensive programs across five schools, from undergraduate to doctoral levels. 
-              Quality education designed for your success.
+              Discover comprehensive Open Distance eLearning programs across five schools, from undergraduate to doctoral levels. 
+              Flexible, accessible, and quality education designed for your success, wherever you are.
             </p>
           </div>
         </div>
@@ -438,16 +452,8 @@ export default function CoursesPage() {
                       </div>
                     </div>
 
-                    {/* Instructor */}
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-600">
-                        <span className="font-medium">Instructor:</span> {program.instructor}
-                      </p>
-                    </div>
-
-                    {/* Price and Action */}
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                      <div className="text-primary-600 font-bold">{program.price}</div>
+                    {/* Action */}
+                    <div className="flex justify-end pt-4 border-t border-gray-200">
                       <Link 
                         href={`/courses/${program.id}`}
                         className="btn-primary text-sm flex items-center group"
