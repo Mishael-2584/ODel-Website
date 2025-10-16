@@ -450,13 +450,17 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="relative">
-              {/* Placeholder for Director's image */}
-              <div className="bg-gradient-to-br from-gold-100 to-primary-100 rounded-2xl p-8 text-center border-2 border-dashed border-gold-300">
-                <FaUserGraduate className="h-32 w-32 text-gold-400 mx-auto mb-4" />
-                <h3 className="text-2xl font-bold text-gray-700 mb-2">Director of ODel</h3>
-                <p className="text-gray-600 mb-4">Director's photo will be displayed here</p>
-                <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <p className="text-sm text-gray-500 italic">"Welcome to UEAB's Open Distance eLearning platform..."</p>
+              {/* Director's Image */}
+              <div className="relative rounded-2xl overflow-hidden shadow-xl">
+                <img
+                  src="/images/directors/director.jpg"
+                  alt="Dr. Meshack Misoi - Director of UEAB ODeL Center"
+                  className="w-full h-96 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div className="absolute bottom-6 left-6 text-white">
+                  <h3 className="text-2xl font-bold mb-2">Dr. Meshack Misoi</h3>
+                  <p className="text-lg opacity-90">Director of ODeL Center</p>
                 </div>
               </div>
             </div>
@@ -482,7 +486,7 @@ export default function Home() {
               
               <div className="flex items-center space-x-4">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">Dr. [Director's Name]</h4>
+                  <h4 className="font-semibold text-gray-900">Dr. Meshack Misoi</h4>
                   <p className="text-gray-600">Director of Open Distance eLearning</p>
                   <p className="text-gray-600">University of Eastern Africa, Baraton</p>
                 </div>

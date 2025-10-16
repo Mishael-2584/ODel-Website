@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Poppins } from 'next/font/google'
 import { AuthProvider } from '@/contexts/AuthContext'
+import Chatbot from '@/components/Chatbot'
 import './globals.css'
 
 const inter = Inter({ 
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${poppins.variable} font-sans antialiased`}>
         <AuthProvider>
           {children}
+          <Chatbot />
         </AuthProvider>
       </body>
     </html>
