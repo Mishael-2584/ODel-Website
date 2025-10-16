@@ -77,6 +77,67 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
     }
   }
 
+  // Enhanced course search with Moodle integration
+  const searchMoodleCourses = async (searchTerm: string) => {
+    try {
+      const response = await fetch(`/api/moodle?action=search&search=${encodeURIComponent(searchTerm)}`)
+      const result = await response.json()
+      
+      if (result.success && result.data.length > 0) {
+        const courses = result.data.slice(0, 3) // Show top 3 results
+        let response = `I found ${result.count} courses matching "${searchTerm}":\n\n`
+        
+        courses.forEach((course: any, index: number) => {
+          response += `${index + 1}. **${course.fullname}**\n`
+          response += `   School: ${course.categoryname}\n`
+          response += `   Students: ${course.enrolledusercount}\n`
+          response += `   ${course.summary.substring(0, 100)}...\n\n`
+        })
+        
+        if (result.count > 3) {
+          response += `And ${result.count - 3} more courses. Visit /courses to see all programs.`
+        }
+        
+        return response
+      } else {
+        return `I couldn't find any courses matching "${searchTerm}". Try browsing all programs at /courses or contact our admissions team for assistance.`
+      }
+    } catch (error) {
+      console.error('Error searching Moodle courses:', error)
+      return `I'm having trouble searching courses right now. You can browse all programs at /courses or contact our support team.`
+    }
+  }
+
+  // Get course statistics from Moodle
+  const getCourseStatistics = async () => {
+    try {
+      const response = await fetch('/api/moodle?action=statistics')
+      const result = await response.json()
+      
+      if (result.success) {
+        const stats = result.data
+        let response = `📊 **Current Course Statistics:**\n\n`
+        response += `📚 Total Courses: ${stats.totalCourses}\n`
+        response += `👥 Total Enrollments: ${stats.totalEnrollments}\n\n`
+        
+        response += `**Schools & Programs:**\n`
+        stats.categories.forEach((category: any) => {
+          response += `• ${category.name}: ${category.courseCount} programs\n`
+        })
+        
+        response += `\n**Recent Programs:**\n`
+        stats.recentCourses.forEach((course: any, index: number) => {
+          response += `${index + 1}. ${course.fullname} (${course.enrolledusercount} students)\n`
+        })
+        
+        return response
+      }
+    } catch (error) {
+      console.error('Error fetching course statistics:', error)
+    }
+    return 'I can show you our current course offerings. We have programs across 5 schools with flexible learning options.'
+  }
+
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       if (!userInfo.isRegistered) {
@@ -188,6 +249,39 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
           return
         }
 
+        // Enhanced intelligent responses with Moodle integration
+        const lowerMessage = userMessage.toLowerCase()
+        
+        // Check for course search queries
+        if (lowerMessage.includes('search') && (lowerMessage.includes('course') || lowerMessage.includes('program'))) {
+          const searchTerm = userMessage.replace(/search|course|program/gi, '').trim()
+          if (searchTerm) {
+            searchMoodleCourses(searchTerm).then(searchResults => {
+              addBotMessage(searchResults, ['Search More Courses', 'View All Courses', 'Contact Admissions'])
+            })
+            return
+          }
+        }
+        
+        // Check for course statistics
+        if (lowerMessage.includes('statistics') || lowerMessage.includes('how many courses') || lowerMessage.includes('total courses')) {
+          getCourseStatistics().then(stats => {
+            addBotMessage(stats, ['Search Courses', 'View All Courses', 'Contact Admissions'])
+          })
+          return
+        }
+        
+        // Check for specific course mentions
+        const courseKeywords = ['business administration', 'nursing', 'education', 'agriculture', 'hospitality', 'journalism', 'chemistry', 'mathematics', 'public health']
+        const mentionedCourse = courseKeywords.find(keyword => lowerMessage.includes(keyword))
+        
+        if (mentionedCourse) {
+          searchMoodleCourses(mentionedCourse).then(courseResults => {
+            addBotMessage(courseResults, ['Search More Courses', 'View All Courses', 'Contact Admissions'])
+          })
+          return
+        }
+        
         // Find best response from knowledge base
         const bestResponse = findBestResponse(userMessage)
         
@@ -227,6 +321,12 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
         break
       case 'View All Courses':
         addBotMessage("You can view all our courses at /courses. We offer programs from Bachelor's to PhD level across all major disciplines.")
+        break
+      case 'Search More Courses':
+        addBotMessage("What course or program are you looking for? I can search our Moodle database for specific programs.")
+        break
+      case 'Search Courses':
+        addBotMessage("What would you like to search for? I can help you find courses by name, school, or subject area.")
         break
       default:
         const response = findBestResponse(reply)
