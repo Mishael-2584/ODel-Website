@@ -35,6 +35,7 @@ export default function StudentDashboard() {
   const [assignments, setAssignments] = useState<any[]>([])
   const [grades, setGrades] = useState<{ avgGrade: number; courses: any[] }>({ avgGrade: 0, courses: [] })
   const [ssoLoginUrl, setSsoLoginUrl] = useState<string | null>(null)
+  const [loadingMoodle, setLoadingMoodle] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -93,17 +94,9 @@ export default function StudentDashboard() {
                 console.warn('Error fetching grades:', err)
               }
 
-              // Generate SSO login URL
-              try {
-                const ssoResponse = await fetch(`/api/moodle?action=sso-login&userId=${data.user.moodleUserId}&username=${encodeURIComponent(data.user.moodleUsername)}`)
-                const ssoData = await ssoResponse.json()
-                console.log('SSO response:', ssoData)
-                if (ssoData.success && ssoData.data) {
-                  setSsoLoginUrl(ssoData.data)
-                }
-              } catch (err) {
-                console.warn('Error generating SSO URL:', err)
-              }
+              // Generate SSO login URL - NOW DONE ON-DEMAND WHEN BUTTON CLICKED
+              // Removed: SSO generation here since keys expire quickly
+              // Fresh key will be generated each time user clicks "Open Moodle"
 
             } catch (courseErr) {
               console.error('Error fetching courses:', courseErr)
@@ -167,11 +160,33 @@ export default function StudentDashboard() {
               <p className="text-gray-300">Your ODeL Student Portal</p>
             </div>
             <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg transition-colors font-semibold"
+              onClick={async () => {
+                setLoadingMoodle(true)
+                try {
+                  console.log('🔐 Generating fresh SSO URL for Moodle access...')
+                  const ssoResponse = await fetch(`/api/moodle?action=sso-login&userId=${studentData!.moodleUserId}&username=${encodeURIComponent(studentData!.moodleUsername)}`)
+                  const ssoData = await ssoResponse.json()
+                  console.log('🔐 Fresh SSO response:', ssoData)
+                  
+                  if (ssoData.success && ssoData.data) {
+                    // Open the URL immediately in a new window
+                    window.open(ssoData.data, '_blank')
+                    setSsoLoginUrl(ssoData.data)
+                  } else {
+                    setError('Failed to generate Moodle access link')
+                    console.error('SSO failed:', ssoData)
+                  }
+                } catch (err) {
+                  console.error('Error generating Moodle access:', err)
+                  setError('Failed to generate Moodle access link')
+                } finally {
+                  setLoadingMoodle(false)
+                }
+              }}
+              className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 px-6 py-2 rounded-lg transition-colors font-semibold"
+              disabled={loadingMoodle}
             >
-              <FaSignOutAlt />
-              Logout
+              {loadingMoodle ? 'Connecting...' : 'Open →'}
             </button>
           </div>
         </div>
@@ -245,14 +260,35 @@ export default function StudentDashboard() {
                   <FaGraduationCap className="text-amber-600 text-2xl" />
                   <h3 className="font-semibold text-gray-900">Moodle</h3>
                 </div>
-                <a
-                  href={ssoLoginUrl || process.env.NEXT_PUBLIC_MOODLE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+                <button
+                  onClick={async () => {
+                    setLoadingMoodle(true)
+                    try {
+                      console.log('🔐 Generating fresh SSO URL for Moodle access...')
+                      const ssoResponse = await fetch(`/api/moodle?action=sso-login&userId=${studentData!.moodleUserId}&username=${encodeURIComponent(studentData!.moodleUsername)}`)
+                      const ssoData = await ssoResponse.json()
+                      console.log('🔐 Fresh SSO response:', ssoData)
+                      
+                      if (ssoData.success && ssoData.data) {
+                        // Open the URL immediately in a new window
+                        window.open(ssoData.data, '_blank')
+                        setSsoLoginUrl(ssoData.data)
+                      } else {
+                        setError('Failed to generate Moodle access link')
+                        console.error('SSO failed:', ssoData)
+                      }
+                    } catch (err) {
+                      console.error('Error generating Moodle access:', err)
+                      setError('Failed to generate Moodle access link')
+                    } finally {
+                      setLoadingMoodle(false)
+                    }
+                  }}
+                  className="inline-block bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={loadingMoodle}
                 >
-                  Open →
-                </a>
+                  {loadingMoodle ? 'Connecting...' : 'Open →'}
+                </button>
               </div>
             </div>
 
