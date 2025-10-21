@@ -1276,11 +1276,21 @@ class MoodleService {
   async generateMoodleLoginUrl(userId: number, moodleUsername: string): Promise<string> {
     try {
       // Use the auth_userkey_request_login_url function for true SSO
+      // This function requires user data in a specific structure
       const params = new URLSearchParams({
         wstoken: this.config.apiToken,
         wsfunction: 'auth_userkey_request_login_url',
         moodlewsrestformat: 'json',
-        userid: userId.toString(),
+        'user[id]': userId.toString(),
+        'user[username]': moodleUsername,
+        returnurl: `${this.config.baseUrl}/my/`
+      })
+
+      console.log('🔐 SSO Request - Attempting to generate login URL for user:', userId)
+      console.log('🔐 SSO Params:', {
+        wsfunction: 'auth_userkey_request_login_url',
+        'user[id]': userId.toString(),
+        'user[username]': moodleUsername,
         returnurl: `${this.config.baseUrl}/my/`
       })
 
@@ -1291,17 +1301,22 @@ class MoodleService {
       })
 
       const result = await response.json()
+      console.log('🔐 SSO Response from Moodle:', result)
 
       if (this.isErrorResponse(result)) {
-        console.warn('SSO token generation failed, using fallback:', result)
+        console.error('❌ SSO token generation failed:', result.exception || result.error || result.errorcode)
+        console.error('❌ Error message:', result.message)
+        console.error('❌ Debug info:', result.debuginfo)
         // Fallback to direct Moodle dashboard link
         return `${this.config.baseUrl}/my/`
       }
 
       // Return the login URL that allows direct access without re-authentication
-      return result.loginurl || `${this.config.baseUrl}/my/`
+      const loginUrl = result.loginurl || `${this.config.baseUrl}/my/`
+      console.log('✅ SSO Success! Generated login URL:', loginUrl)
+      return loginUrl
     } catch (error) {
-      console.error('Error generating SSO login URL:', error)
+      console.error('❌ Error generating SSO login URL:', error)
       // Fallback to Moodle dashboard
       return `${this.config.baseUrl}/my/`
     }
