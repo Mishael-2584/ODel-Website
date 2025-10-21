@@ -566,70 +566,101 @@ export default function CategoryHierarchy() {
         {/* Category Grid */}
         {!nextLevelLoading && currentLevel.categories.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentLevel.categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => handleSelectCategory(category, navigationStack.length - 1)}
-                className="text-left group"
-              >
-                <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all hover:scale-105 overflow-hidden h-full flex flex-col">
-                  {/* Card Header */}
-                  <div className="h-2 bg-gradient-to-r from-blue-500 to-purple-500 group-hover:from-blue-600 group-hover:to-purple-600 transition-all"></div>
-
-                  {/* Card Content */}
-                  <div className="p-6 flex flex-col flex-grow">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors break-words">
-                      {category.name}
-                    </h3>
-
-                    {/* Show summary for courses */}
-                    {currentLevel.levelName === 'Courses' && category.summary && (
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                        {decodeHtmlEntities(category.summary)}
-                      </p>
-                    )}
-
-                    {/* Stats - only show if showStats is true */}
-                    {currentLevel.showStats && (
-                      <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-auto pt-4 border-t border-gray-100">
-                        {currentLevel.levelName === 'Program Types' && category.courseCount !== undefined && (
-                          <div className="flex items-center gap-1">
-                            <FaBookOpen className="text-blue-500" size={14} />
-                            <span>
-                              <strong>{category.courseCount}</strong> Courses
-                            </span>
-                          </div>
-                        )}
-                        
-                        {currentLevel.levelName === 'Courses' && category.enrolledusercount !== undefined && (
-                          <div className="flex items-center gap-1">
-                            <FaGraduationCap className="text-green-500" size={14} />
-                            <span>
-                              <strong>{category.enrolledusercount}</strong> Students
-                            </span>
-                          </div>
-                        )}
-
-                        {currentLevel.levelName === 'Courses' && category.teacher && category.teacher !== 'Not assigned' && (
-                          <div className="flex items-start gap-2 w-full">
-                            <FaUser className="text-purple-500 flex-shrink-0 mt-0.5" size={14} />
-                            <span className="break-words">
-                              <strong>{category.teacher}</strong>
-                            </span>
-                          </div>
-                        )}
+            {currentLevel.categories.map((category, index) => {
+              // Check if this is the first category in Academic Year level (latest/current)
+              const isCurrentYear = currentLevel.levelName === 'Academic Year' && index === 0
+              
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => handleSelectCategory(category, navigationStack.length - 1)}
+                  className="text-left group"
+                >
+                  <div className={`rounded-xl shadow-md hover:shadow-xl transition-all hover:scale-105 overflow-hidden h-full flex flex-col ${
+                    isCurrentYear 
+                      ? 'bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-500 ring-2 ring-blue-200 relative' 
+                      : 'bg-white relative'
+                  }`}>
+                    {/* Current Badge */}
+                    {isCurrentYear && (
+                      <div className="absolute top-4 right-4 z-10">
+                        <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
+                          <span className="inline-block w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                          Current
+                        </div>
                       </div>
                     )}
 
-                    {/* Arrow Indicator */}
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Explore</span>
-                      <FaChevronRight className="text-blue-600 group-hover:translate-x-1 transition-transform" />
+                    {/* Card Header */}
+                    <div className={`h-2 bg-gradient-to-r ${
+                      isCurrentYear
+                        ? 'from-blue-600 via-purple-600 to-pink-500 group-hover:from-blue-700 group-hover:via-purple-700 group-hover:to-pink-600'
+                        : 'from-blue-500 to-purple-500 group-hover:from-blue-600 group-hover:to-purple-600'
+                    } transition-all`}></div>
+
+                    {/* Card Content */}
+                    <div className="p-6 flex flex-col flex-grow relative">
+                      <h3 className={`text-lg font-bold mb-2 break-words transition-colors ${
+                        isCurrentYear
+                          ? 'text-blue-700 group-hover:text-blue-800'
+                          : 'text-gray-900 group-hover:text-blue-600'
+                      }`}>
+                        {category.name}
+                      </h3>
+
+                      {/* Show summary for courses */}
+                      {currentLevel.levelName === 'Courses' && category.summary && (
+                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                          {decodeHtmlEntities(category.summary)}
+                        </p>
+                      )}
+
+                      {/* Stats - only show if showStats is true */}
+                      {currentLevel.showStats && (
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-auto pt-4 border-t border-gray-100">
+                          {currentLevel.levelName === 'Program Types' && category.courseCount !== undefined && (
+                            <div className="flex items-center gap-1">
+                              <FaBookOpen className="text-blue-500" size={14} />
+                              <span>
+                                <strong>{category.courseCount}</strong> Courses
+                              </span>
+                            </div>
+                          )}
+                          
+                          {currentLevel.levelName === 'Courses' && category.enrolledusercount !== undefined && (
+                            <div className="flex items-center gap-1">
+                              <FaGraduationCap className="text-green-500" size={14} />
+                              <span>
+                                <strong>{category.enrolledusercount}</strong> Students
+                              </span>
+                            </div>
+                          )}
+
+                          {currentLevel.levelName === 'Courses' && category.teacher && category.teacher !== 'Not assigned' && (
+                            <div className="flex items-start gap-2 w-full">
+                              <FaUser className="text-purple-500 flex-shrink-0 mt-0.5" size={14} />
+                              <span className="break-words">
+                                <strong>{category.teacher}</strong>
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Arrow Indicator */}
+                      <div className="mt-4 flex items-center justify-between">
+                        <span className={`text-xs font-medium uppercase tracking-wide ${
+                          isCurrentYear ? 'text-blue-600' : 'text-gray-500'
+                        }`}>Explore</span>
+                        <FaChevronRight className={`group-hover:translate-x-1 transition-transform ${
+                          isCurrentYear ? 'text-blue-600' : 'text-blue-600'
+                        }`} />
+                      </div>
                     </div>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              )
+            })}
           </div>
         )}
 

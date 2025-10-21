@@ -1,0 +1,649 @@
+{
+  "schools": [
+    {
+      "id": 1,
+      "name": "School of Business",
+      "description": "Comprehensive business education with programs in management, accounting, and information systems",
+      "departments": [
+        {
+          "id": 101,
+          "name": "Department of Management",
+          "programs": [
+            {
+              "id": 1001,
+              "title": "Bachelor of Business Administration (BBA) in Marketing",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 1002,
+              "title": "Bachelor of Business Administration (BBA) in Finance",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 1021,
+              "title": "Bachelor of Business Administration (BBA) in Office Administration",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 1022,
+              "title": "Bachelor of Business Administration (BBA) in Management",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 1003,
+              "title": "Master of Business Administration (MBA) in Strategic Management",
+              "level": "Masters",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Lecture", "Online", "Seminar"]
+            },
+            {
+              "id": 1023,
+              "title": "Master of Business Administration (MBA) in Management Information Systems",
+              "level": "Masters",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Lecture", "Online", "Seminar"]
+            }
+          ]
+        },
+        {
+          "id": 102,
+          "name": "Department of Accounting",
+          "programs": [
+            {
+              "id": 1004,
+              "title": "Bachelor of Business Administration (BBA) in Accounting",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 1026,
+              "title": "Bachelor of Business Administration (BBA) in Finance",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 1005,
+              "title": "Master of Business Administration (MBA) in Accounting",
+              "level": "Masters",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Lecture", "Online", "Seminar"]
+            },
+            {
+              "id": 1006,
+              "title": "Master of Business Administration (MBA) in Finance",
+              "level": "Masters",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Lecture", "Online", "Seminar"]
+            },
+            {
+              "id": 1030,
+              "title": "Doctor of Philosophy (PhD) in Business Administration - Accounting",
+              "level": "Doctorate",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Research", "Online", "Seminar"]
+            },
+            {
+              "id": 1031,
+              "title": "Doctor of Philosophy (PhD) in Business Administration - Finance",
+              "level": "Doctorate",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Research", "Online", "Seminar"]
+            }
+          ]
+        },
+        {
+          "id": 103,
+          "name": "Department of Information Systems and Computing",
+          "programs": [
+            {
+              "id": 1007,
+              "title": "Bachelor of Business Information Technology",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 1027,
+              "title": "Bachelor of Science (BSc) Software Engineering",
+              "level": "Bachelor",
+              "credits": 119,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 1028,
+              "title": "Bachelor of Science (BSc) Networks and Communication Systems",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 1029,
+              "title": "Bachelor of Business Information Technology (BBIT)",
+              "level": "Bachelor",
+              "credits": 126,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online", "Seminar"]
+            },
+            {
+              "id": 1008,
+              "title": "Master of Science in Information Systems",
+              "level": "Masters",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Lecture", "Online", "Seminar"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "School of Education, Humanities and Social Sciences",
+      "description": "Education, humanities, and social sciences programs",
+      "departments": [
+        {
+          "id": 201,
+          "name": "Department of Education",
+          "programs": [
+            {
+              "id": 2001,
+              "title": "Bachelor of Education (Science)",
+              "level": "Bachelor",
+              "credits": 148,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 2008,
+              "title": "Bachelor of Education (Arts)",
+              "level": "Bachelor",
+              "credits": 148,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 2009,
+              "title": "Master of Education (MEd) - Curriculum and Teaching",
+              "level": "Masters",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Lecture", "Online", "Seminar"]
+            },
+            {
+              "id": 2010,
+              "title": "Master of Education (MEd) - Educational Administration",
+              "level": "Masters",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Lecture", "Online", "Seminar"]
+            },
+            {
+              "id": 2011,
+              "title": "Doctor of Philosophy (PhD) in Education - Curriculum and Teaching",
+              "level": "Doctorate",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Research", "Online", "Seminar"]
+            },
+            {
+              "id": 2012,
+              "title": "Doctor of Philosophy (PhD) in Education - Educational Administration",
+              "level": "Doctorate",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Research", "Online", "Seminar"]
+            }
+          ]
+        },
+        {
+          "id": 202,
+          "name": "Department of Humanities and Social Sciences",
+          "programs": [
+            {
+              "id": 2004,
+              "title": "Bachelor of Arts in Journalism and Mass Communication",
+              "level": "Bachelor",
+              "credits": 148,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 2005,
+              "title": "Bachelor of Arts in Psychology",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": [],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 2013,
+              "title": "Bachelor of Music in Music Education (BMME)",
+              "level": "Bachelor",
+              "credits": 142,
+              "semesters": [],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 2014,
+              "title": "Bachelor of Arts/Science in Geography",
+              "level": "Bachelor",
+              "credits": 141,
+              "semesters": [],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 2015,
+              "title": "Bachelor of Arts in Music",
+              "level": "Bachelor",
+              "credits": 136,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 2016,
+              "title": "Bachelor of Arts in Kiswahili",
+              "level": "Bachelor",
+              "credits": 150,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online", "Seminar"]
+            },
+            {
+              "id": 2017,
+              "title": "Bachelor of Arts in History",
+              "level": "Bachelor",
+              "credits": 150,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 2018,
+              "title": "Bachelor of Arts in French",
+              "level": "Bachelor",
+              "credits": 137,
+              "semesters": [],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 2019,
+              "title": "Bachelor of Arts in English Language",
+              "level": "Bachelor",
+              "credits": 137,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 2020,
+              "title": "Bachelor of Arts in Development Studies",
+              "level": "Bachelor",
+              "credits": 143,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online", "Seminar"]
+            },
+            {
+              "id": 2021,
+              "title": "Bachelor of Arts in Counseling Psychology",
+              "level": "Bachelor",
+              "credits": 142,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            }
+          ]
+        },
+        {
+          "id": 203,
+          "name": "Department of Theology and Religious Studies",
+          "programs": [
+            {
+              "id": 2006,
+              "title": "Bachelor of Arts in Theology",
+              "level": "Bachelor",
+              "credits": 141,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 2022,
+              "title": "Bachelor of Arts in Religion",
+              "level": "Bachelor",
+              "credits": 141,
+              "semesters": [],
+              "methods": ["Lecture", "Online"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "School of Health Sciences & Nursing",
+      "description": "Health sciences and nursing programs",
+      "departments": [
+        {
+          "id": 301,
+          "name": "Department of Nursing",
+          "programs": [
+            {
+              "id": 3001,
+              "title": "Bachelor of Science in Nursing",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 3002,
+              "title": "Bachelor of Science in Nursing (BScN)",
+              "level": "Bachelor",
+              "credits": 153,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 3008,
+              "title": "Master of Science in Nursing (MScN) - Community Health",
+              "level": "Masters",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Lecture", "Online", "Seminar"]
+            }
+          ]
+        },
+        {
+          "id": 302,
+          "name": "Department of Public Health",
+          "programs": [
+            {
+              "id": 3009,
+              "title": "Bachelor of Science in Public Health",
+              "level": "Bachelor",
+              "credits": 143,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 3010,
+              "title": "Master of Global Health (MGH)",
+              "level": "Masters",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Lecture", "Online", "Seminar"]
+            },
+            {
+              "id": 3011,
+              "title": "Master of Public Health (MPH) - Generalist and Health Promotion",
+              "level": "Masters",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Lecture", "Online", "Seminar"]
+            },
+            {
+              "id": 3032,
+              "title": "Master of Public Health (MPH) - Epidemiology and Disease Control",
+              "level": "Masters",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Lecture", "Online", "Seminar"]
+            }
+          ]
+        },
+        {
+          "id": 303,
+          "name": "Department of Medical Laboratory Science",
+          "programs": [
+            {
+              "id": 3005,
+              "title": "Bachelor of Science in Medical Laboratory Science",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 3012,
+              "title": "Bachelor of Science in Medical Laboratory Sciences",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "School of Science and Technology",
+      "description": "Science and technology programs including engineering, applied sciences, and natural sciences",
+      "departments": [
+        {
+          "id": 401,
+          "name": "Department of Mathematics, Chemistry and Physics",
+          "programs": [
+            {
+              "id": 4001,
+              "title": "Bachelor of Science in Mathematics",
+              "level": "Bachelor",
+              "credits": [137, 138],
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 4002,
+              "title": "Bachelor of Science in Chemistry",
+              "level": "Bachelor",
+              "credits": 133,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 4003,
+              "title": "Bachelor of Science in Physics",
+              "level": "Bachelor",
+              "credits": 136,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            }
+          ]
+        },
+        {
+          "id": 402,
+          "name": "Department of Technology and Applied Sciences",
+          "programs": [
+            {
+              "id": 4004,
+              "title": "BSc Electronics Technology",
+              "level": "Bachelor",
+              "credits": 128,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 4005,
+              "title": "BSc Automotive Technology",
+              "level": "Bachelor",
+              "credits": 140,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            }
+          ]
+        },
+        {
+          "id": 403,
+          "name": "Department of Foods, Nutrition and Dietetics",
+          "programs": [
+            {
+              "id": 4007,
+              "title": "Bachelor of Science in Hotel and Hospitality Management",
+              "level": "Bachelor",
+              "credits": 133,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 4008,
+              "title": "Bachelor of Science in Foods, Nutrition and Dietetics",
+              "level": "Bachelor",
+              "credits": 143,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 4009,
+              "title": "Bachelor of Science in Fashion and Textile Design",
+              "level": "Bachelor",
+              "credits": 138,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            }
+          ]
+        },
+        {
+          "id": 404,
+          "name": "Department of Biological Sciences and Agriculture",
+          "programs": [
+            {
+              "id": 4010,
+              "title": "Bachelor of Science in Environmental Conservation",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 4011,
+              "title": "Bachelor of Science in Agriculture",
+              "level": "Bachelor",
+              "credits": 140,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 4012,
+              "title": "Bachelor of Science in Biotechnology",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 4013,
+              "title": "Bachelor of Science in Biomedical Science",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 4014,
+              "title": "Bachelor of Science in Biology",
+              "level": "Bachelor",
+              "credits": 141,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 4015,
+              "title": "Bachelor of Science in Agriculture Technology",
+              "level": "Bachelor",
+              "credits": 143,
+              "semesters": ["January 2023", "September 2023"],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 4016,
+              "title": "Bachelor of Science in Agribusiness",
+              "level": "Bachelor",
+              "credits": 144,
+              "semesters": [],
+              "methods": ["Lecture", "Online"]
+            },
+            {
+              "id": 4033,
+              "title": "Master of Science in Biological Sciences - Biomedical Science",
+              "level": "Masters",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Lecture", "Online", "Seminar"]
+            },
+            {
+              "id": 4034,
+              "title": "Master of Science in Biological Sciences - Conservation Biology",
+              "level": "Masters",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Lecture", "Online", "Seminar"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "School of Graduate Studies and Research",
+      "description": "Advanced graduate and research programs",
+      "departments": [
+        {
+          "id": 501,
+          "name": "Graduate Studies",
+          "programs": [
+            {
+              "id": 5001,
+              "title": "Master of Science (various specializations)",
+              "level": "Masters",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Lecture", "Online", "Seminar"]
+            },
+            {
+              "id": 5002,
+              "title": "Doctor of Philosophy (PhD)",
+              "level": "Doctorate",
+              "credits": ["2.000", "3.000", "4.000"],
+              "semesters": [],
+              "methods": ["Research", "Online"]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "lastUpdated": "2025-10-21",
+    "source": "UEAB Course Search - https://ueab.ac.ke/course-search/?course-keywords and UEAB Degrees Offered - https://ueab.ac.ke/degrees-offered/",
+    "pagesExtracted": 6,
+    "totalSchools": 5,
+    "totalDepartments": 14,
+    "totalPrograms": 68,
+    "note": "Complete data extracted from all 6 pages of UEAB course search and verified against official UEAB degrees offered page for graduate programs",
+    "programsByLevel": {
+      "Bachelor": 50,
+      "Masters": 15,
+      "Doctorate": 3
+    }
+  }
+}
