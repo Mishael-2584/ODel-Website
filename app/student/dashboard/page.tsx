@@ -95,8 +95,9 @@ export default function StudentDashboard() {
 
               // Generate SSO login URL
               try {
-                const ssoResponse = await fetch(`/api/moodle?action=sso-login&userId=${data.user.moodleUserId}`)
+                const ssoResponse = await fetch(`/api/moodle?action=sso-login&userId=${data.user.moodleUserId}&username=${encodeURIComponent(data.user.moodleUsername)}`)
                 const ssoData = await ssoResponse.json()
+                console.log('SSO response:', ssoData)
                 if (ssoData.success && ssoData.data) {
                   setSsoLoginUrl(ssoData.data)
                 }

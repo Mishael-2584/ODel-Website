@@ -478,14 +478,42 @@ export async function GET(request: NextRequest) {
         }
 
         try {
-          // For now, return mock grades data
-          // In a real scenario, you'd fetch from Moodle's gradebook API
+          // Fetch user's courses first
+          const userCourses = await moodleService.getUserCourses(parseInt(userId))
+          
+          // Then fetch grades for each course
+          const gradesData: any[] = []
+          let totalGrade = 0
+          let gradeCount = 0
+
+          for (const course of userCourses) {
+            try {
+              const courseGrades = await moodleService.getCourseGrades(parseInt(userId), course.id)
+              if (courseGrades && courseGrades.usergrades && courseGrades.usergrades.length > 0) {
+                const userGrade = courseGrades.usergrades[0]
+                if (userGrade && userGrade.grade) {
+                  gradesData.push({
+                    courseName: course.fullname,
+                    courseId: course.id,
+                    grade: parseFloat(userGrade.grade) || 0
+                  })
+                  totalGrade += parseFloat(userGrade.grade) || 0
+                  gradeCount++
+                }
+              }
+            } catch (err) {
+              console.warn(`Error fetching grades for course ${course.id}:`, err)
+            }
+          }
+
+          const avgGrade = gradeCount > 0 ? totalGrade / gradeCount : 0
+
           return NextResponse.json(
             { 
               success: true, 
               data: {
-                avgGrade: 0,
-                courses: []
+                avgGrade,
+                courses: gradesData
               }
             },
             { headers: CACHE_HEADERS }
@@ -501,6 +529,7 @@ export async function GET(request: NextRequest) {
 
       case 'sso-login': {
         const userId = searchParams.get('userId')
+        const username = searchParams.get('username')
         if (!userId) {
           return NextResponse.json(
             { error: 'userId is required' },
@@ -509,7 +538,10 @@ export async function GET(request: NextRequest) {
         }
 
         try {
-          const loginUrl = await moodleService.generateMoodleSSOToken(parseInt(userId))
+          const loginUrl = await moodleService.generateMoodleLoginUrl(
+            parseInt(userId),
+            username || ''
+          )
           return NextResponse.json(
             { 
               success: true, 
@@ -518,7 +550,7 @@ export async function GET(request: NextRequest) {
             { headers: CACHE_HEADERS }
           )
         } catch (err) {
-          console.error('Error generating SSO token:', err)
+          console.error('Error generating Moodle login URL:', err)
           return NextResponse.json(
             { success: true, data: process.env.NEXT_PUBLIC_MOODLE_URL },
             { headers: CACHE_HEADERS }

@@ -1040,34 +1040,33 @@ class MoodleService {
     }
   }
 
-  // Get user grades for a course
-  async getUserGrades(userId: number, courseId: number): Promise<any> {
+  // Get user grades for a specific course
+  async getCourseGrades(userId: number, courseId: number): Promise<any | null> {
     try {
       const params = new URLSearchParams({
         wstoken: this.config.apiToken,
         wsfunction: 'gradereport_user_get_grades_table',
         moodlewsrestformat: 'json',
-        userid: userId.toString(),
-        courseid: courseId.toString()
+        courseid: courseId.toString(),
+        userid: userId.toString()
       })
 
       const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params
       })
 
       const result = await response.json()
 
       if (this.isErrorResponse(result)) {
+        console.warn('Error fetching course grades:', result)
         return null
       }
 
       return result
     } catch (error) {
-      console.error('Error getting user grades:', error)
+      console.error('Error getting course grades:', error)
       return null
     }
   }
@@ -1128,7 +1127,23 @@ class MoodleService {
         return []
       }
 
-      return result.courses || []
+      // Flatten all assignments from all courses
+      let allAssignments: any[] = []
+      if (result.courses) {
+        result.courses.forEach((course: any) => {
+          if (course.assignments) {
+            allAssignments = allAssignments.concat(
+              course.assignments.map((a: any) => ({
+                ...a,
+                courseName: course.name,
+                courseId: course.id
+              }))
+            )
+          }
+        })
+      }
+      
+      return allAssignments
     } catch (error) {
       console.error('Error getting assignments:', error)
       return []
@@ -1141,9 +1156,13 @@ class MoodleService {
       const params = new URLSearchParams({
         wstoken: this.config.apiToken,
         wsfunction: 'core_calendar_get_calendar_events',
-        moodlewsrestformat: 'json',
-        userid: userId.toString()
+        moodlewsrestformat: 'json'
       })
+
+      // Use timestart to limit results - get events from today onwards
+      const now = Math.floor(Date.now() / 1000)
+      params.append('events[timestart]', now.toString())
+      params.append('events[timeend]', (now + 86400 * 90).toString()) // 90 days from now
 
       const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
         method: 'POST',
@@ -1256,35 +1275,18 @@ class MoodleService {
     }
   }
 
-  // Generate Moodle SSO token for direct login
-  async generateMoodleSSOToken(userId: number): Promise<string | null> {
+  // Generate Moodle login URL without SSO (direct method)
+  // Instead of using auth_userkey_request_login_url, we create a direct URL that redirects to Moodle
+  // Students will need to login in Moodle once, then can access courses
+  async generateMoodleLoginUrl(userId: number, moodleUsername: string): Promise<string> {
     try {
-      // Create a session token that Moodle can recognize
-      const params = new URLSearchParams({
-        wstoken: this.config.apiToken,
-        wsfunction: 'auth_userkey_request_login_url',
-        moodlewsrestformat: 'json',
-        userid: userId.toString(),
-        returnurl: `${process.env.NEXT_PUBLIC_MOODLE_URL}/my/`
-      })
-
-      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params
-      })
-
-      const result = await response.json()
-
-      if (this.isErrorResponse(result)) {
-        console.warn('Error generating SSO token:', result)
-        return null
-      }
-
-      return result.loginurl || null
+      // Return a direct link to Moodle's login page that will redirect to dashboard
+      // This is better than SSO as it doesn't require additional Moodle functions
+      const loginUrl = `${this.config.baseUrl}/login/index.php?redirect=${encodeURIComponent(`${this.config.baseUrl}/my/`)}`
+      return loginUrl
     } catch (error) {
-      console.error('Error generating SSO token:', error)
-      return null
+      console.error('Error generating Moodle login URL:', error)
+      return this.config.baseUrl
     }
   }
 
