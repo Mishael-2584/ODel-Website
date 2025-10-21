@@ -935,6 +935,173 @@ class MoodleService {
     }
   }
 
+  // Get user by email
+  async getUserByEmail(email: string): Promise<any> {
+    try {
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'core_user_get_users_by_field',
+        moodlewsrestformat: 'json',
+        field: 'email',
+        'values[0]': email
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params
+      })
+
+      const result = await response.json()
+
+      if (this.isErrorResponse(result)) {
+        console.error('Error fetching user by email:', result)
+        return null
+      }
+
+      if (Array.isArray(result) && result.length > 0) {
+        return result[0]
+      }
+
+      return null
+    } catch (error) {
+      console.error('Error getting user by email:', error)
+      return null
+    }
+  }
+
+  // Get user by ID
+  async getUserById(userId: number): Promise<any> {
+    try {
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'core_user_get_users',
+        moodlewsrestformat: 'json',
+        'criteria[0][key]': 'id',
+        'criteria[0][value]': userId.toString()
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params
+      })
+
+      const result = await response.json()
+
+      if (this.isErrorResponse(result)) {
+        console.error('Error fetching user by ID:', result)
+        return null
+      }
+
+      if (result.users && result.users.length > 0) {
+        return result.users[0]
+      }
+
+      return null
+    } catch (error) {
+      console.error('Error getting user by ID:', error)
+      return null
+    }
+  }
+
+  // Get user preferences
+  async getUserPreferences(userId: number): Promise<any> {
+    try {
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'core_user_get_user_preferences',
+        moodlewsrestformat: 'json',
+        userid: userId.toString()
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params
+      })
+
+      const result = await response.json()
+
+      if (this.isErrorResponse(result)) {
+        return null
+      }
+
+      return result
+    } catch (error) {
+      console.error('Error getting user preferences:', error)
+      return null
+    }
+  }
+
+  // Get user grades for a course
+  async getUserGrades(userId: number, courseId: number): Promise<any> {
+    try {
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'gradereport_user_get_grades_table',
+        moodlewsrestformat: 'json',
+        userid: userId.toString(),
+        courseid: courseId.toString()
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params
+      })
+
+      const result = await response.json()
+
+      if (this.isErrorResponse(result)) {
+        return null
+      }
+
+      return result
+    } catch (error) {
+      console.error('Error getting user grades:', error)
+      return null
+    }
+  }
+
+  // Get site info
+  async getSiteInfo(): Promise<any> {
+    try {
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'core_webservice_get_site_info',
+        moodlewsrestformat: 'json'
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params
+      })
+
+      const result = await response.json()
+
+      if (this.isErrorResponse(result)) {
+        return null
+      }
+
+      return result
+    } catch (error) {
+      console.error('Error getting site info:', error)
+      return null
+    }
+  }
+
   // Helper to check error responses
   private isErrorResponse(result: any): boolean {
     return result && (result.exception || result.error || result.errorcode)

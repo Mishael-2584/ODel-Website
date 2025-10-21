@@ -385,6 +385,41 @@ export async function GET(request: NextRequest) {
         )
       }
 
+      case 'user-courses': {
+        const userId = searchParams.get('userId')
+        if (!userId) {
+          return NextResponse.json(
+            { error: 'userId is required' },
+            { status: 400 }
+          )
+        }
+
+        const cacheKey = `user_courses_${userId}`
+        
+        // Check Supabase cache first
+        const cached = await getSupabaseCache(cacheKey)
+        if (cached?.data) {
+          return NextResponse.json(
+            { success: true, data: cached.data, cached: true, source: 'supabase' },
+            { headers: CACHE_HEADERS }
+          )
+        }
+
+        // Fetch from Moodle
+        console.log(`Fetching courses for user ${userId}`)
+        const userCourses = await moodleService.getUserCourses(parseInt(userId))
+        
+        // Save to Supabase for future requests
+        if (supabase && userCourses.length > 0) {
+          await saveSupabaseCache(cacheKey, userCourses, 30)
+        }
+
+        return NextResponse.json(
+          { success: true, data: userCourses, cached: false, source: 'moodle' },
+          { headers: CACHE_HEADERS }
+        )
+      }
+
       default:
         return NextResponse.json(
           { error: 'Invalid action. Available actions: courses, categories, course-details, course-enrollments, search, statistics, courses-by-category' },
