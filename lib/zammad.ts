@@ -47,6 +47,7 @@ class ZammadService {
     userInfo: {
       name: string
       email: string
+      phone?: string
       studentId?: string
     }
     category: string

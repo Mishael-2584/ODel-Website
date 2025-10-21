@@ -7,7 +7,7 @@ import Footer from '@/components/Footer'
 import { 
   FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock, FaUniversity,
   FaBuilding, FaUser, FaPaperPlane, FaCheckCircle, FaInfoCircle,
-  FaGraduationCap, FaBook, FaCalendarAlt
+  FaGraduationCap, FaBook, FaCalendarAlt, FaGlobe
 } from 'react-icons/fa'
 
 export default function ContactPage() {
@@ -27,21 +27,50 @@ export default function ContactPage() {
     e.preventDefault()
     setIsSubmitting(true)
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    setIsSubmitting(false)
-    setIsSubmitted(true)
-    
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      subject: '',
-      message: '',
-      inquiryType: 'general'
-    })
+    try {
+      // Send to Zammad helpdesk as a ticket
+      const response = await fetch('/api/zammad', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customerEmail: formData.email,
+          customerName: formData.name,
+          customerPhone: formData.phone,
+          subject: formData.subject,
+          body: `Inquiry Type: ${formData.inquiryType}\n\nMessage:\n${formData.message}`,
+          tags: [formData.inquiryType, 'contact-form', 'website'],
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create ticket')
+      }
+
+      const data = await response.json()
+      console.log('Ticket created:', data)
+
+      setIsSubmitting(false)
+      setIsSubmitted(true)
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: '',
+        inquiryType: 'general'
+      })
+
+      // Auto-reset success message after 5 seconds
+      setTimeout(() => setIsSubmitted(false), 5000)
+    } catch (error) {
+      console.error('Error submitting form:', error)
+      setIsSubmitting(false)
+      alert('Error submitting your inquiry. Please try again or contact us directly.')
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -353,7 +382,7 @@ export default function ContactPage() {
                 
                 <div className="relative">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.7832!2d35.2856!3d0.5149!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sUniversity%20of%20Eastern%20Africa%2C%20Baraton!5e0!3m2!1sen!2ske!4v1234567890123!5m2!1sen!2ske"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.783!2d35.28551!3d0.51492!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17829e1e6c6c6c6d%3A0x5e5e5e5e5e5e5e5e!2sUniversity+of+Eastern+Africa+Baraton!5e0!3m2!1sen!2ske!4v1729510800000"
                     width="100%"
                     height="300"
                     style={{ border: 0 }}
@@ -361,7 +390,7 @@ export default function ContactPage() {
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                     className="w-full"
-                    title="UEAB Campus Location"
+                    title="UEAB Campus Location - 734M+43 Kapkoimet, Eldoret"
                   ></iframe>
                   
                   {/* Map Overlay Controls */}

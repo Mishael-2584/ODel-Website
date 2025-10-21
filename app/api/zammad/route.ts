@@ -4,7 +4,35 @@ import { zammadService } from '@/lib/zammad'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { message, userInfo, category } = body
+    
+    // Handle both contact form and chatbot escalation formats
+    const isContactForm = body.customerEmail && body.subject && body.body
+    const isChatbot = body.message && body.userInfo?.email
+    
+    let message, userInfo, category, title
+
+    if (isContactForm) {
+      // Contact form submission
+      message = body.body
+      userInfo = {
+        name: body.customerName,
+        email: body.customerEmail,
+        phone: body.customerPhone
+      }
+      category = body.inquiryType || 'General Inquiry'
+      title = body.subject
+    } else if (isChatbot) {
+      // Chatbot escalation
+      message = body.message
+      userInfo = body.userInfo
+      category = body.category || 'General Inquiry'
+      title = `Chatbot Escalation: ${category}`
+    } else {
+      return NextResponse.json(
+        { error: 'Invalid request format' },
+        { status: 400 }
+      )
+    }
 
     // Validate required fields
     if (!message || !userInfo?.email) {
@@ -16,11 +44,12 @@ export async function POST(request: NextRequest) {
 
     // Create ticket in Zammad
     const result = await zammadService.createTicket({
-      title: `Chatbot Escalation: ${category || 'General Inquiry'}`,
+      title: title || `${category} - ${userInfo.name || 'Anonymous'}`,
       message,
       userInfo: {
         name: userInfo.name || 'Anonymous',
         email: userInfo.email,
+        phone: userInfo.phone,
         studentId: userInfo.studentId
       },
       category: category || 'General Inquiry'
