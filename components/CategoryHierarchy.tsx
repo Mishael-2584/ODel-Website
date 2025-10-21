@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { FaSpinner, FaChevronRight, FaArrowLeft, FaBookOpen, FaGraduationCap, FaFolder } from 'react-icons/fa'
+import { FaSpinner, FaChevronRight, FaArrowLeft, FaBookOpen, FaGraduationCap, FaFolder, FaUser } from 'react-icons/fa'
 
 interface Category {
   id: number
@@ -17,6 +17,7 @@ interface NavigationLevel {
   icon: React.ReactNode
   categoryId: number | null
   categories: Category[]
+  showStats?: boolean // New: control whether to show stats
 }
 
 // Simple in-memory cache
@@ -43,76 +44,309 @@ const setInCache = (key: string, data: any) => {
   categoryCache.set(key, { data, timestamp: Date.now() })
 }
 
+// Decode HTML entities
+const decodeHtmlEntities = (text: string) => {
+  const textarea = document.createElement('textarea')
+  textarea.innerHTML = text
+  return textarea.value
+}
+
+// Browser-based persistent cache using localStorage
+const getCourseDetailsFromBrowser = (courseId: number) => {
+  try {
+    const cached = localStorage.getItem(`course-details-${courseId}`)
+    if (cached) {
+      const data = JSON.parse(cached)
+      // Check if expired (1 hour = 3600000ms)
+      if (Date.now() - data.timestamp < 3600000) {
+        console.log(`✓ Browser cache hit for course ${courseId}`)
+        return data.value
+      }
+      localStorage.removeItem(`course-details-${courseId}`)
+    }
+  } catch (e) {
+    console.error('Cache read error:', e)
+  }
+  return null
+}
+
+const setCourseDetailsInBrowser = (courseId: number, data: any) => {
+  try {
+    localStorage.setItem(`course-details-${courseId}`, JSON.stringify({
+      value: data,
+      timestamp: Date.now()
+    }))
+  } catch (e) {
+    console.error('Cache write error:', e)
+  }
+}
+
+const getCategoryCoursesFromBrowser = (categoryId: number) => {
+  try {
+    const cached = localStorage.getItem(`category-courses-${categoryId}`)
+    if (cached) {
+      const data = JSON.parse(cached)
+      // Check if expired (2 hours = 7200000ms)
+      if (Date.now() - data.timestamp < 7200000) {
+        console.log(`✓ Browser cache hit for category ${categoryId}`)
+        return data.value
+      }
+      localStorage.removeItem(`category-courses-${categoryId}`)
+    }
+  } catch (e) {
+    console.error('Cache read error:', e)
+  }
+  return null
+}
+
+const setCategoryCoursesInBrowser = (categoryId: number, data: any) => {
+  try {
+    localStorage.setItem(`category-courses-${categoryId}`, JSON.stringify({
+      value: data,
+      timestamp: Date.now()
+    }))
+  } catch (e) {
+    console.error('Cache write error:', e)
+  }
+}
+
+// Enhanced premium loader styles
+const loaderStyles = `
+@keyframes orbit {
+  0% { transform: rotate(0deg) translateX(45px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(45px) rotate(-360deg); }
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7),
+                inset 0 0 0 0 rgba(217, 119, 6, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 15px rgba(59, 130, 246, 0),
+                inset 0 0 0 5px rgba(217, 119, 6, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0),
+                inset 0 0 0 0 rgba(217, 119, 6, 0);
+  }
+}
+
+@keyframes gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float-particle {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-60px) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  0% { 
+    background-position: -1000px 0;
+  }
+  100% { 
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes glow-fade {
+  0%, 100% { 
+    opacity: 0.3;
+    filter: blur(2px);
+  }
+  50% { 
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+.loader-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gradient-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: conic-gradient(
+    from 0deg,
+    #3b82f6 0deg,
+    #60a5fa 90deg,
+    #d97706 180deg,
+    #fbbf24 270deg,
+    #3b82f6 360deg
+  );
+  border-radius: 50%;
+  animation: gradient-flow 4s ease infinite, pulse-ring 2s ease-in-out infinite;
+  opacity: 0.9;
+}
+
+.loader-core {
+  position: absolute;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(255,255,255,0.1), rgba(255,255,255,0));
+  border-radius: 50%;
+  animation: glow-fade 2s ease-in-out infinite;
+}
+
+.orbiting-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(135deg, #3b82f6, #d97706);
+  border-radius: 50%;
+  animation: orbit 3s linear infinite;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+}
+
+.particle {
+  position: absolute;
+  pointer-events: none;
+}
+
+.particle-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #d97706);
+  box-shadow: 0 0 10px rgba(217, 119, 6, 0.6);
+  animation: float-particle 2s ease-out forwards;
+}
+
+.loading-text {
+  background: linear-gradient(135deg, #3b82f6, #d97706, #3b82f6);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-flow 3s ease infinite;
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.pulse-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin: 0 4px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.pulse-dot:nth-child(1) {
+  background: #3b82f6;
+  animation-delay: 0s;
+}
+
+.pulse-dot:nth-child(2) {
+  background: #d97706;
+  animation-delay: 0.25s;
+}
+
+.pulse-dot:nth-child(3) {
+  background: #3b82f6;
+  animation-delay: 0.5s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+}
+
+.accent-line {
+  position: absolute;
+  width: 2px;
+  height: 30px;
+  background: linear-gradient(to bottom, #d97706, transparent);
+  left: 50%;
+  top: -40px;
+  transform: translateX(-50%);
+  border-radius: 1px;
+  opacity: 0.6;
+}
+`
+
 export default function CategoryHierarchy() {
   const [navigationStack, setNavigationStack] = useState<NavigationLevel[]>([
     {
       levelName: 'Academic Year',
       icon: <FaGraduationCap className="text-blue-600" />,
       categoryId: null,
-      categories: []
+      categories: [],
+      showStats: false // Academic Year doesn't show stats
     }
   ])
   const [loading, setLoading] = useState(true)
+  const [nextLevelLoading, setNextLevelLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Load initial root categories
   useEffect(() => {
-    const fetchRootCategories = async () => {
+    // Wait for preload to complete before initializing
+    const initializeHierarchy = async () => {
       try {
+        // Wait for moodle service to finish preloading
+        console.log('⏳ Waiting for Moodle data preload...')
+        // Give preload a bit of time to complete
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
         setLoading(true)
+        const categories = await fetch('/api/moodle?action=root-categories')
+          .then(r => r.json())
         
-        // Check cache first
-        const cacheKey = getCacheKey('root-categories', {})
-        const cached = getFromCache(cacheKey)
-        
-        if (cached) {
-          console.log('✓ Loading root categories from cache')
-          setNavigationStack([
-            {
-              levelName: 'Academic Year',
-              icon: <FaGraduationCap className="text-blue-600" />,
-              categoryId: null,
-              categories: cached
-            }
-          ])
-          setLoading(false)
-          return
-        }
-        
-        console.log('✗ Fetching root categories from API')
-        const response = await fetch('/api/moodle?action=root-categories')
-        const data = await response.json()
-
-        if (data.success) {
-          setInCache(cacheKey, data.data)
-          setNavigationStack([
-            {
-              levelName: 'Academic Year',
-              icon: <FaGraduationCap className="text-blue-600" />,
-              categoryId: null,
-              categories: data.data
-            }
-          ])
+        if (categories.success) {
+          setNavigationStack([{
+            levelName: 'Academic Year',
+            categories: categories.data,
+            showStats: false
+          }])
+          console.log('✓ Hierarchy initialized with preloaded data')
+        } else {
+          setError('Failed to load categories')
         }
       } catch (err) {
-        console.error('Error fetching root categories:', err)
-        setError('Failed to load categories')
+        console.error('Error initializing hierarchy:', err)
+        setError('Failed to load academic years')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchRootCategories()
+    initializeHierarchy()
   }, [])
 
   const handleSelectCategory = async (category: Category, levelIndex: number) => {
     try {
-      setLoading(true)
+      setNextLevelLoading(true)
 
       // Determine level names for hierarchy
       const levelNames = ['Academic Year', 'Schools', 'Departments', 'Program Types', 'Courses']
       const nextLevelIndex = levelIndex + 1
       const nextLevelName = levelNames[nextLevelIndex] || 'Subcategories'
+
+      // Determine if next level should show stats
+      const showStatsAtNextLevel = nextLevelIndex === 3 || nextLevelIndex === 4 // Program Types and Courses
 
       // Check cache first
       const cacheKey = getCacheKey('category-children', { categoryId: category.id })
@@ -145,44 +379,64 @@ export default function CategoryHierarchy() {
         else if (nextLevelIndex === 3) icon = <FaBookOpen className="text-indigo-600" />
         else if (nextLevelIndex === 4) icon = <FaBookOpen className="text-orange-600" />
 
+        // Decode HTML entities in category names
+        const decodedChildren = childrenData.map((child: any) => ({
+          ...child,
+          name: decodeHtmlEntities(child.name || '')
+        }))
+
         newStack.push({
           levelName: nextLevelName,
           icon,
           categoryId: category.id,
-          categories: childrenData
+          categories: decodedChildren,
+          showStats: showStatsAtNextLevel
         })
 
         setNavigationStack(newStack)
       } else {
         // No children - this might be a leaf category, show courses
         if (nextLevelIndex <= 4) {
-          const courseCacheKey = getCacheKey('category-courses', { categoryId: category.id })
-          let coursesData = getFromCache(courseCacheKey)
+          const courseCacheKey = getCacheKey('category-courses-with-details', { categoryId: category.id })
+          
+          // Check browser cache first
+          let coursesData = getCategoryCoursesFromBrowser(category.id)
 
           if (!coursesData) {
-            console.log(`✗ Fetching courses for category ${category.id}`)
-            const coursesResponse = await fetch(`/api/moodle?action=category-courses&categoryId=${category.id}`)
+            console.log(`✗ Fetching courses with details for category ${category.id}`)
+            // Use the new courses-with-details endpoint to get student count and instructor names
+            const coursesResponse = await fetch(`/api/moodle?action=courses-with-details&categoryId=${category.id}`)
             const coursesResponseData = await coursesResponse.json()
 
             if (coursesResponseData.success) {
               coursesData = coursesResponseData.data
-              setInCache(courseCacheKey, coursesData)
+              // Cache in browser
+              setCategoryCoursesInBrowser(category.id, coursesData)
             }
           } else {
-            console.log(`✓ Loading courses for category ${category.id} from cache`)
+            console.log(`✓ Loading courses with details for category ${category.id} from browser cache`)
           }
 
           if (coursesData) {
             const newStack = navigationStack.slice(0, levelIndex + 1)
+            
+            // Decode HTML entities in course names
+            const decodedCourses = coursesData.map((course: any) => ({
+              id: course.id,
+              name: decodeHtmlEntities(course.fullname || ''),
+              parent: course.categoryid,
+              enrolledusercount: course.enrolledusercount || 0,
+              summary: course.summary,
+              // Store instructor names - now properly fetched from Moodle
+              teacher: course.instructorNames || 'Not assigned'
+            }))
+
             newStack.push({
               levelName: 'Courses',
               icon: <FaBookOpen className="text-orange-600" />,
               categoryId: category.id,
-              categories: coursesData.map((course: any) => ({
-                id: course.id,
-                name: course.fullname,
-                parent: course.categoryid
-              }))
+              categories: decodedCourses,
+              showStats: true // Show stats on courses
             })
             setNavigationStack(newStack)
           }
@@ -192,7 +446,7 @@ export default function CategoryHierarchy() {
       console.error('Error navigating to category:', err)
       setError('Failed to load subcategories')
     } finally {
-      setLoading(false)
+      setNextLevelLoading(false)
     }
   }
 
@@ -251,11 +505,55 @@ export default function CategoryHierarchy() {
         </div>
 
         {/* Loading State */}
-        {loading && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <FaSpinner className="animate-spin text-blue-600 mb-3" size={48} />
-            <p className="text-gray-600 text-lg">Loading {currentLevel.levelName.toLowerCase()}...</p>
-          </div>
+        {nextLevelLoading && (
+          <>
+            <style>{loaderStyles}</style>
+            <div className="flex flex-col items-center justify-center py-24">
+              {/* Premium Animated Loader */}
+              <div className="relative mb-12">
+                {/* Accent line */}
+                <div className="accent-line"></div>
+
+                {/* Main Loader Container */}
+                <div className="loader-container">
+                  {/* Gradient Pulsing Ring */}
+                  <div className="gradient-ring rounded-full"></div>
+
+                  {/* Orbiting Dot */}
+                  <div className="orbiting-dot"></div>
+
+                  {/* Inner Glow Core */}
+                  <div className="loader-core"></div>
+                </div>
+
+                {/* Floating Particles */}
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <div
+                    key={`particle-${i}`}
+                    className="particle"
+                    style={{
+                      left: '50%',
+                      top: '50%',
+                      transform: `rotate(${(i * 72)}deg) translateY(-60px)`,
+                      animation: `float-particle ${1.5 + i * 0.2}s ease-out ${i * 0.15}s forwards`,
+                    }}
+                  >
+                    <div className="particle-dot"></div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Loading Text with Gradient */}
+              <p className="loading-text mb-4">Loading next page...</p>
+
+              {/* Animated Pulse Dots */}
+              <div className="flex items-center justify-center">
+                <span className="pulse-dot"></span>
+                <span className="pulse-dot"></span>
+                <span className="pulse-dot"></span>
+              </div>
+            </div>
+          </>
         )}
 
         {/* Error State */}
@@ -266,7 +564,7 @@ export default function CategoryHierarchy() {
         )}
 
         {/* Category Grid */}
-        {!loading && currentLevel.categories.length > 0 && (
+        {!nextLevelLoading && currentLevel.categories.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {currentLevel.categories.map((category) => (
               <button
@@ -284,25 +582,44 @@ export default function CategoryHierarchy() {
                       {category.name}
                     </h3>
 
-                    {/* Stats */}
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-auto pt-4 border-t border-gray-100">
-                      {category.courseCount !== undefined && (
-                        <div className="flex items-center gap-1">
-                          <FaBookOpen className="text-blue-500" size={14} />
-                          <span>
-                            <strong>{category.courseCount}</strong> Programs
-                          </span>
-                        </div>
-                      )}
-                      {category.totalEnrollments !== undefined && (
-                        <div className="flex items-center gap-1">
-                          <FaGraduationCap className="text-green-500" size={14} />
-                          <span>
-                            <strong>{category.totalEnrollments}</strong> Students
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                    {/* Show summary for courses */}
+                    {currentLevel.levelName === 'Courses' && category.summary && (
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                        {decodeHtmlEntities(category.summary)}
+                      </p>
+                    )}
+
+                    {/* Stats - only show if showStats is true */}
+                    {currentLevel.showStats && (
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-auto pt-4 border-t border-gray-100">
+                        {currentLevel.levelName === 'Program Types' && category.courseCount !== undefined && (
+                          <div className="flex items-center gap-1">
+                            <FaBookOpen className="text-blue-500" size={14} />
+                            <span>
+                              <strong>{category.courseCount}</strong> Courses
+                            </span>
+                          </div>
+                        )}
+                        
+                        {currentLevel.levelName === 'Courses' && category.enrolledusercount !== undefined && (
+                          <div className="flex items-center gap-1">
+                            <FaGraduationCap className="text-green-500" size={14} />
+                            <span>
+                              <strong>{category.enrolledusercount}</strong> Students
+                            </span>
+                          </div>
+                        )}
+
+                        {currentLevel.levelName === 'Courses' && category.teacher && category.teacher !== 'Not assigned' && (
+                          <div className="flex items-start gap-2 w-full">
+                            <FaUser className="text-purple-500 flex-shrink-0 mt-0.5" size={14} />
+                            <span className="break-words">
+                              <strong>{category.teacher}</strong>
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Arrow Indicator */}
                     <div className="mt-4 flex items-center justify-between">
@@ -317,7 +634,7 @@ export default function CategoryHierarchy() {
         )}
 
         {/* Empty State */}
-        {!loading && currentLevel.categories.length === 0 && (
+        {!nextLevelLoading && currentLevel.categories.length === 0 && (
           <div className="text-center py-20">
             <FaBookOpen className="text-gray-300 mx-auto mb-4" size={64} />
             <p className="text-gray-600 text-lg">No {currentLevel.levelName.toLowerCase()} available</p>

@@ -1,10 +1,14 @@
 // Moodle API Integration Service
 // This service handles communication with Moodle LMS API
 
+interface CacheEntry<T> {
+  data: T
+  timestamp: number
+}
+
 interface MoodleConfig {
   baseUrl: string
   apiToken: string
-  serviceName: string
 }
 
 interface MoodleCourse {
@@ -90,58 +94,173 @@ interface MoodleEnrollment {
   timemodified: number
 }
 
-// Cache interface
-interface CacheEntry<T> {
-  data: T
-  timestamp: number
-  ttl: number
-}
-
-// Helper function to check if response is an error
-function isErrorResponse(response: any): boolean {
-  if (!response) return false
-  return !!(response.exception || response.error || response.errorcode)
-}
+const CACHE_TTL = 30 * 60 * 1000 // 30 minutes in milliseconds
+const PRELOAD_KEY = 'moodle_preload_state'
+const AGGRESSIVE_CACHE_TTL = 2 * 60 * 60 * 1000 // 2 hours for aggressive cache
 
 class MoodleService {
   private config: MoodleConfig
   private cache: Map<string, CacheEntry<any>> = new Map()
-  private cacheTTL = 5 * 60 * 1000 // 5 minutes default TTL
+  private isPreloading = false
+  private preloadPromise: Promise<void> | null = null
 
-  constructor(config: MoodleConfig) {
-    this.config = config
+  constructor(baseUrl: string, apiToken: string) {
+    this.config = { baseUrl, apiToken }
+    this.loadCacheFromStorage()
+    // Start aggressive preload immediately
+    this.startAggressivePreload()
   }
 
-  // Cache management
-  private getCacheKey(action: string, params: any = {}): string {
-    return `${action}:${JSON.stringify(params)}`
+  // Load cache from localStorage
+  private loadCacheFromStorage() {
+    try {
+      // Only try to access localStorage in browser environment
+      if (typeof window === 'undefined') {
+        console.log('ℹ️ Server-side: skipping localStorage cache load')
+        return
+      }
+
+      const stored = localStorage.getItem('moodle_cache_v2')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        Object.entries(parsed).forEach(([key, entry]: [string, any]) => {
+          if (Date.now() - entry.timestamp < AGGRESSIVE_CACHE_TTL) {
+            this.cache.set(key, entry)
+          }
+        })
+        console.log(`✓ Loaded ${this.cache.size} items from localStorage cache`)
+      }
+    } catch (e) {
+      console.error('Error loading cache from storage:', e)
+    }
   }
 
-  // Clear all cache
-  clearCache(): void {
-    this.cache.clear()
+  // Save cache to localStorage
+  private saveCacheToStorage() {
+    try {
+      // Only try to access localStorage in browser environment
+      if (typeof window === 'undefined') {
+        return
+      }
+
+      const cacheObj: Record<string, any> = {}
+      this.cache.forEach((entry, key) => {
+        cacheObj[key] = entry
+      })
+      localStorage.setItem('moodle_cache_v2', JSON.stringify(cacheObj))
+    } catch (e) {
+      console.error('Error saving cache to storage:', e)
+    }
   }
 
-  // Public cache methods
-  public getFromCache<T>(key: string): T | null {
+  // Get from cache
+  getFromCache<T>(key: string): T | null {
     const entry = this.cache.get(key)
     if (!entry) return null
-    
-    // Check if cache has expired
-    if (Date.now() - entry.timestamp > entry.ttl) {
+
+    const isExpired = Date.now() - entry.timestamp > CACHE_TTL
+    if (isExpired) {
       this.cache.delete(key)
       return null
     }
-    
-    return entry.data as T
+
+    return entry.data
   }
 
-  public setCache<T>(key: string, data: T, ttl?: number): void {
+  // Set cache
+  setCache<T>(key: string, data: T, ttl: number = CACHE_TTL) {
     this.cache.set(key, {
       data,
-      timestamp: Date.now(),
-      ttl: ttl || this.cacheTTL
+      timestamp: Date.now()
     })
+    // Periodically save to storage (debounced)
+    this.saveCacheToStorage()
+  }
+
+  // Clear cache
+  clearCache() {
+    this.cache.clear()
+    try {
+      localStorage.removeItem('moodle_cache_v2')
+    } catch (e) {
+      console.error('Error clearing cache:', e)
+    }
+  }
+
+  // Aggressive preload - load all data upfront
+  async startAggressivePreload() {
+    if (this.isPreloading || this.preloadPromise) return
+    
+    // Skip preload on server-side
+    if (typeof window === 'undefined') {
+      console.log('ℹ️ Server-side: skipping aggressive preload')
+      return
+    }
+
+    this.isPreloading = true
+    console.log('🔄 Starting aggressive Moodle data preload...')
+
+    this.preloadPromise = (async () => {
+      try {
+        // Check if we already have preloaded data
+        const preloadState = localStorage.getItem(PRELOAD_KEY)
+        if (preloadState) {
+          const state = JSON.parse(preloadState)
+          if (Date.now() - state.timestamp < CACHE_TTL) {
+            console.log('✓ Preload data already fresh in cache')
+            this.isPreloading = false
+            return
+          }
+        }
+
+        // Step 1: Get all categories
+        console.log('📁 Preloading categories...')
+        const categories = await this.getCategories()
+        
+        // Step 2: Get all courses
+        console.log('📚 Preloading courses...')
+        const courses = await this.getCourses({})
+
+        // Step 3: Preload course details for visible courses
+        console.log('📊 Preloading course details...')
+        const courseIds = courses.slice(0, 50).map((c: any) => c.id)
+        
+        await Promise.all(
+          courseIds.map(id =>
+            this.getCourseWithDetails(id).catch(e => {
+              console.warn(`Failed to preload course ${id}:`, e)
+              return null
+            })
+          )
+        )
+
+        // Step 4: Preload hierarchy
+        console.log('🌳 Preloading category hierarchy...')
+        await this.getRootCategories()
+
+        // Mark preload as complete
+        localStorage.setItem(
+          PRELOAD_KEY,
+          JSON.stringify({ timestamp: Date.now() })
+        )
+
+        console.log('✅ Aggressive preload complete!')
+      } catch (error) {
+        console.error('Error during preload:', error)
+      } finally {
+        this.isPreloading = false
+        this.preloadPromise = null
+      }
+    })()
+
+    return this.preloadPromise
+  }
+
+  // Wait for preload to complete
+  async waitForPreload() {
+    if (this.preloadPromise) {
+      await this.preloadPromise
+    }
   }
 
   // Get all courses with filtering options
@@ -152,7 +271,7 @@ class MoodleService {
     offset?: number
   } = {}): Promise<MoodleCourse[]> {
     try {
-      const cacheKey = this.getCacheKey('getCourses', options)
+      const cacheKey = `courses_${JSON.stringify(options)}`
       
       // Check cache first
       const cached = this.getFromCache<MoodleCourse[]>(cacheKey)
@@ -183,7 +302,7 @@ class MoodleService {
       const result = await response.json()
       
       // Check if response is an error
-      if (isErrorResponse(result)) {
+      if (this.isErrorResponse(result)) {
         console.error('Moodle API Error:', result)
         return []
       }
@@ -233,16 +352,15 @@ class MoodleService {
 
   // Get course categories
   async getCategories(): Promise<MoodleCategory[]> {
-    try {
-      const cacheKey = this.getCacheKey('getCategories', {})
-      
-      // Check cache first
-      const cached = this.getFromCache<MoodleCategory[]>(cacheKey)
-      if (cached) {
-        console.log('Returning cached categories')
-        return cached
-      }
+    const cacheKey = 'categories_all'
+    const cached = this.getFromCache(cacheKey)
+    if (cached) {
+      console.log('✓ Cached categories')
+      return cached
+    }
 
+    console.log('✗ Fetching categories from API')
+    try {
       const params = new URLSearchParams({
         wstoken: this.config.apiToken,
         wsfunction: 'core_course_get_categories',
@@ -264,7 +382,7 @@ class MoodleService {
       const result = await response.json()
       
       // Check if response is an error
-      if (isErrorResponse(result)) {
+      if (this.isErrorResponse(result)) {
         console.error('Moodle API Error:', result)
         return []
       }
@@ -317,7 +435,7 @@ class MoodleService {
       const result = await response.json()
       
       // Check if response is an error
-      if (isErrorResponse(result)) {
+      if (this.isErrorResponse(result)) {
         console.error('Moodle API Error:', result)
         return []
       }
@@ -342,9 +460,7 @@ class MoodleService {
   // Get courses by category ID (returns ALL courses in category)
   async getCoursesByCategory(categoryId: number): Promise<MoodleCourse[]> {
     try {
-      const cacheKey = this.getCacheKey('getCoursesByCategory', { categoryId })
-      
-      // Check cache first
+      const cacheKey = `courses_category_${categoryId}`
       const cached = this.getFromCache<MoodleCourse[]>(cacheKey)
       if (cached) {
         console.log(`Returning cached courses for category ${categoryId}`)
@@ -374,7 +490,7 @@ class MoodleService {
     lastAccess: number
   }> {
     try {
-      const cacheKey = this.getCacheKey('getCourseEnrollmentStats', { courseId })
+      const cacheKey = `course_enrollment_stats_${courseId}`
       
       if (useCache) {
         const cached = this.getFromCache<any>(cacheKey)
@@ -407,7 +523,7 @@ class MoodleService {
 
       const result = await response.json()
       
-      if (isErrorResponse(result)) {
+      if (this.isErrorResponse(result)) {
         console.error('Moodle API Error fetching enrollments:', result)
         return { enrolledUsers: 0, activeUsers: 0, lastAccess: 0 }
       }
@@ -430,8 +546,7 @@ class MoodleService {
   // Get detailed course information including enrollment stats
   async getCourseDetailsWithStats(courseId: number): Promise<MoodleCourse | null> {
     try {
-      const cacheKey = this.getCacheKey('getCourseDetailsWithStats', { courseId })
-      
+      const cacheKey = `course_details_with_stats_${courseId}`
       const cached = this.getFromCache<MoodleCourse | null>(cacheKey)
       if (cached) return cached
 
@@ -458,7 +573,7 @@ class MoodleService {
 
       const result = await response.json()
       
-      if (isErrorResponse(result)) {
+      if (this.isErrorResponse(result)) {
         console.error('Moodle API Error:', result)
         return null
       }
@@ -487,8 +602,7 @@ class MoodleService {
     activeStudents: number
   }> {
     try {
-      const cacheKey = this.getCacheKey('getCategoryStats', { categoryId })
-      
+      const cacheKey = `category_stats_${categoryId}`
       const cached = this.getFromCache<any>(cacheKey)
       if (cached) return cached
 
@@ -589,7 +703,7 @@ class MoodleService {
       const result = await response.json()
       
       // Check if response is an error
-      if (isErrorResponse(result)) {
+      if (this.isErrorResponse(result)) {
         console.error('Moodle API Error:', result)
         return []
       }
@@ -666,27 +780,35 @@ class MoodleService {
   }
 
   // Get root categories (2025/2026.1 and similar)
-  getRootCategories(): Promise<any[]> {
-    try {
-      return this.getCategories().then(categories => {
-        return categories.filter((cat: any) => cat.parent === 0)
-      })
-    } catch (error) {
-      console.error('Error getting root categories:', error)
-      return Promise.resolve([])
+  async getRootCategories(): Promise<any[]> {
+    const cacheKey = 'root_categories'
+    const cached = this.getFromCache(cacheKey)
+    if (cached) {
+      console.log('✓ Cached root categories')
+      return cached
     }
+
+    console.log('✗ Fetching root categories')
+    const allCategories = await this.getCategories()
+    const root = allCategories.filter((cat: any) => cat.parent === 0)
+    this.setCache(cacheKey, root)
+    return root
   }
 
   // Get immediate children of a category
-  getCategoryChildren(parentId: number): Promise<any[]> {
-    try {
-      return this.getCategories().then(categories => {
-        return categories.filter((cat: any) => cat.parent === parentId).sort((a: any, b: any) => a.name.localeCompare(b.name))
-      })
-    } catch (error) {
-      console.error('Error getting category children:', error)
-      return Promise.resolve([])
+  async getCategoryChildren(parentId: number): Promise<any[]> {
+    const cacheKey = `category_children_${parentId}`
+    const cached = this.getFromCache(cacheKey)
+    if (cached) {
+      console.log(`✓ Cached children for category ${parentId}`)
+      return cached
     }
+
+    console.log(`✗ Fetching children for category ${parentId}`)
+    const allCategories = await this.getCategories()
+    const children = allCategories.filter((cat: any) => cat.parent === parentId)
+    this.setCache(cacheKey, children)
+    return children
   }
 
   // Get full category details with children and course counts
@@ -711,6 +833,112 @@ class MoodleService {
       return null
     }
   }
+
+  // Get course instructors/teachers - using core_enrol_get_enrolled_users with role filtering
+  async getCourseInstructors(courseId: number): Promise<MoodleUser[]> {
+    try {
+      // Get all enrolled users and filter for instructors/teachers
+      // Teachers typically have role id 3 or 4 in Moodle
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'core_enrol_get_enrolled_users',
+        moodlewsrestformat: 'json',
+        courseid: courseId.toString()
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result = await response.json()
+      
+      // Check if response is an error
+      if (this.isErrorResponse(result)) {
+        console.error('Moodle API Error getting instructors:', result)
+        return []
+      }
+      
+      // Filter for users with instructor role (typically role id 3 or 4)
+      // Look for users that have a role indicating they are instructors
+      const instructors = result.filter((user: any) => {
+        // Check if user has instructor/teacher roles
+        if (user.roles && Array.isArray(user.roles)) {
+          const instructorRoles = [3, 4, 5, 6]; // Common instructor role IDs
+          return user.roles.some((role: any) => instructorRoles.includes(role.roleid))
+        }
+        return false
+      })
+
+      return instructors.length > 0 ? instructors : []
+    } catch (error) {
+      console.error('Error fetching course instructors:', error)
+      return []
+    }
+  }
+
+  // Get course with detailed enrollment and instructor info
+  async getCourseWithDetails(courseId: number): Promise<any> {
+    const cacheKey = `course_with_details_${courseId}`
+    const cached = this.getFromCache(cacheKey)
+    if (cached) {
+      console.log(`✓ Cached details for course ${courseId}`)
+      return cached
+    }
+
+    console.log(`✗ Fetching details for course ${courseId}`)
+    try {
+      // Get course details
+      const courseDetails = await this.getCourseDetails(courseId)
+      if (!courseDetails) return null
+
+      // Get enrolled users to count actual students
+      const enrolledUsers = await this.getCourseEnrollments(courseId)
+      const studentCount = enrolledUsers.length
+
+      // Get instructors
+      const instructors = await this.getCourseInstructors(courseId)
+      const instructorNames = instructors.map(i => i.fullname).join(', ') || 'No instructor assigned'
+
+      const details = {
+        ...courseDetails,
+        enrolledusercount: studentCount,
+        instructorNames,
+        instructors
+      }
+
+      this.setCache(cacheKey, details)
+      return details
+    } catch (error) {
+      console.error(`Error fetching course details for ${courseId}:`, error)
+      return null
+    }
+  }
+
+  // Get courses with all details (students + instructors)
+  async getCoursesWithDetails(courseIds: number[]): Promise<any[]> {
+    try {
+      const results = await Promise.all(
+        courseIds.map(id => this.getCourseWithDetails(id))
+      )
+      return results.filter(r => r !== null)
+    } catch (error) {
+      console.error('Error getting courses with details:', error)
+      return []
+    }
+  }
+
+  // Helper to check error responses
+  private isErrorResponse(result: any): boolean {
+    return result && (result.exception || result.error || result.errorcode)
+  }
 }
 
 // Moodle Configuration
@@ -720,7 +948,7 @@ export const moodleConfig: MoodleConfig = {
   serviceName: 'UEAB ODeL Integration'
 }
 
-export const moodleService = new MoodleService(moodleConfig)
+export const moodleService = new MoodleService(moodleConfig.baseUrl, moodleConfig.apiToken)
 
 // Helper functions for chatbot integration
 export async function searchMoodleCourses(query: string): Promise<MoodleCourse[]> {
