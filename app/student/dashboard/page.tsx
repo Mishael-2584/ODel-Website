@@ -51,47 +51,39 @@ export default function StudentDashboard() {
           // Fetch courses from Moodle API for this student
           if (data.user && data.user.moodleUserId) {
             try {
-              console.log(`Fetching courses for user ID: ${data.user.moodleUserId}`)
-              const coursesUrl = `/api/moodle?action=user-courses&userId=${data.user.moodleUserId}`
-              const coursesResponse = await fetch(coursesUrl)
+              console.log(`Fetching dashboard data for user ID: ${data.user.moodleUserId}`)
+              
+              // Fetch all data in PARALLEL, not sequentially
+              const [coursesResponse, calendarResponse, assignmentsResponse, gradesResponse] = await Promise.all([
+                fetch(`/api/moodle?action=user-courses&userId=${data.user.moodleUserId}`),
+                fetch(`/api/moodle?action=calendar-events&userId=${data.user.moodleUserId}`),
+                fetch(`/api/moodle?action=assignments&userId=${data.user.moodleUserId}`),
+                fetch(`/api/moodle?action=user-grades&userId=${data.user.moodleUserId}`)
+              ])
+
+              // Process courses
               const coursesData = await coursesResponse.json()
-              console.log('Courses response:', coursesData)
               if (coursesData.success && coursesData.data) {
                 console.log(`Found ${coursesData.data.length} courses`)
                 setCourses(coursesData.data)
               }
 
-              // Fetch calendar events
-              try {
-                const calendarResponse = await fetch(`/api/moodle?action=calendar-events&userId=${data.user.moodleUserId}`)
-                const calendarData = await calendarResponse.json()
-                if (calendarData.success && calendarData.data) {
-                  setCalendarEvents(calendarData.data)
-                }
-              } catch (err) {
-                console.warn('Error fetching calendar:', err)
+              // Process calendar
+              const calendarData = await calendarResponse.json()
+              if (calendarData.success && calendarData.data) {
+                setCalendarEvents(calendarData.data)
               }
 
-              // Fetch assignments
-              try {
-                const assignmentsResponse = await fetch(`/api/moodle?action=assignments&userId=${data.user.moodleUserId}`)
-                const assignmentsData = await assignmentsResponse.json()
-                if (assignmentsData.success && assignmentsData.data) {
-                  setAssignments(assignmentsData.data)
-                }
-              } catch (err) {
-                console.warn('Error fetching assignments:', err)
+              // Process assignments
+              const assignmentsData = await assignmentsResponse.json()
+              if (assignmentsData.success && assignmentsData.data) {
+                setAssignments(assignmentsData.data)
               }
 
-              // Fetch grades
-              try {
-                const gradesResponse = await fetch(`/api/moodle?action=user-grades&userId=${data.user.moodleUserId}`)
-                const gradesData = await gradesResponse.json()
-                if (gradesData.success && gradesData.data) {
-                  setGrades(gradesData.data)
-                }
-              } catch (err) {
-                console.warn('Error fetching grades:', err)
+              // Process grades
+              const gradesData = await gradesResponse.json()
+              if (gradesData.success && gradesData.data) {
+                setGrades(gradesData.data)
               }
 
               // Generate SSO login URL - NOW DONE ON-DEMAND WHEN BUTTON CLICKED
@@ -99,7 +91,7 @@ export default function StudentDashboard() {
               // Fresh key will be generated each time user clicks "Open Moodle"
 
             } catch (courseErr) {
-              console.error('Error fetching courses:', courseErr)
+              console.error('Error fetching dashboard data:', courseErr)
             }
           } else {
             console.warn('moodleUserId not found in authenticated user data')
