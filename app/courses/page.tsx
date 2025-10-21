@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import CategoryHierarchy from '@/components/CategoryHierarchy'
 import { 
   FaSearch, FaFilter, FaBook, FaUsers, FaStar, FaClock, 
   FaArrowRight, FaBuilding, FaMicroscope, FaStethoscope,
@@ -294,6 +295,11 @@ export default function CoursesPage() {
             </p>
           </div>
         </div>
+      </section>
+
+      {/* Hierarchical Category Discovery */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <CategoryHierarchy />
       </section>
 
       {/* Search and Filter Section */}

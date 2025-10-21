@@ -88,10 +88,11 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
         let response = `I found ${result.count} courses matching "${searchTerm}":\n\n`
         
         courses.forEach((course: any, index: number) => {
-          response += `${index + 1}. **${course.fullname}**\n`
-          response += `   School: ${course.categoryname}\n`
-          response += `   Students: ${course.enrolledusercount}\n`
-          response += `   ${course.summary.substring(0, 100)}...\n\n`
+          response += `${index + 1}. **${course.fullname || 'Untitled Course'}**\n`
+          response += `   School: ${course.categoryname || 'General'}\n`
+          response += `   Students: ${course.enrolledusercount || 0}\n`
+          const summary = (course.summary || 'No description available')
+          response += `   ${summary.substring(0, 100)}...\n\n`
         })
         
         if (result.count > 3) {
