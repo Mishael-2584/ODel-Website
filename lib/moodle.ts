@@ -1277,17 +1277,17 @@ class MoodleService {
     try {
       console.log('🔐 SSO Request - Attempting to generate login URL for user:', userId)
       
-      // The function uses idnumber and username, not id and username
+      // The function only accepts user object with idnumber and username
+      // Do NOT include returnurl as a parameter
       const params = new URLSearchParams({
         wstoken: this.config.apiToken,
         wsfunction: 'auth_userkey_request_login_url',
         moodlewsrestformat: 'json',
-        'user[idnumber]': moodleUsername, // Use username as idnumber - this is the unique identifier
-        'user[username]': moodleUsername,
-        returnurl: `${this.config.baseUrl}/my/`
+        'user[idnumber]': moodleUsername,
+        'user[username]': moodleUsername
       })
 
-      console.log('🔐 SSO Attempting with user[idnumber] and user[username]')
+      console.log('🔐 SSO Attempting with user[idnumber] and user[username] only')
       const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1305,7 +1305,6 @@ class MoodleService {
       if (this.isErrorResponse(result)) {
         console.error('❌ SSO failed. Error:', result.message || result.error)
         console.error('❌ Debug info:', result.debuginfo)
-        // Fallback to direct Moodle dashboard
         console.log('⚠️ Falling back to direct Moodle dashboard URL')
         return `${this.config.baseUrl}/my/`
       }
