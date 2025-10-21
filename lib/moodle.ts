@@ -1153,16 +1153,13 @@ class MoodleService {
   // Get course calendar events
   async getCalendarEvents(userId: number): Promise<any[]> {
     try {
+      // First, get the user's calendar events by using core_calendar_get_calendar_events
+      // without the events array wrapper
       const params = new URLSearchParams({
         wstoken: this.config.apiToken,
         wsfunction: 'core_calendar_get_calendar_events',
         moodlewsrestformat: 'json'
       })
-
-      // Use timestart to limit results - get events from today onwards
-      const now = Math.floor(Date.now() / 1000)
-      params.append('events[timestart]', now.toString())
-      params.append('events[timeend]', (now + 86400 * 90).toString()) // 90 days from now
 
       const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
         method: 'POST',
@@ -1275,18 +1272,38 @@ class MoodleService {
     }
   }
 
-  // Generate Moodle login URL without SSO (direct method)
-  // Instead of using auth_userkey_request_login_url, we create a direct URL that redirects to Moodle
-  // Students will need to login in Moodle once, then can access courses
+  // Generate Moodle login URL using SSO token (now enabled in external service)
   async generateMoodleLoginUrl(userId: number, moodleUsername: string): Promise<string> {
     try {
-      // Return a direct link to Moodle's login page that will redirect to dashboard
-      // This is better than SSO as it doesn't require additional Moodle functions
-      const loginUrl = `${this.config.baseUrl}/login/index.php?redirect=${encodeURIComponent(`${this.config.baseUrl}/my/`)}`
-      return loginUrl
+      // Use the auth_userkey_request_login_url function for true SSO
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'auth_userkey_request_login_url',
+        moodlewsrestformat: 'json',
+        userid: userId.toString(),
+        returnurl: `${this.config.baseUrl}/my/`
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+      })
+
+      const result = await response.json()
+
+      if (this.isErrorResponse(result)) {
+        console.warn('SSO token generation failed, using fallback:', result)
+        // Fallback to direct Moodle dashboard link
+        return `${this.config.baseUrl}/my/`
+      }
+
+      // Return the login URL that allows direct access without re-authentication
+      return result.loginurl || `${this.config.baseUrl}/my/`
     } catch (error) {
-      console.error('Error generating Moodle login URL:', error)
-      return this.config.baseUrl
+      console.error('Error generating SSO login URL:', error)
+      // Fallback to Moodle dashboard
+      return `${this.config.baseUrl}/my/`
     }
   }
 
