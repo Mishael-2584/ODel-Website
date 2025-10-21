@@ -1102,6 +1102,192 @@ class MoodleService {
     }
   }
 
+  // Get user assignments
+  async getUserAssignments(userId: number, courseId?: number): Promise<any[]> {
+    try {
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'mod_assign_get_assignments',
+        moodlewsrestformat: 'json'
+      })
+
+      if (courseId) {
+        params.append('courseids[0]', courseId.toString())
+      }
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+      })
+
+      const result = await response.json()
+
+      if (this.isErrorResponse(result)) {
+        console.warn('Error fetching assignments:', result)
+        return []
+      }
+
+      return result.courses || []
+    } catch (error) {
+      console.error('Error getting assignments:', error)
+      return []
+    }
+  }
+
+  // Get course calendar events
+  async getCalendarEvents(userId: number): Promise<any[]> {
+    try {
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'core_calendar_get_calendar_events',
+        moodlewsrestformat: 'json',
+        userid: userId.toString()
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+      })
+
+      const result = await response.json()
+
+      if (this.isErrorResponse(result)) {
+        console.warn('Error fetching calendar events:', result)
+        return []
+      }
+
+      return result.events || []
+    } catch (error) {
+      console.error('Error getting calendar events:', error)
+      return []
+    }
+  }
+
+  // Get quiz attempts
+  async getQuizAttempts(userId: number, courseId: number): Promise<any[]> {
+    try {
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'mod_quiz_get_user_best_grades',
+        moodlewsrestformat: 'json',
+        userid: userId.toString(),
+        courseid: courseId.toString()
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+      })
+
+      const result = await response.json()
+
+      if (this.isErrorResponse(result)) {
+        console.warn('Error fetching quiz attempts:', result)
+        return []
+      }
+
+      return result.quizzes || []
+    } catch (error) {
+      console.error('Error getting quiz attempts:', error)
+      return []
+    }
+  }
+
+  // Get forum discussions
+  async getForumDiscussions(courseId: number): Promise<any[]> {
+    try {
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'mod_forum_get_forum_discussions_paginated',
+        moodlewsrestformat: 'json',
+        forumid: courseId.toString()
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+      })
+
+      const result = await response.json()
+
+      if (this.isErrorResponse(result)) {
+        console.warn('Error fetching forum discussions:', result)
+        return []
+      }
+
+      return result.discussions || []
+    } catch (error) {
+      console.error('Error getting forum discussions:', error)
+      return []
+    }
+  }
+
+  // Get course content/resources
+  async getCourseContents(courseId: number): Promise<any[]> {
+    try {
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'core_course_get_contents',
+        moodlewsrestformat: 'json',
+        courseid: courseId.toString()
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+      })
+
+      const result = await response.json()
+
+      if (this.isErrorResponse(result)) {
+        console.warn('Error fetching course contents:', result)
+        return []
+      }
+
+      return result || []
+    } catch (error) {
+      console.error('Error getting course contents:', error)
+      return []
+    }
+  }
+
+  // Generate Moodle SSO token for direct login
+  async generateMoodleSSOToken(userId: number): Promise<string | null> {
+    try {
+      // Create a session token that Moodle can recognize
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'auth_userkey_request_login_url',
+        moodlewsrestformat: 'json',
+        userid: userId.toString(),
+        returnurl: `${process.env.NEXT_PUBLIC_MOODLE_URL}/my/`
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+      })
+
+      const result = await response.json()
+
+      if (this.isErrorResponse(result)) {
+        console.warn('Error generating SSO token:', result)
+        return null
+      }
+
+      return result.loginurl || null
+    } catch (error) {
+      console.error('Error generating SSO token:', error)
+      return null
+    }
+  }
+
   // Helper to check error responses
   private isErrorResponse(result: any): boolean {
     return result && (result.exception || result.error || result.errorcode)

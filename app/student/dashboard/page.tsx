@@ -31,6 +31,10 @@ export default function StudentDashboard() {
   const [courses, setCourses] = useState<any[]>([])
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState<TabType>('dashboard')
+  const [calendarEvents, setCalendarEvents] = useState<any[]>([])
+  const [assignments, setAssignments] = useState<any[]>([])
+  const [grades, setGrades] = useState<{ avgGrade: number; courses: any[] }>({ avgGrade: 0, courses: [] })
+  const [ssoLoginUrl, setSsoLoginUrl] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -48,16 +52,58 @@ export default function StudentDashboard() {
             try {
               console.log(`Fetching courses for user ID: ${data.user.moodleUserId}`)
               const coursesUrl = `/api/moodle?action=user-courses&userId=${data.user.moodleUserId}`
-              console.log('Fetching from URL:', coursesUrl)
               const coursesResponse = await fetch(coursesUrl)
               const coursesData = await coursesResponse.json()
               console.log('Courses response:', coursesData)
               if (coursesData.success && coursesData.data) {
                 console.log(`Found ${coursesData.data.length} courses`)
                 setCourses(coursesData.data)
-              } else {
-                console.log('No courses data in response')
               }
+
+              // Fetch calendar events
+              try {
+                const calendarResponse = await fetch(`/api/moodle?action=calendar-events&userId=${data.user.moodleUserId}`)
+                const calendarData = await calendarResponse.json()
+                if (calendarData.success && calendarData.data) {
+                  setCalendarEvents(calendarData.data)
+                }
+              } catch (err) {
+                console.warn('Error fetching calendar:', err)
+              }
+
+              // Fetch assignments
+              try {
+                const assignmentsResponse = await fetch(`/api/moodle?action=assignments&userId=${data.user.moodleUserId}`)
+                const assignmentsData = await assignmentsResponse.json()
+                if (assignmentsData.success && assignmentsData.data) {
+                  setAssignments(assignmentsData.data)
+                }
+              } catch (err) {
+                console.warn('Error fetching assignments:', err)
+              }
+
+              // Fetch grades
+              try {
+                const gradesResponse = await fetch(`/api/moodle?action=user-grades&userId=${data.user.moodleUserId}`)
+                const gradesData = await gradesResponse.json()
+                if (gradesData.success && gradesData.data) {
+                  setGrades(gradesData.data)
+                }
+              } catch (err) {
+                console.warn('Error fetching grades:', err)
+              }
+
+              // Generate SSO login URL
+              try {
+                const ssoResponse = await fetch(`/api/moodle?action=sso-login&userId=${data.user.moodleUserId}`)
+                const ssoData = await ssoResponse.json()
+                if (ssoData.success && ssoData.data) {
+                  setSsoLoginUrl(ssoData.data)
+                }
+              } catch (err) {
+                console.warn('Error generating SSO URL:', err)
+              }
+
             } catch (courseErr) {
               console.error('Error fetching courses:', courseErr)
             }
@@ -199,7 +245,7 @@ export default function StudentDashboard() {
                   <h3 className="font-semibold text-gray-900">Moodle</h3>
                 </div>
                 <a
-                  href={process.env.NEXT_PUBLIC_MOODLE_URL}
+                  href={ssoLoginUrl || process.env.NEXT_PUBLIC_MOODLE_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
@@ -287,55 +333,115 @@ export default function StudentDashboard() {
 
         {/* Calendar Tab */}
         {activeTab === 'calendar' && (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <FaCalendarAlt className="mx-auto text-6xl text-primary-600 mb-6" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Academic Calendar</h2>
-            <p className="text-gray-600 mb-8">Coming soon - Your academic calendar and important dates will be displayed here</p>
-            <div className="inline-block bg-blue-50 border border-blue-200 rounded-lg p-6 text-left">
-              <p className="text-sm font-semibold text-blue-900 mb-2">📅 Features coming:</p>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>✓ Semester dates and holidays</li>
-                <li>✓ Assignment deadlines</li>
-                <li>✓ Exam schedules</li>
-                <li>✓ Important announcements</li>
-              </ul>
-            </div>
+          <div>
+            {calendarEvents.length > 0 ? (
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-8">Academic Calendar</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {calendarEvents.slice(0, 12).map((event: any, idx: number) => (
+                    <div key={idx} className="bg-white rounded-lg shadow p-6 border-l-4 border-primary-600">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="font-bold text-gray-900 line-clamp-2">{event.name || event.eventtype}</h3>
+                        <span className="text-xs bg-primary-100 text-primary-800 px-2 py-1 rounded whitespace-nowrap ml-2">
+                          {event.eventtype}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">
+                        📅 {new Date(event.timestart * 1000).toLocaleDateString()}
+                      </p>
+                      {event.description && (
+                        <p className="text-xs text-gray-500 line-clamp-2">{event.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow p-12 text-center">
+                <FaCalendarAlt className="mx-auto text-6xl text-primary-600 mb-6" />
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Academic Calendar</h2>
+                <p className="text-gray-600 mb-8">No upcoming events scheduled</p>
+              </div>
+            )}
           </div>
         )}
 
         {/* Grades Tab */}
         {activeTab === 'grades' && (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <FaChartBar className="mx-auto text-6xl text-amber-600 mb-6" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">My Grades</h2>
-            <p className="text-gray-600 mb-8">Coming soon - Your course grades and academic performance will be displayed here</p>
-            <div className="inline-block bg-amber-50 border border-amber-200 rounded-lg p-6 text-left">
-              <p className="text-sm font-semibold text-amber-900 mb-2">📊 Features coming:</p>
-              <ul className="text-sm text-amber-800 space-y-1">
-                <li>✓ Course grades and GPA</li>
-                <li>✓ Assignment scores</li>
-                <li>✓ Exam results</li>
-                <li>✓ Academic performance trends</li>
-              </ul>
-            </div>
+          <div>
+            {grades.courses && grades.courses.length > 0 ? (
+              <div>
+                <div className="mb-8">
+                  <h2 className="text-3xl font-bold text-gray-900 mb-2">My Grades</h2>
+                  <div className="bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-200 rounded-lg p-6 mb-6">
+                    <p className="text-gray-600 text-sm mb-2">Overall Grade Average</p>
+                    <p className="text-4xl font-bold text-amber-600">{(grades.avgGrade || 0).toFixed(2)}%</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {grades.courses.map((course: any, idx: number) => (
+                    <div key={idx} className="bg-white rounded-lg shadow p-6">
+                      <h3 className="font-bold text-gray-900 mb-3">{course.coursename}</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Grade</span>
+                          <span className="text-lg font-bold text-primary-600">{(course.grade || 0).toFixed(2)}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-primary-600 h-2 rounded-full transition-all"
+                            style={{ width: `${Math.min(course.grade || 0, 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow p-12 text-center">
+                <FaChartBar className="mx-auto text-6xl text-amber-600 mb-6" />
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">My Grades</h2>
+                <p className="text-gray-600 mb-8">No grades available yet</p>
+              </div>
+            )}
           </div>
         )}
 
         {/* Assignments Tab */}
         {activeTab === 'assignments' && (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <FaClock className="mx-auto text-6xl text-green-600 mb-6" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">My Assignments</h2>
-            <p className="text-gray-600 mb-8">Coming soon - Your upcoming assignments and deadlines will be displayed here</p>
-            <div className="inline-block bg-green-50 border border-green-200 rounded-lg p-6 text-left">
-              <p className="text-sm font-semibold text-green-900 mb-2">✅ Features coming:</p>
-              <ul className="text-sm text-green-800 space-y-1">
-                <li>✓ Upcoming assignments</li>
-                <li>✓ Due dates and reminders</li>
-                <li>✓ Submission status</li>
-                <li>✓ Assignment feedback</li>
-              </ul>
-            </div>
+          <div>
+            {assignments.length > 0 ? (
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-8">My Assignments</h2>
+                <div className="space-y-4">
+                  {assignments.map((assignment: any, idx: number) => (
+                    <div key={idx} className="bg-white rounded-lg shadow p-6 border-l-4 border-green-600">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-bold text-gray-900 text-lg">{assignment.name}</h3>
+                        <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                          assignment.duedate < Date.now() / 1000
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {assignment.duedate < Date.now() / 1000 ? 'Overdue' : 'Pending'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">📚 {assignment.coursename}</p>
+                      <p className="text-sm text-gray-600">
+                        Due: {new Date(assignment.duedate * 1000).toLocaleDateString()} {new Date(assignment.duedate * 1000).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow p-12 text-center">
+                <FaClock className="mx-auto text-6xl text-green-600 mb-6" />
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">My Assignments</h2>
+                <p className="text-gray-600 mb-8">No assignments at this time</p>
+              </div>
+            )}
           </div>
         )}
       </div>

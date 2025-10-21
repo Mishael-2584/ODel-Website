@@ -420,6 +420,112 @@ export async function GET(request: NextRequest) {
         )
       }
 
+      case 'calendar-events': {
+        const userId = searchParams.get('userId')
+        if (!userId) {
+          return NextResponse.json(
+            { error: 'userId is required' },
+            { status: 400 }
+          )
+        }
+
+        try {
+          const events = await moodleService.getCalendarEvents(parseInt(userId))
+          return NextResponse.json(
+            { success: true, data: events },
+            { headers: CACHE_HEADERS }
+          )
+        } catch (err) {
+          console.error('Error fetching calendar events:', err)
+          return NextResponse.json(
+            { success: true, data: [] },
+            { headers: CACHE_HEADERS }
+          )
+        }
+      }
+
+      case 'assignments': {
+        const userId = searchParams.get('userId')
+        if (!userId) {
+          return NextResponse.json(
+            { error: 'userId is required' },
+            { status: 400 }
+          )
+        }
+
+        try {
+          const assignments = await moodleService.getUserAssignments(parseInt(userId))
+          return NextResponse.json(
+            { success: true, data: assignments },
+            { headers: CACHE_HEADERS }
+          )
+        } catch (err) {
+          console.error('Error fetching assignments:', err)
+          return NextResponse.json(
+            { success: true, data: [] },
+            { headers: CACHE_HEADERS }
+          )
+        }
+      }
+
+      case 'user-grades': {
+        const userId = searchParams.get('userId')
+        if (!userId) {
+          return NextResponse.json(
+            { error: 'userId is required' },
+            { status: 400 }
+          )
+        }
+
+        try {
+          // For now, return mock grades data
+          // In a real scenario, you'd fetch from Moodle's gradebook API
+          return NextResponse.json(
+            { 
+              success: true, 
+              data: {
+                avgGrade: 0,
+                courses: []
+              }
+            },
+            { headers: CACHE_HEADERS }
+          )
+        } catch (err) {
+          console.error('Error fetching grades:', err)
+          return NextResponse.json(
+            { success: true, data: { avgGrade: 0, courses: [] } },
+            { headers: CACHE_HEADERS }
+          )
+        }
+      }
+
+      case 'sso-login': {
+        const userId = searchParams.get('userId')
+        if (!userId) {
+          return NextResponse.json(
+            { error: 'userId is required' },
+            { status: 400 }
+          )
+        }
+
+        try {
+          const loginUrl = await moodleService.generateMoodleSSOToken(parseInt(userId))
+          return NextResponse.json(
+            { 
+              success: true, 
+              data: loginUrl || process.env.NEXT_PUBLIC_MOODLE_URL
+            },
+            { headers: CACHE_HEADERS }
+          )
+        } catch (err) {
+          console.error('Error generating SSO token:', err)
+          return NextResponse.json(
+            { success: true, data: process.env.NEXT_PUBLIC_MOODLE_URL },
+            { headers: CACHE_HEADERS }
+          )
+        }
+      }
+
       default:
         return NextResponse.json(
           { error: 'Invalid action. Available actions: courses, categories, course-details, course-enrollments, search, statistics, courses-by-category' },
