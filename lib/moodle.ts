@@ -1277,17 +1277,19 @@ class MoodleService {
     try {
       console.log('🔐 SSO Request - Attempting to generate login URL for user:', userId)
       
-      // Try method 1: Standard REST parameters
+      // Method 1: Using complete user structure with id, username, and idnumber
+      // auth_userkey_request_login_url requires all three fields
       const params1 = new URLSearchParams({
         wstoken: this.config.apiToken,
         wsfunction: 'auth_userkey_request_login_url',
         moodlewsrestformat: 'json',
         'user[id]': userId.toString(),
         'user[username]': moodleUsername,
+        'user[idnumber]': moodleUsername, // Use username as idnumber
         returnurl: `${this.config.baseUrl}/my/`
       })
 
-      console.log('🔐 SSO Attempt 1 - Using user[id] format')
+      console.log('🔐 SSO Attempt 1 - Using user[id], user[username], user[idnumber]')
       let response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1302,18 +1304,19 @@ class MoodleService {
         return result.loginurl
       }
 
-      // Try method 2: Using just userid instead of nested user object
+      // If method 1 fails, try without idnumber
       if (this.isErrorResponse(result)) {
-        console.log('🔐 SSO Method 1 failed, trying Method 2...')
+        console.log('🔐 SSO Method 1 failed, trying Method 2 without idnumber...')
         const params2 = new URLSearchParams({
           wstoken: this.config.apiToken,
           wsfunction: 'auth_userkey_request_login_url',
           moodlewsrestformat: 'json',
-          userid: userId.toString(),
+          'user[id]': userId.toString(),
+          'user[username]': moodleUsername,
           returnurl: `${this.config.baseUrl}/my/`
         })
 
-        console.log('🔐 SSO Attempt 2 - Using userid (simple)')
+        console.log('🔐 SSO Attempt 2 - Without idnumber')
         response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
