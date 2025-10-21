@@ -1275,9 +1275,10 @@ class MoodleService {
   // Generate Moodle login URL using SSO token (now enabled in external service)
   async generateMoodleLoginUrl(userId: number, moodleUsername: string): Promise<string> {
     try {
-      // Use the auth_userkey_request_login_url function for true SSO
-      // This function requires user data in a specific structure
-      const params = new URLSearchParams({
+      console.log('🔐 SSO Request - Attempting to generate login URL for user:', userId)
+      
+      // Try method 1: Standard REST parameters
+      const params1 = new URLSearchParams({
         wstoken: this.config.apiToken,
         wsfunction: 'auth_userkey_request_login_url',
         moodlewsrestformat: 'json',
@@ -1286,38 +1287,55 @@ class MoodleService {
         returnurl: `${this.config.baseUrl}/my/`
       })
 
-      console.log('🔐 SSO Request - Attempting to generate login URL for user:', userId)
-      console.log('🔐 SSO Params:', {
-        wsfunction: 'auth_userkey_request_login_url',
-        'user[id]': userId.toString(),
-        'user[username]': moodleUsername,
-        returnurl: `${this.config.baseUrl}/my/`
-      })
-
-      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+      console.log('🔐 SSO Attempt 1 - Using user[id] format')
+      let response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params
+        body: params1
       })
 
-      const result = await response.json()
-      console.log('🔐 SSO Response from Moodle:', result)
+      let result = await response.json()
+      console.log('🔐 SSO Response (Method 1):', result)
 
-      if (this.isErrorResponse(result)) {
-        console.error('❌ SSO token generation failed:', result.exception || result.error || result.errorcode)
-        console.error('❌ Error message:', result.message)
-        console.error('❌ Debug info:', result.debuginfo)
-        // Fallback to direct Moodle dashboard link
-        return `${this.config.baseUrl}/my/`
+      if (result.loginurl) {
+        console.log('✅ SSO Success with Method 1! Generated login URL:', result.loginurl)
+        return result.loginurl
       }
 
-      // Return the login URL that allows direct access without re-authentication
-      const loginUrl = result.loginurl || `${this.config.baseUrl}/my/`
-      console.log('✅ SSO Success! Generated login URL:', loginUrl)
-      return loginUrl
+      // Try method 2: Using just userid instead of nested user object
+      if (this.isErrorResponse(result)) {
+        console.log('🔐 SSO Method 1 failed, trying Method 2...')
+        const params2 = new URLSearchParams({
+          wstoken: this.config.apiToken,
+          wsfunction: 'auth_userkey_request_login_url',
+          moodlewsrestformat: 'json',
+          userid: userId.toString(),
+          returnurl: `${this.config.baseUrl}/my/`
+        })
+
+        console.log('🔐 SSO Attempt 2 - Using userid (simple)')
+        response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: params2
+        })
+
+        result = await response.json()
+        console.log('🔐 SSO Response (Method 2):', result)
+
+        if (result.loginurl) {
+          console.log('✅ SSO Success with Method 2! Generated login URL:', result.loginurl)
+          return result.loginurl
+        }
+      }
+
+      // If both methods fail, return fallback
+      console.error('❌ All SSO methods failed. Error:', result.message || result.error)
+      console.error('❌ Debug info:', result.debuginfo)
+      return `${this.config.baseUrl}/my/`
+      
     } catch (error) {
-      console.error('❌ Error generating SSO login URL:', error)
-      // Fallback to Moodle dashboard
+      console.error('❌ Exception in SSO generation:', error)
       return `${this.config.baseUrl}/my/`
     }
   }
