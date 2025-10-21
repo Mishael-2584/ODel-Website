@@ -1277,64 +1277,39 @@ class MoodleService {
     try {
       console.log('🔐 SSO Request - Attempting to generate login URL for user:', userId)
       
-      // Method 1: Using complete user structure with id, username, and idnumber
-      // auth_userkey_request_login_url requires all three fields
-      const params1 = new URLSearchParams({
+      // The function uses idnumber and username, not id and username
+      const params = new URLSearchParams({
         wstoken: this.config.apiToken,
         wsfunction: 'auth_userkey_request_login_url',
         moodlewsrestformat: 'json',
-        'user[id]': userId.toString(),
+        'user[idnumber]': moodleUsername, // Use username as idnumber - this is the unique identifier
         'user[username]': moodleUsername,
-        'user[idnumber]': moodleUsername, // Use username as idnumber
         returnurl: `${this.config.baseUrl}/my/`
       })
 
-      console.log('🔐 SSO Attempt 1 - Using user[id], user[username], user[idnumber]')
-      let response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+      console.log('🔐 SSO Attempting with user[idnumber] and user[username]')
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params1
+        body: params
       })
 
-      let result = await response.json()
-      console.log('🔐 SSO Response (Method 1):', result)
+      const result = await response.json()
+      console.log('🔐 SSO Response from Moodle:', result)
 
       if (result.loginurl) {
-        console.log('✅ SSO Success with Method 1! Generated login URL:', result.loginurl)
+        console.log('✅ SSO Success! Generated secure login URL:', result.loginurl)
         return result.loginurl
       }
 
-      // If method 1 fails, try without idnumber
       if (this.isErrorResponse(result)) {
-        console.log('🔐 SSO Method 1 failed, trying Method 2 without idnumber...')
-        const params2 = new URLSearchParams({
-          wstoken: this.config.apiToken,
-          wsfunction: 'auth_userkey_request_login_url',
-          moodlewsrestformat: 'json',
-          'user[id]': userId.toString(),
-          'user[username]': moodleUsername,
-          returnurl: `${this.config.baseUrl}/my/`
-        })
-
-        console.log('🔐 SSO Attempt 2 - Without idnumber')
-        response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: params2
-        })
-
-        result = await response.json()
-        console.log('🔐 SSO Response (Method 2):', result)
-
-        if (result.loginurl) {
-          console.log('✅ SSO Success with Method 2! Generated login URL:', result.loginurl)
-          return result.loginurl
-        }
+        console.error('❌ SSO failed. Error:', result.message || result.error)
+        console.error('❌ Debug info:', result.debuginfo)
+        // Fallback to direct Moodle dashboard
+        console.log('⚠️ Falling back to direct Moodle dashboard URL')
+        return `${this.config.baseUrl}/my/`
       }
 
-      // If both methods fail, return fallback
-      console.error('❌ All SSO methods failed. Error:', result.message || result.error)
-      console.error('❌ Debug info:', result.debuginfo)
       return `${this.config.baseUrl}/my/`
       
     } catch (error) {
