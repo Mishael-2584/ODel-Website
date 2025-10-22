@@ -106,9 +106,9 @@ export default function Home() {
   ]
 
   const stats = [
-    { icon: FaUserGraduate, value: '10,000+', label: 'Active Students', color: 'text-primary-600' },
-    { icon: FaBook, value: '200+', label: 'Academic Programs', color: 'text-gold-600' },
-    { icon: FaGlobe, value: '40+', label: 'Nationalities', color: 'text-accent-cyan' },
+    { icon: FaUserGraduate, value: '5,000+', label: 'Active Students', color: 'text-primary-600' },
+    { icon: FaBook, value: '50+', label: 'Academic Programs', color: 'text-gold-600' },
+    { icon: FaGlobe, value: '10+', label: 'Nationalities', color: 'text-accent-cyan' },
     { icon: FaAward, value: '95%', label: 'Graduate Success Rate', color: 'text-accent-green' }
   ]
 
@@ -201,7 +201,7 @@ export default function Home() {
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center mb-10 lg:mb-12">
-              <Link href="/register" className="btn-gold inline-flex items-center justify-center group text-base lg:text-lg px-6 lg:px-8 py-3 lg:py-4 shadow-xl hover:shadow-2xl transition-all">
+              <Link href="/login" className="btn-gold inline-flex items-center justify-center group text-base lg:text-lg px-6 lg:px-8 py-3 lg:py-4 shadow-xl hover:shadow-2xl transition-all">
                 <FaRocket className="mr-3 group-hover:rotate-12 transition-transform" />
                 Get Started Today
               </Link>
@@ -272,7 +272,7 @@ export default function Home() {
                       <FaUserGraduate className="h-5 lg:h-6 w-5 lg:w-6 text-gold-300" />
                       <span className="text-white font-semibold text-xs lg:text-sm">Active Learners</span>
                     </div>
-                    <p className="text-xl lg:text-2xl font-bold text-white mt-2">10,000+</p>
+                    <p className="text-xl lg:text-2xl font-bold text-white mt-2">5,000+</p>
                   </div>
                   
                   <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm text-center hover:bg-white/15 transition-all">
@@ -296,7 +296,7 @@ export default function Home() {
                       <FaGlobe className="h-5 lg:h-6 w-5 lg:w-6 text-gold-300" />
                       <span className="text-white font-semibold text-xs lg:text-sm">Countries</span>
                     </div>
-                    <p className="text-xl lg:text-2xl font-bold text-white mt-2">40+</p>
+                    <p className="text-xl lg:text-2xl font-bold text-white mt-2">10+</p>
                   </div>
                 </div>
               </div>

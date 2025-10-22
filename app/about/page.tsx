@@ -74,9 +74,9 @@ export default function AboutPage() {
   ]
 
   const stats = [
-    { value: '10,000+', label: 'Active Students', icon: FaUsers },
-    { value: '200+', label: 'Academic Programs', icon: FaBook },
-    { value: '40+', label: 'Nationalities', icon: FaGlobe },
+    { value: '5,000+', label: 'Active Students', icon: FaUsers },
+    { value: '50+', label: 'Academic Programs', icon: FaBook },
+    { value: '10+', label: 'Nationalities', icon: FaGlobe },
     { value: '95%', label: 'Graduate Success Rate', icon: FaAward }
   ]
 

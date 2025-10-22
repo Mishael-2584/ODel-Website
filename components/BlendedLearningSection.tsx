@@ -112,7 +112,7 @@ export default function BlendedLearningSection() {
               {[
                 { icon: FaCheckCircle, title: 'Accredited', desc: 'Internationally recognized degrees' },
                 { icon: FaBolt, title: 'Flexible', desc: 'Study at your own pace' },
-                { icon: FaBook, title: '200+ Programs', desc: 'Across 5 academic schools' },
+                { icon: FaBook, title: '50+ Programs', desc: 'Across 5 academic schools' },
                 { icon: FaMobileAlt, title: 'Mobile-Ready', desc: 'Learn anytime, anywhere' }
               ].map((benefit, index) => (
                 <div key={index} className="text-center">

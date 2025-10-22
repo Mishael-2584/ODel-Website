@@ -456,7 +456,7 @@ export default function ContactPage() {
                     <FaBook className="h-5 w-5 text-primary-600" />
                     <div>
                       <h4 className="font-semibold text-gray-900">Programs</h4>
-                      <p className="text-gray-600">200+ programs across 5 schools</p>
+                      <p className="text-gray-600">50+ programs across 5 schools</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
