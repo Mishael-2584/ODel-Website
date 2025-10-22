@@ -382,7 +382,7 @@ export default function ContactPage() {
                 
                 <div className="relative">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.783!2d35.28551!3d0.51492!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17829e1e6c6c6c6d%3A0x5e5e5e5e5e5e5e5e!2sUniversity+of+Eastern+Africa+Baraton!5e0!3m2!1sen!2ske!4v1729510800000"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.783174506244!2d35.27361!3d0.52056!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17829d5d5d5d5d5d%3A0x5d5d5d5d5d5d5d5d!2sUniversity%20of%20Eastern%20Africa%20Baraton%20Main%20Campus!5e0!3m2!1sen!2ske!4v1729510800000"
                     width="100%"
                     height="300"
                     style={{ border: 0 }}
@@ -390,7 +390,7 @@ export default function ContactPage() {
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                     className="w-full"
-                    title="UEAB Campus Location - 734M+43 Kapkoimet, Eldoret"
+                    title="UEAB Campus Location - Main Campus, Eldoret"
                   ></iframe>
                   
                   {/* Map Overlay Controls */}

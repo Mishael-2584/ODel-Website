@@ -12,7 +12,8 @@ import {
   FaPlay, FaClock, FaStar, FaArrowRight, FaGraduationCap, FaAward,
   FaUserGraduate, FaChalkboardTeacher, FaVideo, FaTrophy, FaFire,
   FaCheckCircle, FaRocket, FaMedal, FaLightbulb, FaCalendarAlt, FaBolt,
-  FaBookOpen, FaUserPlus, FaUniversity, FaBuilding, FaMicroscope, FaStethoscope
+  FaBookOpen, FaUserPlus, FaUniversity, FaBuilding, FaMicroscope, FaStethoscope,
+  FaMapMarkerAlt, FaPhone, FaEnvelope
 } from 'react-icons/fa'
 
 export default function Home() {
@@ -580,6 +581,68 @@ export default function Home() {
 
       {/* Events Section */}
       <EventsSection />
+
+      {/* Contact Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center bg-gold-100 text-gold-800 px-4 py-2 rounded-full text-sm font-semibold mb-6">
+                Contact Us
+              </div>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                Get in Touch with UEAB ODeL
+              </h2>
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                Whether you have questions, feedback, or are ready to start your academic journey, 
+                we are here to help. Reach out to us through our contact form or visit our campus.
+              </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+                <div className="flex items-center space-x-3">
+                  <FaMapMarkerAlt className="h-6 w-6 text-primary-600" />
+                  <span className="text-gray-700 font-medium">
+                    P.O. Box 2500, 30100 Eldoret, Kenya
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaPhone className="h-6 w-6 text-primary-600" />
+                  <a href="tel:+254722000000" className="text-gray-700 font-medium hover:underline">
+                    +254 722 000 000
+                  </a>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <FaEnvelope className="h-6 w-6 text-primary-600" />
+                  <a href="mailto:info@ueab.ac.ke" className="text-gray-700 font-medium hover:underline">
+                    info@ueab.ac.ke
+                  </a>
+                </div>
+              </div>
+              
+              <Link href="/contact" className="btn-primary inline-flex items-center group">
+                Schedule a Consultation
+                <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+            
+            <div className="relative">
+              {/* Embedded Map */}
+              <div className="w-full h-96 rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.783174506244!2d35.27361!3d0.52056!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17829d5d5d5d5d5d%3A0x5d5d5d5d5d5d5d5d!2sUniversity%20of%20Eastern%20Africa%20Baraton%20Main%20Campus!5e0!3m2!1sen!2ske!4v1729510800000"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="UEAB Campus Location"
+                ></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-800">

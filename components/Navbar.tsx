@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import NotificationCenter from './NotificationCenter'
 import { 
   FaBars, FaTimes, FaGraduationCap, FaBook, FaUser, FaHome, 
-  FaInfoCircle, FaPhone, FaTh, FaSignOutAlt, FaUserCircle, FaCalendarAlt 
+  FaInfoCircle, FaPhone, FaTh, FaSignOutAlt, FaUserCircle, FaCalendarAlt, FaNewspaper
 } from 'react-icons/fa'
 
 interface StudentUser {
@@ -62,6 +62,7 @@ export default function Navbar() {
       submenu: [
         { href: '/events', label: 'Events Calendar' },
         { href: '/about', label: 'About ODeL' },
+        { href: '/news', label: 'News' },
       ]
     },
     { href: '/contact', label: 'Contact', icon: FaPhone },
