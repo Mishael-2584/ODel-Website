@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import NewsSection from '@/components/NewsSection'
 import EventsSection from '@/components/EventsSection'
+import BlendedLearningSection from '@/components/BlendedLearningSection'
 import { 
   FaBook, FaUsers, FaCertificate, FaLaptop, FaChartLine, FaGlobe,
   FaPlay, FaClock, FaStar, FaArrowRight, FaGraduationCap, FaAward,
@@ -497,6 +498,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Blended Learning Section with Video */}
+      <BlendedLearningSection />
 
       {/* Features Section */}
       <section className="py-20 bg-gray-50">
