@@ -209,18 +209,18 @@ export default function EventsPage() {
 
             {/* Upcoming Events Sidebar */}
             <div className="lg:col-span-1">
-              <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20 sticky top-24 hover:border-white/40 transition-all duration-300">
-                <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                  <Calendar className="w-6 h-6 text-primary-400" />
+              <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/40 sticky top-24 hover:border-white/60 transition-all duration-300">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                  <Calendar className="w-6 h-6 text-primary-600" />
                   Upcoming Events
                 </h3>
                 {loading ? (
                   <div className="text-center py-12">
                     <div className="w-10 h-10 border-4 border-primary-500 border-t-primary-300 rounded-full animate-spin mx-auto"></div>
-                    <p className="text-white/60 mt-3">Loading events...</p>
+                    <p className="text-gray-600 mt-3">Loading events...</p>
                   </div>
                 ) : events.length === 0 ? (
-                  <p className="text-white/60 text-center py-8">No events scheduled</p>
+                  <p className="text-gray-500 text-center py-8">No events scheduled</p>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
                     {events
@@ -235,12 +235,12 @@ export default function EventsPage() {
                             onClick={() => setSelectedEvent(event)}
                             className={`w-full text-left p-4 rounded-xl border ${color.border} ${color.bg} hover:shadow-lg hover:shadow-primary-500/50 transition-all duration-200 transform hover:translate-x-1 group`}
                           >
-                            <div className="font-semibold text-white group-hover:text-primary-300 text-sm line-clamp-2 transition-colors">{event.title}</div>
-                            <div className="text-xs text-white/70 mt-2 flex items-center gap-1">
+                            <div className="font-semibold text-gray-900 group-hover:text-primary-700 text-sm line-clamp-2 transition-colors">{event.title}</div>
+                            <div className="text-xs text-gray-700 mt-2 flex items-center gap-1">
                               <Clock className="w-3 h-3" />
                               {formatDate(event.start_date).split(',')[0]}
                             </div>
-                            <div className={`inline-block text-xs px-2 py-1 rounded-full mt-2 font-medium ${color.text} bg-white/10 border ${color.border}`}>
+                            <div className={`inline-block text-xs px-2 py-1 rounded-full mt-2 font-medium ${color.text} bg-white border ${color.border}`}>
                               {event.event_type.charAt(0).toUpperCase() + event.event_type.slice(1)}
                             </div>
                           </button>
