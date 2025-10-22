@@ -15,11 +15,20 @@ export async function GET(req: NextRequest) {
     const published = searchParams.get('published');
     const upcoming = searchParams.get('upcoming');
 
-    let query = supabase.from('events').select('*');
-
     if (id) {
-      query = query.eq('id', id).single();
+      // Single event query
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return NextResponse.json({ success: true, data });
     } else {
+      // Multiple events query
+      let query = supabase.from('events').select('*');
+
       if (published === 'true') {
         query = query.eq('is_published', true);
       }
@@ -27,13 +36,12 @@ export async function GET(req: NextRequest) {
         query = query.gte('start_date', new Date().toISOString());
       }
       query = query.order('start_date', { ascending: true });
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return NextResponse.json({ success: true, data });
     }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-
-    return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error('Error fetching events:', error);
     return NextResponse.json(

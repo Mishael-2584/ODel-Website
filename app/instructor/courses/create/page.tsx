@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { 
   FaArrowLeft, FaSave, FaEye, FaUpload, FaImage, FaVideo, 
   FaFileAlt, FaDollarSign, FaTag, FaCalendarAlt, FaGraduationCap,
-  FaPlus, FaTrash, FaEdit
+  FaPlus, FaTrash, FaEdit, FaBook, FaClock, FaPlay
 } from 'react-icons/fa'
 
 interface CourseData {

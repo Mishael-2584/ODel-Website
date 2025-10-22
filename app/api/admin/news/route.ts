@@ -14,22 +14,30 @@ export async function GET(req: NextRequest) {
     const id = searchParams.get('id');
     const published = searchParams.get('published');
 
-    let query = supabase.from('news').select('*');
-
     if (id) {
-      query = query.eq('id', id).single();
+      // Single news query
+      const { data, error } = await supabase
+        .from('news')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return NextResponse.json({ success: true, data });
     } else {
+      // Multiple news query
+      let query = supabase.from('news').select('*');
+
       if (published === 'true') {
         query = query.eq('is_published', true);
       }
       query = query.order('created_at', { ascending: false });
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return NextResponse.json({ success: true, data });
     }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-
-    return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error('Error fetching news:', error);
     return NextResponse.json(

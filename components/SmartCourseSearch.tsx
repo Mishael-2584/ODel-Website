@@ -269,7 +269,7 @@ export default function SmartCourseSearch() {
                 <option value="all">All Durations</option>
                 <option value="short">Short-term (≤30 days)</option>
                 <option value="medium">Medium-term (≤90 days)</option>
-                <option value="long">Long-term (>90 days)</option>
+                <option value="long">Long-term (&gt;90 days)</option>
               </select>
             </div>
 
@@ -283,7 +283,7 @@ export default function SmartCourseSearch() {
                 <option value="all">All Sizes</option>
                 <option value="low">Small (≤20)</option>
                 <option value="medium">Medium (21-100)</option>
-                <option value="high">Large (>100)</option>
+                <option value="high">Large (&gt;100)</option>
               </select>
             </div>
 
