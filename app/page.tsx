@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import NewsSection from '@/components/NewsSection'
 import EventsSection from '@/components/EventsSection'
+import BlendedLearningSection from '@/components/BlendedLearningSection'
 import { 
   FaBook, FaUsers, FaCertificate, FaLaptop, FaChartLine, FaGlobe,
   FaPlay, FaClock, FaStar, FaArrowRight, FaGraduationCap, FaAward,
@@ -498,124 +499,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Blended Learning Section with Video */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center bg-primary-100 text-primary-800 px-4 py-2 rounded-full text-sm font-semibold mb-6">
-              Why Choose UEAB ODel
-            </div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              Experience the Future of Learning
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Cutting-edge technology meets world-class education
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 p-8 group hover:-translate-y-1 border border-gray-100 hover:border-primary-200 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-50/0 to-gold-50/0 group-hover:from-primary-50/50 group-hover:to-gold-50/50 transition-all duration-500"></div>
-                <div className="relative z-10">
-                  <div className={`inline-flex items-center justify-center w-16 h-16 ${feature.iconBg} rounded-xl mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-lg group-hover:shadow-xl`}>
-                    <feature.icon className="h-8 w-8 text-white group-hover:animate-pulse" />
-                  </div>
-                  
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-primary-600 transition-colors duration-300">{feature.title}</h3>
-                  <p className="text-gray-600 leading-relaxed group-hover:text-gray-800 transition-colors duration-300">{feature.description}</p>
-                  
-                  <div className="mt-6 pt-4 border-t border-gray-100 group-hover:border-primary-200 transition-colors duration-300">
-                    <Link href="/courses" className="inline-flex items-center text-primary-600 hover:text-primary-700 font-semibold group/link">
-                      <span className="group-hover/link:underline">Learn More</span>
-                      <FaArrowRight className="ml-2 group-hover/link:translate-x-1 transition-transform duration-300" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Video Learning Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center bg-accent-cyan/10 text-accent-cyan px-4 py-2 rounded-full text-sm font-semibold mb-6">
-                🎥 Interactive Learning
-              </div>
-              
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                Learn Through HD Video Lectures
-              </h2>
-              
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                Access high-quality video content anytime, anywhere. Download for offline viewing and learn at your own pace 
-                with our comprehensive video learning platform.
-              </p>
-              
-              <div className="space-y-4 mb-8">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-primary-100 p-2 rounded-lg">
-                    <FaPlay className="h-5 w-5 text-primary-600" />
-                  </div>
-                  <span className="text-gray-700 font-medium">HD Quality Video Streaming</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="bg-primary-100 p-2 rounded-lg">
-                    <FaLaptop className="h-5 w-5 text-primary-600" />
-                  </div>
-                  <span className="text-gray-700 font-medium">Downloadable Content</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="bg-primary-100 p-2 rounded-lg">
-                    <FaBook className="h-5 w-5 text-primary-600" />
-                  </div>
-                  <span className="text-gray-700 font-medium">Interactive Transcripts</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="bg-primary-100 p-2 rounded-lg">
-                    <FaGlobe className="h-5 w-5 text-primary-600" />
-                  </div>
-                  <span className="text-gray-700 font-medium">Multi-language Subtitles</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="bg-primary-100 p-2 rounded-lg">
-                    <FaBolt className="h-5 w-5 text-primary-600" />
-                  </div>
-                  <span className="text-gray-700 font-medium">Playback Speed Control</span>
-                </div>
-              </div>
-              
-              <Link href="/courses" className="btn-primary inline-flex items-center group">
-                <FaPlay className="mr-2 group-hover:scale-110 transition-transform" />
-                Watch Demo Video
-              </Link>
-            </div>
-            
-            <div className="relative">
-              {/* Placeholder for video player */}
-              <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 text-center border-2 border-dashed border-gray-400">
-                <FaVideo className="h-32 w-32 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-2xl font-bold text-white mb-2">Sample Lecture</h3>
-                <p className="text-gray-300 mb-4">"Introduction to Business Administration"</p>
-                <div className="bg-gray-700 rounded-lg p-4 text-left">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-white font-semibold">Dr. Sarah Kimani</span>
-                    <span className="text-gray-400">45:30</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <FaStar className="h-4 w-4 text-gold-400" />
-                    <span className="text-white">4.9</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Blended Learning Section */}
+      <BlendedLearningSection />
 
       {/* Popular Programs Section */}
       <section className="py-20 bg-gray-50">
@@ -630,7 +515,7 @@ export default function Home() {
               </h2>
               <p className="text-xl text-gray-600">Start learning with our top-rated programs</p>
             </div>
-            <Link href="/courses" className="btn-outline-primary hidden lg:flex items-center">
+            <Link href="/programs" className="btn-outline-primary hidden lg:flex items-center">
               View All Programs
               <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
@@ -678,7 +563,7 @@ export default function Home() {
                   </div>
                   
                   <div className="flex justify-end pt-4 border-t border-gray-100 group-hover:border-primary-200 transition-colors duration-300">
-                    <Link href={`/courses/${index}`} className="btn-primary text-sm group/link">
+                    <Link href="/programs" className="btn-primary text-sm group/link">
                       <span className="group-hover/link:underline">Learn More</span>
                       <FaArrowRight className="ml-2 group-hover/link:translate-x-1 transition-transform duration-300" />
                     </Link>

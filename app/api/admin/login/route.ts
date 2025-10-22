@@ -1,119 +1,107 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { 
-  findAdminByEmail, 
-  verifyPassword, 
-  createAdminSession,
-  createAuditLog 
-} from '@/lib/admin-auth'
-import { generateAdminJWTToken } from '@/lib/passwordless-auth'
+import { createClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
-export async function POST(request: NextRequest) {
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+);
+
+export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await request.json()
+    const { email, password } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json(
-        { success: false, error: 'Email and password are required' },
+        { error: 'Email and password are required' },
         { status: 400 }
-      )
+      );
     }
 
-    // Find admin by email
-    const admin = await findAdminByEmail(email)
-    if (!admin) {
+    // Get admin user from database
+    const { data: adminUser, error: userError } = await supabase
+      .from('admin_users')
+      .select('id, email, full_name, role, is_active')
+      .eq('email', email)
+      .single();
+
+    if (userError || !adminUser) {
+      console.error('Admin user not found:', email);
       return NextResponse.json(
-        { success: false, error: 'Invalid email or password' },
+        { error: 'Invalid email or password' },
         { status: 401 }
-      )
+      );
     }
 
-    // Verify password
-    const passwordValid = await verifyPassword(password, admin.password_hash)
-    if (!passwordValid) {
-      // Log failed attempt
-      await createAuditLog(
-        admin.id,
-        'login_failed',
-        'admin',
-        admin.id,
-        { reason: 'invalid_password' },
-        request.headers.get('x-forwarded-for') || 'unknown'
-      )
-
+    if (!adminUser.is_active) {
       return NextResponse.json(
-        { success: false, error: 'Invalid email or password' },
+        { error: 'This admin account is inactive' },
         { status: 401 }
-      )
+      );
+    }
+
+    // Verify password using Supabase Auth
+    // For now, we'll use a simple approach - create a temporary auth session
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError || !authData.user) {
+      console.error('Auth error:', authError);
+      return NextResponse.json(
+        { error: 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
+
+    // Verify this user has admin role
+    if (adminUser.role !== 'admin' && adminUser.role !== 'editor') {
+      return NextResponse.json(
+        { error: 'You do not have admin access' },
+        { status: 403 }
+      );
     }
 
     // Generate JWT token
-    const jwtToken = generateAdminJWTToken({
-      adminId: admin.id,
-      email: admin.email,
-      fullName: admin.full_name,
-      role: admin.role
-    })
-
-    // Create session
-    const ipAddress = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown'
-    const userAgent = request.headers.get('user-agent') || ''
-
-    const sessionResult = await createAdminSession(
-      admin.id,
-      jwtToken,
-      ipAddress,
-      userAgent
-    )
-
-    if (!sessionResult.success) {
-      return NextResponse.json(
-        { success: false, error: sessionResult.error },
-        { status: 500 }
-      )
-    }
+    const token = jwt.sign(
+      {
+        id: adminUser.id,
+        email: adminUser.email,
+        name: adminUser.full_name,
+        role: adminUser.role,
+        type: 'admin',
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
 
     // Log successful login
-    await createAuditLog(
-      admin.id,
-      'login_success',
-      'admin',
-      admin.id,
-      { sessionId: sessionResult.sessionId },
-      ipAddress
-    )
+    await supabase.from('admin_activity_log').insert({
+      admin_user_id: adminUser.id,
+      action: 'login',
+      entity_type: 'admin',
+    });
 
-    // Create response with secure cookie
-    const response = NextResponse.json({
-      success: true,
-      token: jwtToken,
-      sessionId: sessionResult.sessionId,
-      admin: {
-        id: admin.id,
-        email: admin.email,
-        fullName: admin.full_name,
-        role: admin.role
-      },
-      message: 'Successfully logged in'
-    })
-
-    // Set secure HTTP-only cookie
-    response.cookies.set({
-      name: 'odel_admin_auth',
-      value: jwtToken,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60 // 24 hours
-    })
-
-    return response
-  } catch (error) {
-    console.error('Admin login error:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to login' },
+      {
+        success: true,
+        token,
+        user: {
+          id: adminUser.id,
+          email: adminUser.email,
+          name: adminUser.full_name,
+          role: adminUser.role,
+        },
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Login error:', error);
+    return NextResponse.json(
+      { error: 'An error occurred during login' },
       { status: 500 }
-    )
+    );
   }
 }

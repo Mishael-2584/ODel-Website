@@ -9,41 +9,54 @@ import { useRouter } from 'next/navigation';
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('news');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [adminInfo, setAdminInfo] = useState<{ email?: string; name?: string } | null>(null);
+  const [adminInfo, setAdminInfo] = useState<{ name?: string; email?: string; role?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     // Check admin authentication
-    const checkAdmin = async () => {
+    const checkAuth = async () => {
       try {
-        const response = await fetch('/api/auth/verify', {
-          headers: {
-            'x-check-admin': 'true',
-          },
-        });
+        const token = localStorage.getItem('admin_token');
+        const adminData = localStorage.getItem('admin_user');
 
-        if (response.ok) {
-          const data = await response.json();
-          setAdminInfo(data.data);
-        } else {
-          router.push('/login');
+        if (!token || !adminData) {
+          router.push('/admin/login');
+          return;
         }
+
+        const admin = JSON.parse(adminData);
+        
+        // Verify admin has proper role
+        if (admin.role !== 'admin' && admin.role !== 'editor') {
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+          router.push('/admin/login');
+          return;
+        }
+
+        setAdminInfo(admin);
       } catch (error) {
-        console.error('Error checking admin:', error);
-        router.push('/login');
+        console.error('Auth error:', error);
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
+        router.push('/admin/login');
       } finally {
         setLoading(false);
       }
     };
 
-    checkAdmin();
+    checkAuth();
   }, [router]);
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/login');
+      // Clear local storage
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      
+      // Redirect to login
+      router.push('/admin/login');
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -120,6 +133,7 @@ export default function AdminDashboard() {
               <div className="bg-slate-800 rounded-lg p-3 text-sm">
                 <p className="text-gray-400">Logged in as</p>
                 <p className="text-white font-medium truncate">{adminInfo.email || 'Admin'}</p>
+                <p className="text-xs text-gray-500 capitalize">{adminInfo.role}</p>
               </div>
             )}
             <button
