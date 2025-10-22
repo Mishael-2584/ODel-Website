@@ -4,6 +4,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import NewsSection from '@/components/NewsSection'
+import EventsSection from '@/components/EventsSection'
 import { 
   FaBook, FaUsers, FaCertificate, FaLaptop, FaChartLine, FaGlobe,
   FaPlay, FaClock, FaStar, FaArrowRight, FaGraduationCap, FaAward,
@@ -687,6 +689,12 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* News Section */}
+      <NewsSection />
+
+      {/* Events Section */}
+      <EventsSection />
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-800">
