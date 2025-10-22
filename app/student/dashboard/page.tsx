@@ -345,14 +345,49 @@ export default function StudentDashboard() {
                       {course.summary && (
                         <p className="text-xs text-gray-500 line-clamp-2 mb-4">{course.summary}</p>
                       )}
-                      <a
-                        href={`${process.env.NEXT_PUBLIC_MOODLE_URL}/course/view.php?id=${course.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block w-full text-center bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors font-semibold text-sm"
+                      <button
+                        onClick={async () => {
+                          try {
+                            setLoadingMoodle(true)
+                            console.log(`📖 Opening course ${course.id}...`)
+                            
+                            // Generate SSO first to ensure login
+                            const ssoResponse = await fetch(`/api/moodle?action=sso-login&userId=${studentData!.moodleUserId}&username=${encodeURIComponent(studentData!.moodleUsername)}`)
+                            const ssoData = await ssoResponse.json()
+                            console.log('🔐 SSO response:', ssoData)
+                            
+                            if (ssoData.success && ssoData.data) {
+                              // Open SSO URL first - this logs the user in
+                              const ssoUrl = ssoData.data
+                              console.log('🔐 Opening SSO login:', ssoUrl)
+                              
+                              // Open SSO in a window to complete login
+                              const ssoWindow = window.open(ssoUrl, 'moodle_sso', 'width=800,height=600')
+                              
+                              // After brief delay to ensure login is processed, open course
+                              setTimeout(() => {
+                                const courseUrl = `${process.env.NEXT_PUBLIC_MOODLE_URL}/course/view.php?id=${course.id}`
+                                console.log(`📚 Opening course URL:`, courseUrl)
+                                window.open(courseUrl, '_blank')
+                                if (ssoWindow) ssoWindow.close()
+                              }, 2000) // Give Moodle 2 seconds to process SSO login
+                            } else {
+                              console.error('SSO failed:', ssoData)
+                              // Fallback: Direct course link
+                              window.open(`${process.env.NEXT_PUBLIC_MOODLE_URL}/course/view.php?id=${course.id}`, '_blank')
+                            }
+                          } catch (err) {
+                            console.error('Error opening course:', err)
+                            window.open(`${process.env.NEXT_PUBLIC_MOODLE_URL}/course/view.php?id=${course.id}`, '_blank')
+                          } finally {
+                            setLoadingMoodle(false)
+                          }
+                        }}
+                        className="inline-block w-full text-center bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={loadingMoodle}
                       >
-                        View Course →
-                      </a>
+                        {loadingMoodle ? 'Opening...' : 'View Course →'}
+                      </button>
                     </div>
                   </div>
                 ))}

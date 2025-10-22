@@ -631,6 +631,48 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      case 'sso-course': {
+        const userId = searchParams.get('userId')
+        const username = searchParams.get('username')
+        const courseId = searchParams.get('courseId')
+        
+        if (!userId || !courseId) {
+          return NextResponse.json(
+            { error: 'userId and courseId are required' },
+            { status: 400 }
+          )
+        }
+
+        try {
+          const loginUrl = await moodleService.generateMoodleLoginUrl(
+            parseInt(userId),
+            username || ''
+          )
+          
+          const courseUrl = `${process.env.NEXT_PUBLIC_MOODLE_URL}/course/view.php?id=${courseId}`
+          
+          return NextResponse.json(
+            { 
+              success: true, 
+              loginUrl: loginUrl || process.env.NEXT_PUBLIC_MOODLE_URL,
+              courseUrl: courseUrl
+            },
+            { headers: CACHE_HEADERS }
+          )
+        } catch (err) {
+          console.error('Error generating Moodle course access:', err)
+          const courseUrl = `${process.env.NEXT_PUBLIC_MOODLE_URL}/course/view.php?id=${courseId}`
+          return NextResponse.json(
+            { 
+              success: true, 
+              loginUrl: process.env.NEXT_PUBLIC_MOODLE_URL,
+              courseUrl: courseUrl
+            },
+            { headers: CACHE_HEADERS }
+          )
+        }
+      }
+
       default:
         return NextResponse.json(
           { error: 'Invalid action. Available actions: courses, categories, course-details, course-enrollments, search, statistics, courses-by-category' },
