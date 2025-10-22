@@ -1,5 +1,5 @@
 -- Magic Codes Table for Passwordless Authentication
-CREATE TABLE magic_codes (
+CREATE TABLE IF NOT EXISTS magic_codes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR(255) NOT NULL,
   code VARCHAR(8) NOT NULL,
@@ -13,12 +13,12 @@ CREATE TABLE magic_codes (
 );
 
 -- Create indexes for performance
-CREATE INDEX idx_magic_codes_email ON magic_codes(email);
-CREATE INDEX idx_magic_codes_code ON magic_codes(code);
-CREATE INDEX idx_magic_codes_expires ON magic_codes(expires_at);
+CREATE INDEX IF NOT EXISTS idx_magic_codes_email ON magic_codes(email);
+CREATE INDEX IF NOT EXISTS idx_magic_codes_code ON magic_codes(code);
+CREATE INDEX IF NOT EXISTS idx_magic_codes_expires ON magic_codes(expires_at);
 
 -- Student Sessions Table
-CREATE TABLE student_sessions (
+CREATE TABLE IF NOT EXISTS student_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR(255) NOT NULL,
   moodle_user_id INTEGER NOT NULL,
@@ -36,12 +36,12 @@ CREATE TABLE student_sessions (
 );
 
 -- Create indexes for session queries
-CREATE INDEX idx_student_sessions_email ON student_sessions(email);
-CREATE INDEX idx_student_sessions_token ON student_sessions(jwt_token);
-CREATE INDEX idx_student_sessions_expires ON student_sessions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_student_sessions_email ON student_sessions(email);
+CREATE INDEX IF NOT EXISTS idx_student_sessions_token ON student_sessions(jwt_token);
+CREATE INDEX IF NOT EXISTS idx_student_sessions_expires ON student_sessions(expires_at);
 
 -- Admin Users Table (for ODeL website management)
-CREATE TABLE admin_users (
+CREATE TABLE IF NOT EXISTS admin_users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
@@ -56,11 +56,11 @@ CREATE TABLE admin_users (
 );
 
 -- Create indexes for admin queries
-CREATE INDEX idx_admin_users_email ON admin_users(email);
-CREATE INDEX idx_admin_users_active ON admin_users(is_active);
+CREATE INDEX IF NOT EXISTS idx_admin_users_email ON admin_users(email);
+CREATE INDEX IF NOT EXISTS idx_admin_users_active ON admin_users(is_active);
 
 -- Admin Sessions Table
-CREATE TABLE admin_sessions (
+CREATE TABLE IF NOT EXISTS admin_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   admin_id UUID NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
   jwt_token TEXT NOT NULL,
@@ -75,12 +75,12 @@ CREATE TABLE admin_sessions (
 );
 
 -- Create indexes for admin session queries
-CREATE INDEX idx_admin_sessions_token ON admin_sessions(jwt_token);
-CREATE INDEX idx_admin_sessions_admin_id ON admin_sessions(admin_id);
-CREATE INDEX idx_admin_sessions_expires ON admin_sessions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_token ON admin_sessions(jwt_token);
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_admin_id ON admin_sessions(admin_id);
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires ON admin_sessions(expires_at);
 
 -- Audit Log Table for admin actions
-CREATE TABLE admin_audit_log (
+CREATE TABLE IF NOT EXISTS admin_audit_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   admin_id UUID NOT NULL REFERENCES admin_users(id) ON DELETE SET NULL,
   action VARCHAR(255) NOT NULL,
@@ -92,49 +92,59 @@ CREATE TABLE admin_audit_log (
 );
 
 -- Create indexes for audit logs
-CREATE INDEX idx_audit_log_admin_id ON admin_audit_log(admin_id);
-CREATE INDEX idx_audit_log_created ON admin_audit_log(created_at);
-CREATE INDEX idx_audit_log_action ON admin_audit_log(action);
+CREATE INDEX IF NOT EXISTS idx_audit_log_admin_id ON admin_audit_log(admin_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_created ON admin_audit_log(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_log_action ON admin_audit_log(action);
 
 -- Enable Row Level Security
-ALTER TABLE magic_codes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE student_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE admin_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE admin_audit_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS magic_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS student_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS admin_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS admin_audit_log ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for magic_codes (public access for verification)
+DROP POLICY IF EXISTS "Anyone can verify magic codes" ON magic_codes;
 CREATE POLICY "Anyone can verify magic codes" ON magic_codes
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "System can insert magic codes" ON magic_codes;
 CREATE POLICY "System can insert magic codes" ON magic_codes
   FOR INSERT WITH CHECK (true);
 
+DROP POLICY IF EXISTS "System can update magic codes" ON magic_codes;
 CREATE POLICY "System can update magic codes" ON magic_codes
   FOR UPDATE USING (true);
 
 -- RLS Policies for student_sessions
+DROP POLICY IF EXISTS "Students can view own sessions" ON student_sessions;
 CREATE POLICY "Students can view own sessions" ON student_sessions
   FOR SELECT USING (auth.uid()::text = email OR true);
 
+DROP POLICY IF EXISTS "System can manage student sessions" ON student_sessions;
 CREATE POLICY "System can manage student sessions" ON student_sessions
   FOR ALL USING (true);
 
 -- RLS Policies for admin_users (require authentication)
+DROP POLICY IF EXISTS "Admins can view user list" ON admin_users;
 CREATE POLICY "Admins can view user list" ON admin_users
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "System can manage admin users" ON admin_users;
 CREATE POLICY "System can manage admin users" ON admin_users
   FOR ALL USING (true);
 
 -- RLS Policies for admin_sessions
+DROP POLICY IF EXISTS "System can manage admin sessions" ON admin_sessions;
 CREATE POLICY "System can manage admin sessions" ON admin_sessions
   FOR ALL USING (true);
 
 -- RLS Policies for audit_log
+DROP POLICY IF EXISTS "Admins can view audit logs" ON admin_audit_log;
 CREATE POLICY "Admins can view audit logs" ON admin_audit_log
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "System can insert audit logs" ON admin_audit_log;
 CREATE POLICY "System can insert audit logs" ON admin_audit_log
   FOR INSERT WITH CHECK (true);
 
