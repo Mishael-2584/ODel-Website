@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FaEnvelope, FaGraduationCap, FaArrowRight, FaCheckCircle, FaShieldAlt, FaClock, FaSpinner } from 'react-icons/fa'
+import { FaEnvelope, FaGraduationCap, FaArrowRight, FaCheckCircle, FaShieldAlt, FaClock, FaSpinner, FaExternalLinkAlt, FaRobot, FaHeadset } from 'react-icons/fa'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -312,38 +312,84 @@ export default function LoginPage() {
 
           {/* Info Sections - Light backgrounds for visibility */}
           <div className="space-y-4">
-            {/* ITS Office Info */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
-              <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                <FaShieldAlt className="text-blue-600" />
-                Don't Have Your UEAB Email?
+            {/* iCampus Registration Info - More Prominent */}
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-lg p-6 shadow-md hover:shadow-lg transition-all">
+              <h3 className="font-bold text-amber-900 mb-3 flex items-center gap-2 text-lg">
+                <FaGraduationCap className="text-amber-600 text-xl" />
+                Not Yet Registered?
               </h3>
-              <p className="text-blue-800 text-sm mb-3">
-                If you don't have your UEAB email yet, visit the <strong>ITS Office</strong> to get your credentials and email account set up.
+              <p className="text-amber-800 text-sm mb-4 leading-relaxed">
+                Start your registration in <strong>iCampus</strong> - the official student portal. Once you complete registration there, your account will be immediately available on this platform!
               </p>
-              <p className="text-blue-700 text-xs font-medium">
-                Location: IT Services Office, Main Campus
+              <div className="flex gap-2 flex-wrap">
+                <a
+                  href="http://icampus.ueab.ac.ke/iUserLog/Register"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors shadow-md hover:shadow-lg transform hover:scale-105"
+                >
+                  <FaExternalLinkAlt className="text-sm" />
+                  Go to iCampus Registration
+                </a>
+              </div>
+              <p className="text-amber-700 text-xs font-medium mt-3 flex items-center gap-1">
+                <FaHeadset className="text-amber-600" />
+                Having issues? Use the chatbot below for instant help!
               </p>
             </div>
 
-            {/* iCampus Registration Info */}
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-5">
-              <h3 className="font-semibold text-amber-900 mb-2 flex items-center gap-2">
-                <FaGraduationCap className="text-amber-600" />
-                Not Yet in the System?
+            {/* ITS Support Info */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 hover:border-blue-300 hover:shadow-md transition-all">
+              <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                <FaShieldAlt className="text-blue-600" />
+                Need Your UEAB Email?
               </h3>
-              <p className="text-amber-800 text-sm mb-3">
-                If you're not registered in the system, you'll need to complete your registration through <strong>iCampus</strong> first. Once registered, your account will be available on this platform.
+              <p className="text-blue-800 text-sm mb-3">
+                If you don't have your UEAB email yet, visit the <strong>ITS Office</strong> at the Main Campus to get your credentials set up.
               </p>
-              <p className="text-amber-700 text-xs font-medium">
-                Contact the Admissions office for iCampus registration assistance
+              <p className="text-blue-700 text-xs font-medium mb-2">
+                📍 Location: IT Services Office, Main Campus
               </p>
+              <a
+                href="mailto:odel@ueab.ac.ke"
+                className="inline-flex items-center gap-2 text-blue-700 hover:text-blue-900 font-semibold text-sm transition-colors"
+              >
+                <FaEnvelope className="text-blue-600" />
+                Email ITS Support
+              </a>
+            </div>
+
+            {/* Chatbot Help CTA - More Prominent */}
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-6 shadow-lg border-2 border-purple-400 text-white transform hover:scale-105 transition-all cursor-pointer">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="bg-white rounded-full p-3 shadow-md">
+                  <FaRobot className="text-purple-600 text-2xl" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">Need Help? Ask Me!</h3>
+                  <p className="text-purple-100 text-sm">24/7 AI Support</p>
+                </div>
+              </div>
+              <p className="text-sm mb-3 opacity-95">
+                Got questions about registration, login, or anything else? Our chatbot is here to help instantly!
+              </p>
+              <button
+                onClick={() => {
+                  // Trigger chatbot - assuming it's available globally
+                  if (typeof window !== 'undefined' && (window as any).fcWidget) {
+                    (window as any).fcWidget.open();
+                  }
+                }}
+                className="w-full bg-white text-purple-600 font-bold py-2 rounded-lg hover:bg-purple-50 transition-colors shadow-md"
+              >
+                💬 Chat Now
+              </button>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="mt-8 text-center text-gray-300 text-sm">
-            <p>Need help? Contact the IT Services Office or Student Support</p>
+          <div className="mt-8 text-center text-gray-400 text-xs">
+            <p>🔒 Your data is secure. Single sign-on powered by UEAB's official systems.</p>
           </div>
         </div>
       </div>
