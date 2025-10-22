@@ -9,7 +9,6 @@ const protectedRoutes = [
 // Routes that should redirect to dashboard if already logged in
 const authRoutes = [
   '/login',
-  '/register',
 ]
 
 // Public routes (no authentication required)
@@ -35,6 +34,15 @@ export async function middleware(request: NextRequest) {
   // API routes don't need middleware protection (they handle their own auth)
   if (pathname.startsWith('/api')) {
     return NextResponse.next()
+  }
+
+  // Redirect old /auth paths to /login for consolidation
+  if (pathname.startsWith('/auth')) {
+    // Check if authenticated
+    if (token) {
+      return NextResponse.redirect(new URL('/student/dashboard', request.url))
+    }
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   // If accessing protected routes, verify authentication
