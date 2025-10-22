@@ -56,8 +56,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify this user has admin role
-    if (adminUser.role !== 'admin' && adminUser.role !== 'editor') {
+    // Verify this user has admin role (accept admin, editor, or super_admin)
+    const validRoles = ['admin', 'editor', 'super_admin', 'Administrator'];
+    if (!validRoles.includes(adminUser.role)) {
       return NextResponse.json(
         { error: 'You do not have admin access' },
         { status: 403 }

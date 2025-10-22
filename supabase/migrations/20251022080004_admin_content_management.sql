@@ -93,6 +93,7 @@ CREATE POLICY "Admins can manage all events"
   );
 
 -- Create admin_users table for role-based access
+-- Note: Password is managed by Supabase Auth, not stored here
 CREATE TABLE IF NOT EXISTS admin_users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email VARCHAR(255) NOT NULL UNIQUE,
@@ -108,6 +109,22 @@ CREATE TABLE IF NOT EXISTS admin_users (
 CREATE INDEX idx_admin_users_email ON admin_users(email);
 CREATE INDEX idx_admin_users_role ON admin_users(role);
 CREATE INDEX idx_admin_users_active ON admin_users(is_active);
+
+-- Enable RLS on admin_users
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+
+-- Only admins and self can view admin users
+CREATE POLICY "Admins can view admin users"
+  ON admin_users
+  FOR SELECT
+  USING (
+    auth.uid() = id OR
+    EXISTS (
+      SELECT 1 FROM admin_users au
+      WHERE au.id = auth.uid()
+      AND au.role = 'admin'
+    )
+  );
 
 -- Create activity log table for audit trail
 CREATE TABLE IF NOT EXISTS admin_activity_log (

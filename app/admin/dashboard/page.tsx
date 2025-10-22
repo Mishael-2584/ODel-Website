@@ -28,7 +28,7 @@ export default function AdminDashboard() {
         const admin = JSON.parse(adminData);
         
         // Verify admin has proper role
-        if (admin.role !== 'admin' && admin.role !== 'editor') {
+        if (admin.role !== 'admin' && admin.role !== 'editor' && admin.role !== 'super_admin' && admin.role !== 'Administrator') {
           localStorage.removeItem('admin_token');
           localStorage.removeItem('admin_user');
           router.push('/admin/login');
