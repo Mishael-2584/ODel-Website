@@ -95,3 +95,66 @@
   animation: fadeIn 0.6s ease-out;
 }
 
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(30, 64, 175, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(30, 64, 175, 0.8);
+  }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+/* Shadow animations */
+.shadow-gold {
+  box-shadow: 0 10px 40px rgba(217, 119, 6, 0.3);
+}
+
+.shadow-xl-gold {
+  box-shadow: 0 20px 60px rgba(217, 119, 6, 0.4);
+}
+
+/* Additional utility classes */
+.btn-gold {
+  @apply bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-gold hover:shadow-xl-gold transform hover:-translate-y-0.5;
+}
+
+.btn-outline-primary {
+  @apply border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300;
+}
+
+.btn-outline-white {
+  @apply border-2 border-white text-white hover:bg-white hover:text-primary-600 font-semibold py-3 px-6 rounded-lg transition-all duration-300;
+}
+
