@@ -1,17 +1,48 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useAuth } from '@/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
 import NotificationCenter from './NotificationCenter'
 import { 
   FaBars, FaTimes, FaGraduationCap, FaBook, FaUser, FaHome, 
   FaInfoCircle, FaPhone, FaTh, FaSignOutAlt, FaUserCircle 
 } from 'react-icons/fa'
 
+interface StudentUser {
+  email: string
+  studentName: string
+  moodleUsername: string
+  moodleUserId: number
+}
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
-  const { user, profile, signOut, loading } = useAuth()
+  const [studentData, setStudentData] = useState<StudentUser | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  // Check if student is logged in
+  useEffect(() => {
+    const checkStudentLogin = async () => {
+      try {
+        const response = await fetch('/api/auth/verify')
+        const data = await response.json()
+        
+        if (data.authenticated && data.user) {
+          setStudentData(data.user)
+        } else {
+          setStudentData(null)
+        }
+      } catch (err) {
+        setStudentData(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkStudentLogin()
+  }, [])
 
   const publicNavLinks = [
     { href: '/', label: 'Home', icon: FaHome },
@@ -21,22 +52,15 @@ export default function Navbar() {
     { href: '/contact', label: 'Contact', icon: FaPhone },
   ]
 
-  const getDashboardLink = () => {
-    if (!profile) return '/student/dashboard'
-    
-    switch (profile.role) {
-      case 'admin':
-        return '/admin/dashboard'
-      case 'instructor':
-        return '/instructor/dashboard'
-      default:
-        return '/student/dashboard'
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      setStudentData(null)
+      setIsOpen(false)
+      router.push('/')
+    } catch (err) {
+      console.error('Logout error:', err)
     }
-  }
-
-  const handleSignOut = async () => {
-    await signOut()
-    setIsOpen(false)
   }
 
   return (
@@ -70,9 +94,9 @@ export default function Navbar() {
             ))}
             
             {/* Dashboard Link - Only show when logged in */}
-            {user && profile && (
+            {studentData && (
               <Link
-                href={getDashboardLink()}
+                href="/student/dashboard"
                 className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 font-medium transition-colors group"
               >
                 <FaTh className="h-4 w-4 group-hover:scale-110 transition-transform" />
@@ -84,29 +108,29 @@ export default function Navbar() {
 
             {/* Authentication Section */}
             {loading ? (
-              <div className="animate-pulse bg-gray-200 h-10 w-20 rounded-lg"></div>
-            ) : user && profile ? (
-              /* User is logged in */
+              <div className="animate-pulse bg-gray-200 h-10 w-24 rounded-lg"></div>
+            ) : studentData ? (
+              /* Student is logged in */
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <FaUserCircle className="h-8 w-8 text-primary-600" />
                   <div className="text-sm">
-                    <p className="font-medium text-gray-900">{profile.full_name || 'User'}</p>
-                    <p className="text-xs text-gray-500 capitalize">{profile.role}</p>
+                    <p className="font-medium text-gray-900">{studentData.studentName}</p>
+                    <p className="text-xs text-gray-500">{studentData.email}</p>
                   </div>
                 </div>
                 <button
-                  onClick={handleSignOut}
+                  onClick={handleLogout}
                   className="flex items-center space-x-2 text-gray-600 hover:text-red-600 font-medium transition-colors"
                 >
                   <FaSignOutAlt className="h-4 w-4" />
-                  <span>Sign Out</span>
+                  <span>Logout</span>
                 </button>
               </div>
             ) : (
-              /* User is not logged in */
+              /* Student is not logged in */
               <div className="flex items-center space-x-4">
-                <Link href="/login" className="btn-outline !py-2 !px-4">
+                <Link href="/login" className="btn-outline !py-2 !px-4 border-2 border-primary-600 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
                   <FaUser className="inline mr-2" />
                   Login
                 </Link>
@@ -145,9 +169,9 @@ export default function Navbar() {
               ))}
               
               {/* Dashboard Link - Mobile */}
-              {user && profile && (
+              {studentData && (
                 <Link
-                  href={getDashboardLink()}
+                  href="/student/dashboard"
                   className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 font-medium transition-colors group px-3 py-2 rounded-md"
                   onClick={() => setIsOpen(false)}
                 >
@@ -158,21 +182,21 @@ export default function Navbar() {
 
               {/* Mobile Authentication */}
               <div className="border-t border-gray-200 pt-2 mt-2">
-                {user && profile ? (
+                {studentData ? (
                   <div className="px-3 py-2">
                     <div className="flex items-center space-x-2 mb-2">
                       <FaUserCircle className="h-6 w-6 text-primary-600" />
                       <div>
-                        <p className="font-medium text-gray-900">{profile.full_name || 'User'}</p>
-                        <p className="text-xs text-gray-500 capitalize">{profile.role}</p>
+                        <p className="font-medium text-gray-900">{studentData.studentName}</p>
+                        <p className="text-xs text-gray-500">{studentData.email}</p>
                       </div>
                     </div>
                     <button
-                      onClick={handleSignOut}
+                      onClick={handleLogout}
                       className="flex items-center space-x-2 text-gray-600 hover:text-red-600 font-medium transition-colors w-full px-3 py-2 rounded-md hover:bg-gray-100"
                     >
                       <FaSignOutAlt className="h-4 w-4" />
-                      <span>Sign Out</span>
+                      <span>Logout</span>
                     </button>
                   </div>
                 ) : (
