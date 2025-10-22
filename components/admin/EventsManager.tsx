@@ -83,13 +83,20 @@ export default function EventsManager() {
     e.preventDefault();
     setLoading(true);
 
+    // Validate required fields
+    if (!formData.title || !formData.description || !formData.startDate || !formData.location) {
+      alert('Please fill in all required fields: Title, Description, Start Date, and Location');
+      setLoading(false);
+      return;
+    }
+
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('title', formData.title);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('content', formData.content);
       formDataToSend.append('startDate', formData.startDate);
-      formDataToSend.append('endDate', formData.endDate);
+      formDataToSend.append('endDate', formData.endDate || formData.startDate);
       formDataToSend.append('location', formData.location);
       formDataToSend.append('eventType', formData.eventType);
       formDataToSend.append('maxAttendees', formData.maxAttendees);
@@ -103,13 +110,19 @@ export default function EventsManager() {
         formDataToSend.append('id', editingId);
       }
 
+      // Get admin ID from localStorage
+      const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+      const adminId = adminUser.id || 'admin-user-id';
+
       const res = await fetch('/api/admin/events', {
         method,
         body: formDataToSend,
         headers: {
-          'x-admin-id': 'admin-user-id',
+          'x-admin-id': adminId,
         },
       });
+
+      const result = await res.json();
 
       if (res.ok) {
         setFormData({
@@ -128,9 +141,12 @@ export default function EventsManager() {
         setEditingId(null);
         setShowForm(false);
         fetchEvents();
+      } else {
+        alert(`Error: ${result.error || 'Failed to create event'}`);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
+      alert('An error occurred while creating the event');
     }
     setLoading(false);
   };
@@ -141,18 +157,25 @@ export default function EventsManager() {
 
     setLoading(true);
     try {
+      // Get admin ID from localStorage
+      const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+      const adminId = adminUser.id || 'admin-user-id';
+
       const res = await fetch(`/api/admin/events?id=${id}`, {
         method: 'DELETE',
         headers: {
-          'x-admin-id': 'admin-user-id',
+          'x-admin-id': adminId,
         },
       });
 
       if (res.ok) {
         fetchEvents();
+      } else {
+        alert('Failed to delete event');
       }
     } catch (error) {
       console.error('Error deleting event:', error);
+      alert('An error occurred while deleting the event');
     }
     setLoading(false);
   };
