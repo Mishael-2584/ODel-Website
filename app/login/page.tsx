@@ -2,43 +2,74 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useAuth } from '@/contexts/AuthContext'
-import { FaEnvelope, FaLock, FaGraduationCap, FaEye, FaEyeSlash, FaGoogle, FaGithub } from 'react-icons/fa'
+import { useRouter } from 'next/navigation'
+import { FaEnvelope, FaGraduationCap, FaArrowRight, FaCheckCircle } from 'react-icons/fa'
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter()
+  const [step, setStep] = useState<'email' | 'code'>('email')
+  const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    remember: false
-  })
+  const [success, setSuccess] = useState(false)
 
-  const { signIn, signInWithProvider } = useAuth()
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const { error } = await signIn(formData.email, formData.password, formData.remember)
-    
-    if (error) {
-      setError(error.message || 'Login failed')
+    try {
+      const response = await fetch('/api/auth/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setSuccess(true)
+        setStep('code')
+        setTimeout(() => setSuccess(false), 3000)
+      } else {
+        setError(data.error || 'Failed to send code')
+      }
+    } catch (err) {
+      setError('Error sending code. Please try again.')
+      console.error(err)
+    } finally {
       setLoading(false)
     }
-    // Don't set loading to false on success - the redirect will happen
   }
 
-  const handleSocialLogin = async (provider: 'google' | 'github') => {
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault()
     setLoading(true)
     setError('')
 
-    const { error } = await signInWithProvider(provider)
-    
-    if (error) {
-      setError(error.message || 'Social login failed')
+    try {
+      const response = await fetch('/api/auth/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setSuccess(true)
+        // Redirect to student dashboard after brief success message
+        setTimeout(() => {
+          router.push('/student/dashboard')
+        }, 1500)
+      } else {
+        setError(data.error || 'Invalid code')
+      }
+    } catch (err) {
+      setError('Error verifying code. Please try again.')
+      console.error(err)
+    } finally {
       setLoading(false)
     }
   }
@@ -55,7 +86,7 @@ export default function LoginPage() {
               <FaGraduationCap className="h-10 w-10 text-white" />
             </div>
             <div className="text-left">
-              <h1 className="text-2xl font-bold text-white">UEAB ODel</h1>
+              <h1 className="text-2xl font-bold text-white">UEAB ODeL</h1>
               <p className="text-sm text-gray-300">eLearning Platform</p>
             </div>
           </Link>
@@ -64,136 +95,138 @@ export default function LoginPage() {
         {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back!</h2>
-            <p className="text-gray-600">Sign in to continue your learning journey</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              {step === 'email' ? 'Student Login' : 'Verify Code'}
+            </h2>
+            <p className="text-gray-600">
+              {step === 'email' 
+                ? 'Enter your UEAB email to receive a login code'
+                : 'We sent a 6-digit code to your email'}
+            </p>
           </div>
 
-          {/* Social Login */}
-          <div className="space-y-4 mb-6">
-            <button
-              onClick={() => handleSocialLogin('google')}
-              disabled={loading}
-              className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FaGoogle className="h-5 w-5 mr-3 text-red-500" />
-              Continue with Google
-            </button>
-            
-            <button
-              onClick={() => handleSocialLogin('github')}
-              disabled={loading}
-              className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FaGithub className="h-5 w-5 mr-3 text-gray-800" />
-              Continue with GitHub
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+          {/* Success Message */}
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 flex items-center">
+              <FaCheckCircle className="mr-2" />
+              {step === 'email' ? 'Code sent! Check your email.' : 'Login successful!'}
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Continue with email</span>
-            </div>
-          </div>
+          )}
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mt-4">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6 mt-6">
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          {step === 'email' ? (
+            <form onSubmit={handleSendCode} className="space-y-6">
+              {/* Email */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="email"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input-field pl-12"
+                    placeholder="student@ueab.ac.ke"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Use your UEAB email registered in the system
+                </p>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    Send Code
+                    <FaArrowRight className="ml-2" />
+                  </>
+                )}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyCode} className="space-y-6">
+              {/* Code Input */}
+              <div>
+                <label htmlFor="code" className="block text-sm font-semibold text-gray-700 mb-2">
+                  6-Digit Code
+                </label>
                 <input
-                  type="email"
-                  id="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="input-field pl-12"
-                  placeholder="student@ueab.ac.ke"
+                  type="text"
+                  id="code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/[^\d]/g, '').slice(0, 6))}
+                  className="input-field text-center text-2xl tracking-widest font-bold"
+                  placeholder="000000"
+                  maxLength={6}
                   required
                   disabled={loading}
                 />
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Enter the code from your email
+                </p>
               </div>
-            </div>
 
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="input-field pl-12 pr-12"
-                  placeholder="Enter your password"
-                  required
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
-            </div>
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading || code.length !== 6}
+                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    Verify Code
+                    <FaArrowRight className="ml-2" />
+                  </>
+                )}
+              </button>
 
-            {/* Remember & Forgot */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.remember}
-                  onChange={(e) => setFormData({ ...formData, remember: e.target.checked })}
-                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                  disabled={loading}
-                />
-                <span className="ml-2 text-sm text-gray-700">Remember me</span>
-              </label>
-              <Link href="/forgot-password" className="text-sm text-primary-600 hover:text-primary-700 font-semibold">
-                Forgot Password?
-              </Link>
-            </div>
+              {/* Back Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setStep('email')
+                  setCode('')
+                }}
+                className="w-full border border-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading}
+              >
+                Back
+              </button>
+            </form>
+          )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Signing In...
-                </>
-              ) : (
-                'Sign In'
-              )}
-            </button>
-          </form>
-
-          {/* Register Link */}
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
-              Don't have an account?{' '}
-              <Link href="/register" className="text-primary-600 hover:text-primary-700 font-semibold">
-                Sign up here
+          {/* Admin Login Link */}
+          <div className="mt-6 text-center pt-6 border-t border-gray-200">
+            <p className="text-gray-600 text-sm">
+              Administrator?{' '}
+              <Link href="/admin/login" className="text-primary-600 hover:text-primary-700 font-semibold">
+                Admin Login
               </Link>
             </p>
           </div>
