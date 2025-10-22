@@ -19,7 +19,7 @@ export default function NewsSection() {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const res = await fetch('/api/admin/news?published=true');
+        const res = await fetch('/api/news/published');
         const result = await res.json();
         setNews(result.data || []);
       } catch (error) {

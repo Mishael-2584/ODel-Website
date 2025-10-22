@@ -22,7 +22,7 @@ export default function EventsSection() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch('/api/admin/events?published=true&upcoming=true');
+        const res = await fetch('/api/events/published');
         const result = await res.json();
         setEvents(result.data || []);
       } catch (error) {
