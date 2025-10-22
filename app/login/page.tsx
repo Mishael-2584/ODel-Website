@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FaEnvelope, FaGraduationCap, FaArrowRight, FaCheckCircle, FaShieldAlt, FaClock } from 'react-icons/fa'
+import { FaEnvelope, FaGraduationCap, FaArrowRight, FaCheckCircle, FaShieldAlt, FaClock, FaSpinner } from 'react-icons/fa'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -15,6 +15,32 @@ export default function LoginPage() {
   const [success, setSuccess] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(600) // 10 minutes in seconds
   const [timerActive, setTimerActive] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+  const [userLoggedIn, setUserLoggedIn] = useState(false)
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch('/api/auth/verify')
+        const data = await response.json()
+        
+        if (data.authenticated && data.user) {
+          // User is logged in, redirect to dashboard
+          setUserLoggedIn(true)
+          router.push('/student/dashboard')
+        } else {
+          setCheckingAuth(false)
+        }
+      } catch (err) {
+        // If there's an error checking, assume not logged in
+        setCheckingAuth(false)
+        console.log('Auth check error (expected if not logged in):', err)
+      }
+    }
+
+    checkAuthStatus()
+  }, [router])
 
   // Timer effect - counts down every second
   useEffect(() => {
@@ -110,6 +136,29 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Show loading spinner while checking authentication
+  if (checkingAuth || userLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 flex items-center justify-center px-4 py-12 overflow-hidden">
+        {/* Animated background elements - subtle */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-gold-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-slow"></div>
+          <div className="absolute -bottom-8 right-10 w-72 h-72 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-slow"></div>
+        </div>
+
+        <div className="relative z-10 flex flex-col items-center justify-center">
+          <div className="mb-6 relative">
+            <div className="w-20 h-20 rounded-full border-4 border-slate-700/30 border-t-gold-400 animate-spin"></div>
+            <div className="absolute inset-0 w-20 h-20 rounded-full border-4 border-gold-400/20 animate-pulse"></div>
+          </div>
+          
+          <h3 className="text-2xl font-bold text-white mb-2 font-heading">ODeL Portal</h3>
+          <p className="text-blue-200 text-center text-sm">Checking your session...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
