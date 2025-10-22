@@ -1,5 +1,6 @@
 -- Admin Content Management System
 -- News and Events tables for ODeL website admin panel
+-- This migration runs after passwordless_auth migration creates admin_users
 
 -- Create news table
 CREATE TABLE IF NOT EXISTS news (
@@ -10,7 +11,7 @@ CREATE TABLE IF NOT EXISTS news (
   content TEXT,
   featured_image_url VARCHAR(500),
   image_bucket_path VARCHAR(500),
-  author_id UUID NOT NULL,
+  author_id UUID NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   published_at TIMESTAMP WITH TIME ZONE,
@@ -33,7 +34,7 @@ CREATE TABLE IF NOT EXISTS events (
   end_date TIMESTAMP WITH TIME ZONE,
   location VARCHAR(255),
   event_type VARCHAR(50),
-  organizer_id UUID NOT NULL,
+  organizer_id UUID NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   published_at TIMESTAMP WITH TIME ZONE,
@@ -69,7 +70,7 @@ CREATE POLICY "Admins can manage all news"
     EXISTS (
       SELECT 1 FROM admin_users
       WHERE admin_users.id = auth.uid()
-      AND admin_users.role IN ('admin', 'editor')
+      AND admin_users.role IN ('admin', 'editor', 'super_admin')
     )
   );
 
@@ -88,41 +89,7 @@ CREATE POLICY "Admins can manage all events"
     EXISTS (
       SELECT 1 FROM admin_users
       WHERE admin_users.id = auth.uid()
-      AND admin_users.role IN ('admin', 'editor')
-    )
-  );
-
--- Create admin_users table for role-based access
--- Note: Password is managed by Supabase Auth, not stored here
-CREATE TABLE IF NOT EXISTS admin_users (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email VARCHAR(255) NOT NULL UNIQUE,
-  full_name VARCHAR(255),
-  role VARCHAR(50) NOT NULL DEFAULT 'editor',
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT role_check CHECK (role IN ('admin', 'editor', 'viewer'))
-);
-
--- Create indexes for admin_users
-CREATE INDEX idx_admin_users_email ON admin_users(email);
-CREATE INDEX idx_admin_users_role ON admin_users(role);
-CREATE INDEX idx_admin_users_active ON admin_users(is_active);
-
--- Enable RLS on admin_users
-ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
-
--- Only admins and self can view admin users
-CREATE POLICY "Admins can view admin users"
-  ON admin_users
-  FOR SELECT
-  USING (
-    auth.uid() = id OR
-    EXISTS (
-      SELECT 1 FROM admin_users au
-      WHERE au.id = auth.uid()
-      AND au.role = 'admin'
+      AND admin_users.role IN ('admin', 'editor', 'super_admin')
     )
   );
 
