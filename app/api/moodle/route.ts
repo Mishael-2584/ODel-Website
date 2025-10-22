@@ -430,9 +430,29 @@ export async function GET(request: NextRequest) {
         }
 
         try {
+          const cacheKey = `calendar_events_${userId}`
+          
+          // Check Supabase cache first
+          const cached = await getSupabaseCache(cacheKey)
+          if (cached?.data) {
+            console.log(`✅ Cache HIT - Calendar events for user ${userId}`)
+            return NextResponse.json(
+              { success: true, data: cached.data, cached: true, source: 'supabase' },
+              { headers: CACHE_HEADERS }
+            )
+          }
+
+          console.log(`📡 Fetching calendar events for user ${userId}`)
           const events = await moodleService.getCalendarEvents(parseInt(userId))
+          console.log(`📊 Retrieved ${events.length} calendar events`)
+          
+          // Save to Supabase for future requests
+          if (supabase && events.length > 0) {
+            await saveSupabaseCache(cacheKey, events, 30)
+          }
+          
           return NextResponse.json(
-            { success: true, data: events },
+            { success: true, data: events, cached: false, source: 'moodle' },
             { headers: CACHE_HEADERS }
           )
         } catch (err) {
@@ -454,9 +474,29 @@ export async function GET(request: NextRequest) {
         }
 
         try {
+          const cacheKey = `assignments_${userId}`
+          
+          // Check Supabase cache first
+          const cached = await getSupabaseCache(cacheKey)
+          if (cached?.data) {
+            console.log(`✅ Cache HIT - Assignments for user ${userId}`)
+            return NextResponse.json(
+              { success: true, data: cached.data, cached: true, source: 'supabase' },
+              { headers: CACHE_HEADERS }
+            )
+          }
+
+          console.log(`📡 Fetching assignments for user ${userId}`)
           const assignments = await moodleService.getUserAssignments(parseInt(userId))
+          console.log(`📊 Retrieved ${assignments.length} assignments`)
+          
+          // Save to Supabase for future requests
+          if (supabase && assignments.length > 0) {
+            await saveSupabaseCache(cacheKey, assignments, 30)
+          }
+          
           return NextResponse.json(
-            { success: true, data: assignments },
+            { success: true, data: assignments, cached: false, source: 'moodle' },
             { headers: CACHE_HEADERS }
           )
         } catch (err) {
@@ -478,8 +518,22 @@ export async function GET(request: NextRequest) {
         }
 
         try {
+          const cacheKey = `user_grades_${userId}`
+          
+          // Check Supabase cache first
+          const cached = await getSupabaseCache(cacheKey)
+          if (cached?.data) {
+            console.log(`✅ Cache HIT - Grades for user ${userId}`)
+            return NextResponse.json(
+              { success: true, data: cached.data, cached: true, source: 'supabase' },
+              { headers: CACHE_HEADERS }
+            )
+          }
+
+          console.log(`📡 Fetching grades for user ${userId}`)
           // Fetch user's courses first
           const userCourses = await moodleService.getUserCourses(parseInt(userId))
+          console.log(`📊 User enrolled in ${userCourses.length} courses`)
           
           // Then fetch grades for each course
           const gradesData: any[] = []
@@ -488,7 +542,13 @@ export async function GET(request: NextRequest) {
 
           for (const course of userCourses) {
             try {
+              console.log(`  Fetching grades for course: ${course.fullname} (ID: ${course.id})`)
               const courseGrades = await moodleService.getCourseGrades(parseInt(userId), course.id)
+              
+              if (courseGrades) {
+                console.log(`    Grade response for ${course.fullname}:`, JSON.stringify(courseGrades).substring(0, 200))
+              }
+              
               if (courseGrades && courseGrades.usergrades && courseGrades.usergrades.length > 0) {
                 const userGrade = courseGrades.usergrades[0]
                 if (userGrade && userGrade.grade) {
@@ -499,7 +559,10 @@ export async function GET(request: NextRequest) {
                   })
                   totalGrade += parseFloat(userGrade.grade) || 0
                   gradeCount++
+                  console.log(`    ✓ Grade recorded: ${userGrade.grade}`)
                 }
+              } else {
+                console.log(`    ⚠️ No grades found for course ${course.fullname}`)
               }
             } catch (err) {
               console.warn(`Error fetching grades for course ${course.id}:`, err)
@@ -507,14 +570,24 @@ export async function GET(request: NextRequest) {
           }
 
           const avgGrade = gradeCount > 0 ? totalGrade / gradeCount : 0
+          console.log(`📈 Calculated average grade: ${avgGrade} from ${gradeCount} courses`)
+
+          const gradeResult = {
+            avgGrade,
+            courses: gradesData
+          }
+          
+          // Save to Supabase for future requests
+          if (supabase) {
+            await saveSupabaseCache(cacheKey, gradeResult, 30)
+          }
 
           return NextResponse.json(
             { 
               success: true, 
-              data: {
-                avgGrade,
-                courses: gradesData
-              }
+              data: gradeResult,
+              cached: false,
+              source: 'moodle'
             },
             { headers: CACHE_HEADERS }
           )
