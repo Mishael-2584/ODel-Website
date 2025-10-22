@@ -20,43 +20,43 @@ export default function Home() {
   const schools = [
     {
       icon: FaBuilding,
-      title: 'School of Business and Technology',
-      description: 'Comprehensive business and technology programs including BBA, MBA specializations, and IT programs.',
+      title: 'School of Business',
+      description: 'Comprehensive business education with programs in management, accounting, and information systems.',
       color: 'from-blue-500 to-blue-700',
       iconBg: 'bg-blue-500',
-      programs: ['BBA Marketing', 'MBA Finance', 'BBIT', 'BSc Electronics']
+      programs: ['BBA Marketing', 'BBA Accounting', 'MBA Finance', 'BBIT']
     },
     {
       icon: FaBook,
-      title: 'School of Education, Arts and Humanities',
-      description: 'Teacher education, arts, and humanities programs preparing educators and professionals.',
+      title: 'School of Education, Humanities and Social Sciences',
+      description: 'Education, humanities, and social sciences programs preparing educators and professionals.',
       color: 'from-green-500 to-green-700',
       iconBg: 'bg-green-500',
-      programs: ['B.Ed Science/Arts', 'M.Ed Curriculum', 'BA Journalism', 'BA Theology']
+      programs: ['B.Ed Science', 'B.Ed Arts', 'BA Journalism', 'BA Psychology']
     },
     {
       icon: FaStethoscope,
-      title: 'School of Health Sciences',
-      description: 'Healthcare programs including nursing, public health, and medical laboratory sciences.',
+      title: 'School of Health Sciences & Nursing',
+      description: 'Health sciences and nursing programs including nursing, public health, and medical laboratory sciences.',
       color: 'from-red-500 to-red-700',
       iconBg: 'bg-red-500',
       programs: ['BSc Nursing', 'MPH', 'BSc Public Health', 'BSc Medical Lab']
     },
     {
       icon: FaMicroscope,
-      title: 'School of Sciences',
-      description: 'STEM programs in mathematics, chemistry, biology, and environmental sciences.',
+      title: 'School of Science and Technology',
+      description: 'Science and technology programs including engineering, applied sciences, and natural sciences.',
       color: 'from-purple-500 to-purple-700',
       iconBg: 'bg-purple-500',
-      programs: ['BSc Mathematics', 'BSc Chemistry', 'BSc Biology', 'BSc Environmental']
+      programs: ['BSc Mathematics', 'BSc Chemistry', 'BSc Biology', 'BSc Agriculture']
     },
     {
       icon: FaGraduationCap,
-      title: 'School of Agriculture and Hospitality',
-      description: 'Agriculture, agribusiness, hospitality, and nutrition programs.',
-      color: 'from-gold-500 to-gold-700',
-      iconBg: 'bg-gold-500',
-      programs: ['BSc Agriculture', 'BSc Agribusiness', 'BSc Hospitality', 'BSc Nutrition']
+      title: 'School of Graduate Studies and Research',
+      description: 'Advanced graduate and research programs across all disciplines.',
+      color: 'from-orange-500 to-orange-700',
+      iconBg: 'bg-orange-500',
+      programs: ['Master Programs', 'PhD Programs', 'Research Degrees', 'Advanced Studies']
     }
   ]
 
@@ -115,7 +115,7 @@ export default function Home() {
   const popularPrograms = [
     {
       title: 'Bachelor of Business Administration',
-      school: 'School of Business and Technology',
+      school: 'School of Business',
       students: 450,
       rating: 4.8,
       duration: '4 years',
@@ -126,7 +126,7 @@ export default function Home() {
     },
     {
       title: 'Bachelor of Science in Nursing',
-      school: 'School of Health Sciences',
+      school: 'School of Health Sciences & Nursing',
       students: 380,
       rating: 4.9,
       duration: '4 years',
@@ -148,7 +148,7 @@ export default function Home() {
     },
     {
       title: 'Master of Business Administration',
-      school: 'School of Business and Technology',
+      school: 'School of Business',
       students: 180,
       rating: 4.8,
       duration: '2 years',
