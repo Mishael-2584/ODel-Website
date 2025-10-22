@@ -21,6 +21,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [studentData, setStudentData] = useState<StudentUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null)
   const router = useRouter()
 
   // Check if student is logged in
@@ -47,10 +48,22 @@ export default function Navbar() {
 
   const publicNavLinks = [
     { href: '/', label: 'Home', icon: FaHome },
-    { href: '/courses', label: 'ODeL Catalogue', icon: FaBook },
-    { href: '/programs', label: 'Programs', icon: FaGraduationCap },
-    { href: '/events', label: 'Events', icon: FaCalendarAlt },
-    { href: '/about', label: 'About ODeL', icon: FaInfoCircle },
+    { 
+      label: 'Academic',
+      icon: FaBook,
+      submenu: [
+        { href: '/courses', label: 'ODeL Catalogue' },
+        { href: '/programs', label: 'Programs' },
+      ]
+    },
+    { 
+      label: 'Discover',
+      icon: FaTh,
+      submenu: [
+        { href: '/events', label: 'Events Calendar' },
+        { href: '/about', label: 'About ODeL' },
+      ]
+    },
     { href: '/contact', label: 'Contact', icon: FaPhone },
   ]
 
@@ -105,14 +118,37 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             {publicNavLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 font-medium transition-colors group"
-              >
-                <link.icon className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                <span>{link.label}</span>
-              </Link>
+              <div key={link.label || link.href} className="relative group">
+                {link.submenu ? (
+                  <>
+                    <button className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 font-medium transition-colors group-hover:text-primary-600">
+                      {link.icon && <link.icon className="h-4 w-4 group-hover:scale-110 transition-transform" />}
+                      <span>{link.label}</span>
+                    </button>
+                    
+                    {/* Dropdown Menu */}
+                    <div className="absolute left-0 mt-0 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top scale-y-95 group-hover:scale-y-100 z-50">
+                      {link.submenu.map((sublink) => (
+                        <Link
+                          key={sublink.href}
+                          href={sublink.href}
+                          className="block px-4 py-3 text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium transition-colors first:rounded-t-lg last:rounded-b-lg"
+                        >
+                          {sublink.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <Link
+                    href={link.href}
+                    className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 font-medium transition-colors group"
+                  >
+                    {link.icon && <link.icon className="h-4 w-4 group-hover:scale-110 transition-transform" />}
+                    <span>{link.label}</span>
+                  </Link>
+                )}
+              </div>
             ))}
             
             {/* Dashboard Link - Only show when logged in */}
@@ -191,15 +227,50 @@ export default function Navbar() {
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 rounded-lg mt-2">
               {publicNavLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 font-medium transition-colors group px-3 py-2 rounded-md"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <link.icon className="h-4 w-4" />
-                  <span>{link.label}</span>
-                </Link>
+                <div key={link.label || link.href}>
+                  {link.submenu ? (
+                    <>
+                      <button
+                        onClick={() => setOpenSubmenu(openSubmenu === link.label ? null : link.label)}
+                        className="w-full flex items-center justify-between text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium transition-colors px-3 py-2 rounded-md"
+                      >
+                        <div className="flex items-center space-x-2">
+                          {link.icon && <link.icon className="h-4 w-4" />}
+                          <span>{link.label}</span>
+                        </div>
+                        <span className={`transition-transform ${openSubmenu === link.label ? 'rotate-180' : ''}`}>▼</span>
+                      </button>
+                      
+                      {/* Mobile Submenu */}
+                      {openSubmenu === link.label && (
+                        <div className="pl-4 space-y-1 bg-white rounded-md mt-1">
+                          {link.submenu.map((sublink) => (
+                            <Link
+                              key={sublink.href}
+                              href={sublink.href}
+                              className="flex items-center text-gray-600 hover:text-primary-600 hover:bg-primary-50 font-medium transition-colors px-3 py-2 rounded-md text-sm"
+                              onClick={() => {
+                                setIsOpen(false)
+                                setOpenSubmenu(null)
+                              }}
+                            >
+                              {sublink.label}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Link
+                      href={link.href}
+                      className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 font-medium transition-colors px-3 py-2 rounded-md"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {link.icon && <link.icon className="h-4 w-4" />}
+                      <span>{link.label}</span>
+                    </Link>
+                  )}
+                </div>
               ))}
               
               {/* Dashboard Link - Mobile */}

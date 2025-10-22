@@ -102,15 +102,28 @@ export default function EventsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-primary-900 to-slate-950 flex flex-col">
       <Navbar />
 
-      {/* Header */}
-      <section className="py-12 bg-gradient-to-r from-primary-600 to-primary-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Header with enhanced gradient */}
+      <section className="relative py-20 overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary-500 rounded-full mix-blend-screen filter blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-accent-purple rounded-full mix-blend-screen filter blur-3xl"></div>
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-white mb-4">Events Calendar</h1>
-            <p className="text-xl text-gray-200">Discover upcoming events and important dates</p>
+            <div className="inline-flex items-center bg-primary-500/20 text-primary-300 px-4 py-2 rounded-full text-sm font-semibold mb-6 border border-primary-500/50 backdrop-blur-sm">
+              📅 Event Calendar
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-primary-200 to-primary-100">
+              Events Calendar
+            </h1>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Discover upcoming events and important dates at UEAB ODeL Center
+            </p>
           </div>
         </div>
       </section>
@@ -121,28 +134,28 @@ export default function EventsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Calendar */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20 hover:border-white/40 transition-all duration-300">
                 {/* Calendar Header */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-8">
                   <button
                     onClick={prevMonth}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition"
+                    className="p-3 hover:bg-white/20 rounded-lg transition-all duration-200 text-white hover:text-primary-300 transform hover:scale-110"
                   >
                     <ChevronLeft className="w-6 h-6" />
                   </button>
-                  <h2 className="text-2xl font-bold text-gray-900">{monthName}</h2>
+                  <h2 className="text-3xl font-bold text-white">{monthName}</h2>
                   <button
                     onClick={nextMonth}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition"
+                    className="p-3 hover:bg-white/20 rounded-lg transition-all duration-200 text-white hover:text-primary-300 transform hover:scale-110"
                   >
                     <ChevronRight className="w-6 h-6" />
                   </button>
                 </div>
 
                 {/* Day Names */}
-                <div className="grid grid-cols-7 gap-2 mb-4">
+                <div className="grid grid-cols-7 gap-2 mb-6">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="text-center font-semibold text-gray-600 py-2">
+                    <div key={day} className="text-center font-semibold text-primary-300 py-3 text-sm uppercase tracking-wider">
                       {day}
                     </div>
                   ))}
@@ -155,12 +168,19 @@ export default function EventsPage() {
                   ))}
                   {daysArray.map(day => {
                     const dayEvents = getEventsForDay(day);
+                    const isToday = new Date().getDate() === day && new Date().getMonth() === currentMonth.getMonth();
                     return (
                       <div
                         key={day}
-                        className="aspect-square border border-gray-200 rounded-lg p-2 hover:border-primary-500 hover:bg-primary-50 transition cursor-pointer"
+                        className={`aspect-square border-2 rounded-xl p-2 transition-all duration-200 cursor-pointer ${
+                          isToday
+                            ? 'border-primary-400 bg-primary-500/30 shadow-lg shadow-primary-500/50'
+                            : 'border-white/10 hover:border-primary-400 hover:bg-white/10'
+                        }`}
                       >
-                        <div className="text-sm font-semibold text-gray-900 mb-1">{day}</div>
+                        <div className={`text-sm font-bold mb-1 ${isToday ? 'text-primary-300' : 'text-white'}`}>
+                          {day}
+                        </div>
                         <div className="space-y-1">
                           {dayEvents.slice(0, 2).map(event => {
                             const color = getEventColor(event.event_type);
@@ -168,14 +188,14 @@ export default function EventsPage() {
                               <button
                                 key={event.id}
                                 onClick={() => setSelectedEvent(event)}
-                                className={`w-full text-xs px-1 py-0.5 rounded truncate ${color.bg} ${color.text} border ${color.border} hover:opacity-80 transition`}
+                                className={`w-full text-xs px-2 py-1 rounded-lg truncate font-medium transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${color.bg} ${color.text} border ${color.border} hover:brightness-110`}
                               >
                                 {event.title}
                               </button>
                             );
                           })}
                           {dayEvents.length > 2 && (
-                            <div className="text-xs text-gray-500 px-1">
+                            <div className="text-xs text-primary-300 px-2 font-semibold">
                               +{dayEvents.length - 2} more
                             </div>
                           )}
@@ -189,31 +209,38 @@ export default function EventsPage() {
 
             {/* Upcoming Events Sidebar */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200 sticky top-20">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Upcoming Events</h3>
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20 sticky top-24 hover:border-white/40 transition-all duration-300">
+                <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                  <Calendar className="w-6 h-6 text-primary-400" />
+                  Upcoming Events
+                </h3>
                 {loading ? (
-                  <div className="text-center py-8">
-                    <div className="w-8 h-8 border-3 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div className="text-center py-12">
+                    <div className="w-10 h-10 border-4 border-primary-500 border-t-primary-300 rounded-full animate-spin mx-auto"></div>
+                    <p className="text-white/60 mt-3">Loading events...</p>
                   </div>
                 ) : events.length === 0 ? (
-                  <p className="text-gray-500">No events scheduled</p>
+                  <p className="text-white/60 text-center py-8">No events scheduled</p>
                 ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
                     {events
                       .filter(event => new Date(event.start_date) >= new Date())
                       .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
-                      .slice(0, 5)
+                      .slice(0, 8)
                       .map(event => {
                         const color = getEventColor(event.event_type);
                         return (
                           <button
                             key={event.id}
                             onClick={() => setSelectedEvent(event)}
-                            className={`w-full text-left p-3 rounded-lg border ${color.border} ${color.bg} hover:shadow-md transition`}
+                            className={`w-full text-left p-4 rounded-xl border ${color.border} ${color.bg} hover:shadow-lg hover:shadow-primary-500/50 transition-all duration-200 transform hover:translate-x-1 group`}
                           >
-                            <div className="font-semibold text-gray-900 text-sm line-clamp-2">{event.title}</div>
-                            <div className="text-xs text-gray-600 mt-1">{formatDate(event.start_date)}</div>
-                            <div className={`inline-block text-xs px-2 py-1 rounded mt-2 ${color.text} bg-white border ${color.border}`}>
+                            <div className="font-semibold text-white group-hover:text-primary-300 text-sm line-clamp-2 transition-colors">{event.title}</div>
+                            <div className="text-xs text-white/70 mt-2 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {formatDate(event.start_date).split(',')[0]}
+                            </div>
+                            <div className={`inline-block text-xs px-2 py-1 rounded-full mt-2 font-medium ${color.text} bg-white/10 border ${color.border}`}>
                               {event.event_type.charAt(0).toUpperCase() + event.event_type.slice(1)}
                             </div>
                           </button>
@@ -229,35 +256,36 @@ export default function EventsPage() {
 
       {/* Event Details Modal */}
       {selectedEvent && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/20">
             {/* Close Button */}
             <button
               onClick={() => setSelectedEvent(null)}
-              className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-lg transition"
+              className="absolute top-6 right-6 p-2 hover:bg-white/20 rounded-lg transition-all duration-200 z-10 text-white hover:text-primary-300 transform hover:scale-110"
             >
               <X className="w-6 h-6" />
             </button>
 
             {/* Event Image */}
             {selectedEvent.featured_image_url && (
-              <div className="relative w-full h-64 bg-gradient-to-r from-primary-400 to-primary-600">
+              <div className="relative w-full h-72 bg-gradient-to-r from-primary-600 to-primary-800 overflow-hidden">
                 <img
                   src={selectedEvent.featured_image_url}
                   alt={selectedEvent.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent"></div>
               </div>
             )}
 
             {/* Event Content */}
             <div className="p-8">
               {/* Type Badge */}
-              <div className="mb-4">
+              <div className="mb-6">
                 {(() => {
                   const color = getEventColor(selectedEvent.event_type);
                   return (
-                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${color.bg} ${color.text}`}>
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${color.bg} ${color.text} border ${color.border}`}>
                       {selectedEvent.event_type.charAt(0).toUpperCase() + selectedEvent.event_type.slice(1)}
                     </span>
                   );
@@ -265,51 +293,57 @@ export default function EventsPage() {
               </div>
 
               {/* Title */}
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{selectedEvent.title}</h1>
+              <h1 className="text-4xl font-bold text-white mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-primary-200">
+                {selectedEvent.title}
+              </h1>
 
               {/* Details */}
-              <div className="space-y-4 mb-6">
-                <div className="flex items-start gap-3">
-                  <Calendar className="w-5 h-5 text-primary-600 mt-1 flex-shrink-0" />
+              <div className="space-y-5 mb-8">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-white/10 border border-white/10 hover:border-primary-500/50 transition-all">
+                  <Calendar className="w-6 h-6 text-primary-400 mt-1 flex-shrink-0" />
                   <div>
-                    <div className="font-semibold text-gray-900">{formatDate(selectedEvent.start_date)}</div>
-                    <div className="text-gray-600">{formatTime(selectedEvent.start_date)}</div>
-                    {selectedEvent.end_date && (
-                      <div className="text-sm text-gray-500 mt-1">
-                        until {formatTime(selectedEvent.end_date)}
-                      </div>
-                    )}
+                    <div className="font-semibold text-white text-lg">{formatDate(selectedEvent.start_date)}</div>
+                    <div className="text-gray-300 mt-1 text-sm flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      {formatTime(selectedEvent.start_date)}
+                      {selectedEvent.end_date && (
+                        <>
+                          {' — '}
+                          {formatTime(selectedEvent.end_date)}
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 {selectedEvent.location && (
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-primary-600 mt-1 flex-shrink-0" />
+                  <div className="flex items-start gap-4 p-4 rounded-xl bg-white/10 border border-white/10 hover:border-primary-500/50 transition-all">
+                    <MapPin className="w-6 h-6 text-primary-400 mt-1 flex-shrink-0" />
                     <div>
-                      <div className="font-semibold text-gray-900">{selectedEvent.location}</div>
+                      <div className="font-semibold text-white text-lg">{selectedEvent.location}</div>
                     </div>
                   </div>
                 )}
               </div>
 
               {/* Description */}
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">About</h3>
-                <p className="text-gray-600 leading-relaxed">{selectedEvent.description}</p>
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-white mb-3">About This Event</h3>
+                <p className="text-gray-300 leading-relaxed text-base">{selectedEvent.description}</p>
               </div>
 
               {/* Full Content */}
               {selectedEvent.content && selectedEvent.content !== selectedEvent.description && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Details</h3>
-                  <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">{selectedEvent.content}</p>
+                <div className="mb-8">
+                  <h3 className="text-xl font-bold text-white mb-3">Event Details</h3>
+                  <p className="text-gray-300 leading-relaxed text-base whitespace-pre-wrap">{selectedEvent.content}</p>
                 </div>
               )}
 
               {/* Close Button */}
               <button
                 onClick={() => setSelectedEvent(null)}
-                className="w-full px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition"
+                className="w-full px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-lg hover:shadow-primary-500/50 transform hover:scale-105"
               >
                 Close
               </button>
@@ -317,6 +351,23 @@ export default function EventsPage() {
           </div>
         </div>
       )}
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(59, 130, 246, 0.5);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(59, 130, 246, 0.8);
+        }
+      `}</style>
 
       <Footer />
     </div>
