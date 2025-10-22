@@ -456,14 +456,22 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
 
   return (
     <>
-      {/* Chatbot Toggle Button */}
+      {/* Chatbot Toggle Button - Enhanced Design */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 bg-primary-600 hover:bg-primary-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-50 group"
+          className="fixed bottom-6 right-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-4 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 z-50 group transform hover:scale-105 border-2 border-purple-400 hover:border-purple-300"
         >
-          <FaRobot className="h-6 w-6 group-hover:animate-bounce" />
-          <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-pulse">
+          <div className="flex items-center gap-3">
+            <div className="bg-white rounded-full p-3 shadow-md group-hover:animate-pulse">
+              <FaRobot className="h-5 w-5 text-purple-600" />
+            </div>
+            <div className="text-left">
+              <div className="font-bold text-base leading-tight">Need Help?</div>
+              <div className="text-xs text-purple-100">Ask Me! 💬</div>
+            </div>
+          </div>
+          <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-7 w-7 flex items-center justify-center animate-bounce shadow-lg">
             !
           </div>
         </button>
