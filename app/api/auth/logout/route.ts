@@ -13,48 +13,78 @@ export async function POST(request: NextRequest) {
                  request.headers.get('Authorization')?.replace('Bearer ', '')
 
     if (!token) {
-      return NextResponse.json(
-        { success: false, error: 'No token provided' },
-        { status: 400 }
-      )
+      // No token, just clear the cookie
+      const response = NextResponse.json({
+        success: true,
+        message: 'Already logged out'
+      })
+
+      response.cookies.delete('odel_auth')
+      return response
     }
+
+    console.log('🔐 Logging out user - invalidating session')
 
     // Find and mark session as inactive
     const { data, error } = await supabase
       .from('student_sessions')
-      .update({ is_active: false })
+      .update({ 
+        is_active: false,
+        last_activity: new Date().toISOString()
+      })
       .eq('jwt_token', token)
+      .select()
 
     if (error) {
-      console.error('Error clearing session:', error)
-      return NextResponse.json(
-        { success: false, error: 'Failed to logout' },
-        { status: 500 }
-      )
+      console.error('❌ Error invalidating session:', error)
+      // Still clear cookie even if DB update fails
+    } else {
+      console.log('✅ Session invalidated in database:', data?.length, 'session(s) updated')
     }
 
-    // Create response
+    // Create response with success message
     const response = NextResponse.json({
       success: true,
-      message: 'Successfully logged out'
+      message: 'Successfully logged out and session invalidated'
     })
 
-    // Clear cookie
+    // Clear the auth cookie completely
     response.cookies.set({
       name: 'odel_auth',
       value: '',
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 0
+      maxAge: 0,  // This immediately expires the cookie
+      path: '/'   // Ensure it's cleared across all paths
     })
+
+    console.log('🔐 Auth cookie cleared from response')
 
     return response
   } catch (error) {
-    console.error('Logout error:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to logout' },
+    console.error('❌ Logout error:', error)
+    
+    // Even on error, clear the cookie to be safe
+    const response = NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to logout completely, but cookie cleared',
+        message: 'Please refresh the page'
+      },
       { status: 500 }
     )
+
+    response.cookies.set({
+      name: 'odel_auth',
+      value: '',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 0,
+      path: '/'
+    })
+
+    return response
   }
 }
