@@ -14,6 +14,7 @@ interface StudentUser {
   studentName: string
   moodleUsername: string
   moodleUserId: number
+  roles?: string[]
 }
 
 export default function Navbar() {
@@ -61,6 +62,26 @@ export default function Navbar() {
     } catch (err) {
       console.error('Logout error:', err)
     }
+  }
+
+  const getRoleBadgeStyle = (role: string) => {
+    const styles: { [key: string]: string } = {
+      'student': 'bg-blue-100 text-blue-800 border border-blue-300',
+      'instructor': 'bg-purple-100 text-purple-800 border border-purple-300',
+      'admin': 'bg-red-100 text-red-800 border border-red-300',
+      'teacher': 'bg-purple-100 text-purple-800 border border-purple-300'
+    }
+    return styles[role] || 'bg-gray-100 text-gray-800 border border-gray-300'
+  }
+
+  const getRoleBadgeLabel = (role: string) => {
+    const labels: { [key: string]: string } = {
+      'student': 'Student',
+      'instructor': 'Instructor',
+      'teacher': 'Teacher',
+      'admin': 'Admin'
+    }
+    return labels[role] || role.charAt(0).toUpperCase() + role.slice(1)
   }
 
   return (
@@ -117,6 +138,18 @@ export default function Navbar() {
                   <div className="text-sm">
                     <p className="font-medium text-gray-900">{studentData.studentName}</p>
                     <p className="text-xs text-gray-500">{studentData.email}</p>
+                    {studentData.roles && studentData.roles.length > 0 && (
+                      <div className="flex items-center gap-1 mt-1">
+                        {studentData.roles.map((role) => (
+                          <span
+                            key={role}
+                            className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full ${getRoleBadgeStyle(role)}`}
+                          >
+                            {getRoleBadgeLabel(role)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <button
@@ -189,6 +222,18 @@ export default function Navbar() {
                       <div>
                         <p className="font-medium text-gray-900">{studentData.studentName}</p>
                         <p className="text-xs text-gray-500">{studentData.email}</p>
+                        {studentData.roles && studentData.roles.length > 0 && (
+                          <div className="flex items-center gap-1 mt-1 flex-wrap">
+                            {studentData.roles.map((role) => (
+                              <span
+                                key={role}
+                                className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full ${getRoleBadgeStyle(role)}`}
+                              >
+                                {getRoleBadgeLabel(role)}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <button

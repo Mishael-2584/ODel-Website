@@ -21,6 +21,7 @@ interface StudentData {
   studentName: string
   moodleUsername: string
   moodleUserId: number
+  roles?: string[]
 }
 
 type TabType = 'dashboard' | 'courses' | 'calendar' | 'grades' | 'assignments'

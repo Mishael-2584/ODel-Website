@@ -22,6 +22,7 @@ export function generateJWTToken(data: {
   moodleUserId: number
   moodleUsername: string
   studentName: string
+  roles?: string[]
 }): string {
   return jwt.sign(
     {
@@ -29,6 +30,7 @@ export function generateJWTToken(data: {
       moodleUserId: data.moodleUserId,
       moodleUsername: data.moodleUsername,
       studentName: data.studentName,
+      roles: data.roles || ['student'],
       type: 'student'
     },
     JWT_SECRET,
@@ -197,12 +199,17 @@ export async function createStudentSession(
       return { success: false, error: 'Failed to fetch student data' }
     }
 
-    // Generate JWT token
+    // Fetch user roles from Moodle
+    const userRoles = await moodleService.getUserRoles(moodleUserId)
+    console.log(`📋 User roles for ${userResponse.username}:`, userRoles)
+
+    // Generate JWT token with roles
     const jwtToken = generateJWTToken({
       email,
       moodleUserId,
       moodleUsername: userResponse.username || '',
-      studentName: `${userResponse.firstname || ''} ${userResponse.lastname || ''}`.trim()
+      studentName: `${userResponse.firstname || ''} ${userResponse.lastname || ''}`.trim(),
+      roles: userRoles
     })
 
     // Save session to database

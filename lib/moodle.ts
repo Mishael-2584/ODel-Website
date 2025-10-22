@@ -1321,6 +1321,104 @@ class MoodleService {
   private isErrorResponse(result: any): boolean {
     return result && (result.exception || result.error || result.errorcode)
   }
+
+  // Get user roles - check if user is instructor by looking at course enrollments
+  async getUserRoles(userId: number): Promise<string[]> {
+    try {
+      const roles = ['student'] // Everyone is at least a student
+
+      // Get all courses the user is enrolled in
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'core_enrol_get_enrolled_users',
+        moodlewsrestformat: 'json',
+        courseid: '1' // We need to check multiple courses, so this is a placeholder
+      })
+
+      // Instead, let's try to get the user's roles in all their courses
+      // We'll fetch user courses and check their roles in each
+      const coursesParams = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'core_user_get_courses',
+        moodlewsrestformat: 'json',
+        userid: userId.toString()
+      })
+
+      const coursesResponse = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: coursesParams
+      })
+
+      const coursesResult = await coursesResponse.json()
+
+      // Check if user has any instructor/teacher roles
+      if (coursesResult.courses && Array.isArray(coursesResult.courses)) {
+        for (const course of coursesResult.courses) {
+          // Check each course for instructor role
+          if (course.roles && Array.isArray(course.roles)) {
+            const hasInstructorRole = course.roles.some((role: any) => {
+              // Common instructor role IDs: 3 (teacher), 4 (editingteacher), etc.
+              return [3, 4, 5, 6].includes(role.roleid)
+            })
+
+            if (hasInstructorRole) {
+              roles.push('instructor')
+              break // Once we find instructor role, we can stop
+            }
+          }
+        }
+      }
+
+      // Check for admin - this requires checking user's system roles
+      // For now, we'll assume only the system marks admins
+      // In a future enhancement, check user's admin status via system roles
+
+      return [...new Set(roles)] // Return unique roles
+    } catch (error) {
+      console.error('Error getting user roles:', error)
+      return ['student'] // Default to student if error
+    }
+  }
+
+  // Get user's teaching courses (only if instructor)
+  async getUserTeachingCourses(userId: number): Promise<any[]> {
+    try {
+      const coursesParams = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'core_user_get_courses',
+        moodlewsrestformat: 'json',
+        userid: userId.toString()
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: coursesParams
+      })
+
+      const result = await response.json()
+
+      if (result.courses && Array.isArray(result.courses)) {
+        // Filter for courses where user is instructor
+        return result.courses.filter((course: any) => {
+          if (course.roles && Array.isArray(course.roles)) {
+            return course.roles.some((role: any) => [3, 4, 5, 6].includes(role.roleid))
+          }
+          return false
+        })
+      }
+
+      return []
+    } catch (error) {
+      console.error('Error getting teaching courses:', error)
+      return []
+    }
+  }
 }
 
 // Moodle Configuration
