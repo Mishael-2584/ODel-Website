@@ -1110,8 +1110,23 @@ class MoodleService {
         moodlewsrestformat: 'json'
       })
 
+      // If courseId is specified, filter to that course
+      // Otherwise get assignments from all user's courses
       if (courseId) {
         params.append('courseids[0]', courseId.toString())
+      } else {
+        // Get user's courses first, then get assignments from those courses
+        const userCourses = await this.getUserCourses(userId)
+        const courseIds = userCourses.map((c: any) => c.id)
+        
+        if (courseIds.length === 0) {
+          console.log(`📊 User ${userId} has no courses, no assignments to fetch`)
+          return []
+        }
+        
+        courseIds.forEach((id: number, index: number) => {
+          params.append(`courseids[${index}]`, id.toString())
+        })
       }
 
       const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
@@ -1143,6 +1158,7 @@ class MoodleService {
         })
       }
       
+      console.log(`📊 Retrieved ${allAssignments.length} assignments for user ${userId}`)
       return allAssignments
     } catch (error) {
       console.error('Error getting assignments:', error)
@@ -1153,12 +1169,13 @@ class MoodleService {
   // Get course calendar events
   async getCalendarEvents(userId: number): Promise<any[]> {
     try {
-      // First, get the user's calendar events by using core_calendar_get_calendar_events
-      // without the events array wrapper
+      // Get the user's calendar events using core_calendar_get_calendar_events
+      // This function returns events that the user is subscribed to or participates in
       const params = new URLSearchParams({
         wstoken: this.config.apiToken,
         wsfunction: 'core_calendar_get_calendar_events',
-        moodlewsrestformat: 'json'
+        moodlewsrestformat: 'json',
+        userid: userId.toString()
       })
 
       const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
@@ -1174,7 +1191,10 @@ class MoodleService {
         return []
       }
 
-      return result.events || []
+      // Filter events to only include those relevant to the user
+      const events = result.events || []
+      console.log(`📊 Retrieved ${events.length} calendar events for user ${userId}`)
+      return events
     } catch (error) {
       console.error('Error getting calendar events:', error)
       return []
