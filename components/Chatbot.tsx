@@ -456,30 +456,33 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
 
   return (
     <>
-      {/* Chatbot Toggle Button - Enhanced Design */}
+      {/* Chatbot Toggle Button - Mobile Responsive */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-4 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 z-50 group transform hover:scale-105 border-2 border-purple-400 hover:border-purple-300"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 z-40 group transform hover:scale-105 border-2 border-purple-400 hover:border-purple-300"
         >
-          <div className="flex items-center gap-3">
-            <div className="bg-white rounded-full p-3 shadow-md group-hover:animate-pulse">
-              <FaRobot className="h-5 w-5 text-purple-600" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="bg-white rounded-full p-2 sm:p-3 shadow-md group-hover:animate-pulse">
+              <FaRobot className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
             </div>
-            <div className="text-left">
-              <div className="font-bold text-base leading-tight">Need Help?</div>
+            <div className="text-left hidden sm:block">
+              <div className="font-bold text-sm sm:text-base leading-tight">Need Help?</div>
               <div className="text-xs text-purple-100">Ask Me! 💬</div>
             </div>
+            <div className="text-left sm:hidden">
+              <div className="font-bold text-xs leading-tight">Help</div>
+            </div>
           </div>
-          <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-7 w-7 flex items-center justify-center animate-bounce shadow-lg">
+          <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 sm:h-7 sm:w-7 flex items-center justify-center animate-bounce shadow-lg">
             !
           </div>
         </button>
       )}
 
-      {/* Chatbot Window */}
+      {/* Chatbot Window - Mobile Responsive */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 flex flex-col">
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-[calc(100vw-2rem)] sm:w-96 h-[calc(100vh-2rem)] sm:h-[600px] max-w-sm sm:max-w-none bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 flex flex-col">
           {/* Header */}
           <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-4 rounded-t-2xl flex items-center justify-between">
             <div className="flex items-center space-x-3">

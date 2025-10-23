@@ -182,7 +182,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
         
         {/* Content */}
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-12 md:py-16 relative z-10 w-full">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-12 md:py-16 pb-20 sm:pb-16 md:pb-16 relative z-10 w-full">
           <div className="text-center text-white">
             {/* Badge */}
             <div className="inline-flex items-center bg-gold-500/25 backdrop-blur-sm border border-gold-500/40 rounded-full px-3 sm:px-4 md:px-6 py-2 sm:py-3 mb-4 sm:mb-6 md:mb-8 shadow-lg">
