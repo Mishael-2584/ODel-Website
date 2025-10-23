@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { FaRobot, FaCheckCircle, FaTimesCircle, FaSpinner } from 'react-icons/fa'
 
+// Force dynamic rendering to prevent build-time API calls
+export const dynamic = 'force-dynamic'
+
 export default function ZammadTestPage() {
   const [testResult, setTestResult] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
