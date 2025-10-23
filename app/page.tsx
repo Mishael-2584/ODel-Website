@@ -182,123 +182,123 @@ export default function Home() {
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
         
         {/* Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10 w-full">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-12 md:py-16 relative z-10 w-full">
           <div className="text-center text-white">
             {/* Badge */}
-            <div className="inline-flex items-center bg-gold-500/25 backdrop-blur-sm border border-gold-500/40 rounded-full px-6 py-3 mb-8 shadow-lg">
-              <span className="text-gold-200 text-sm font-semibold">🎓 Premier Open Distance eLearning Platform</span>
+            <div className="inline-flex items-center bg-gold-500/25 backdrop-blur-sm border border-gold-500/40 rounded-full px-3 sm:px-4 md:px-6 py-2 sm:py-3 mb-4 sm:mb-6 md:mb-8 shadow-lg">
+              <span className="text-gold-200 text-xs sm:text-sm font-semibold px-2 sm:px-0">🎓 Premier Open Distance eLearning Platform</span>
             </div>
             
             {/* Main Heading */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 lg:mb-8 leading-tight">
-              Transform Your Future with <span className="text-gold-300 bg-gradient-to-r from-gold-300 to-gold-200 bg-clip-text text-transparent animate-pulse">UEAB ODeL</span>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold mb-4 sm:mb-6 md:mb-8 leading-tight px-2 sm:px-0">
+              Transform Your Future with <span className="text-gold-300 bg-gradient-to-r from-gold-300 to-gold-200 bg-clip-text text-transparent animate-pulse block sm:inline">UEAB ODeL</span>
             </h1>
             
             {/* Description */}
-            <p className="text-lg sm:text-xl lg:text-2xl text-gray-100 mb-8 lg:mb-10 max-w-5xl mx-auto leading-relaxed">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-gray-100 mb-6 sm:mb-8 md:mb-10 max-w-xs sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto leading-relaxed px-3 sm:px-4 md:px-0">
               Join the University of Eastern Africa, Baraton's premier Open Distance eLearning platform. 
               Experience flexible, accessible, and quality education that empowers you to learn from anywhere, 
               at your own pace, with internationally recognized programs across five comprehensive academic schools.
             </p>
             
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center mb-10 lg:mb-12">
-              <Link href="/login" className="btn-gold inline-flex items-center justify-center group text-base lg:text-lg px-6 lg:px-8 py-3 lg:py-4 shadow-xl hover:shadow-2xl transition-all">
-                <FaRocket className="mr-3 group-hover:rotate-12 transition-transform" />
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6 justify-center mb-8 sm:mb-10 md:mb-12 px-3 sm:px-0">
+              <Link href="/login" className="btn-gold inline-flex items-center justify-center group text-sm sm:text-base md:text-lg px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 shadow-xl hover:shadow-2xl transition-all">
+                <FaRocket className="mr-2 sm:mr-3 group-hover:rotate-12 transition-transform" />
                 Get Started Today
               </Link>
-              <Link href="/courses" className="btn-outline-white inline-flex items-center justify-center group text-base lg:text-lg px-6 lg:px-8 py-3 lg:py-4 shadow-xl hover:shadow-2xl transition-all">
-                <FaPlay className="mr-3 group-hover:scale-110 transition-transform" />
+              <Link href="/courses" className="btn-outline-white inline-flex items-center justify-center group text-sm sm:text-base md:text-lg px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 shadow-xl hover:shadow-2xl transition-all">
+                <FaPlay className="mr-2 sm:mr-3 group-hover:scale-110 transition-transform" />
                 Explore Programs
               </Link>
             </div>
             
             {/* Achievement Badges */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 max-w-6xl mx-auto mb-10">
-              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 lg:px-6 py-4 lg:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg">
-                <div className="flex flex-col items-center space-y-2">
-                  <FaTrophy className="h-6 lg:h-8 w-6 lg:w-8 text-gold-300 group-hover:animate-bounce" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto mb-8 sm:mb-10 px-3 sm:px-0">
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg">
+                <div className="flex flex-col items-center space-y-1 sm:space-y-2">
+                  <FaTrophy className="h-5 sm:h-6 md:h-8 w-5 sm:w-6 md:w-8 text-gold-300 group-hover:animate-bounce" />
                   <div className="text-center">
-                    <p className="font-semibold text-white group-hover:text-gold-200 transition-colors text-sm lg:text-base">Accredited Programs</p>
-                    <p className="text-xs lg:text-sm text-gray-200">Internationally Recognized</p>
+                    <p className="font-semibold text-white group-hover:text-gold-200 transition-colors text-xs sm:text-sm md:text-base">Accredited Programs</p>
+                    <p className="text-xs sm:text-sm text-gray-200">Internationally Recognized</p>
                   </div>
                 </div>
               </div>
               
-              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 lg:px-6 py-4 lg:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg">
-                <div className="flex flex-col items-center space-y-2">
-                  <FaUniversity className="h-6 lg:h-8 w-6 lg:w-8 text-gold-300 group-hover:animate-bounce" />
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg">
+                <div className="flex flex-col items-center space-y-1 sm:space-y-2">
+                  <FaUniversity className="h-5 sm:h-6 md:h-8 w-5 sm:w-6 md:w-8 text-gold-300 group-hover:animate-bounce" />
                   <div className="text-center">
-                    <p className="font-semibold text-white group-hover:text-gold-200 transition-colors text-sm lg:text-base">Five Academic Schools</p>
-                    <p className="text-xs lg:text-sm text-gray-200">Comprehensive Programs</p>
+                    <p className="font-semibold text-white group-hover:text-gold-200 transition-colors text-xs sm:text-sm md:text-base">Five Academic Schools</p>
+                    <p className="text-xs sm:text-sm text-gray-200">Comprehensive Programs</p>
                   </div>
                 </div>
               </div>
               
-              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 lg:px-6 py-4 lg:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg">
-                <div className="flex flex-col items-center space-y-2">
-                  <FaGraduationCap className="h-6 lg:h-8 w-6 lg:w-8 text-gold-300 group-hover:animate-bounce" />
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg">
+                <div className="flex flex-col items-center space-y-1 sm:space-y-2">
+                  <FaGraduationCap className="h-5 sm:h-6 md:h-8 w-5 sm:w-6 md:w-8 text-gold-300 group-hover:animate-bounce" />
                   <div className="text-center">
-                    <p className="font-semibold text-white group-hover:text-gold-200 transition-colors text-sm lg:text-base">Bachelor's to PhD</p>
-                    <p className="text-xs lg:text-sm text-gray-200">Complete Academic Journey</p>
+                    <p className="font-semibold text-white group-hover:text-gold-200 transition-colors text-xs sm:text-sm md:text-base">Bachelor's to PhD</p>
+                    <p className="text-xs sm:text-sm text-gray-200">Complete Academic Journey</p>
                   </div>
                 </div>
               </div>
               
-              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 lg:px-6 py-4 lg:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg">
-                <div className="flex flex-col items-center space-y-2">
-                  <FaChalkboardTeacher className="h-6 lg:h-8 w-6 lg:w-8 text-gold-300 group-hover:animate-bounce" />
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg">
+                <div className="flex flex-col items-center space-y-1 sm:space-y-2">
+                  <FaChalkboardTeacher className="h-5 sm:h-6 md:h-8 w-5 sm:w-6 md:w-8 text-gold-300 group-hover:animate-bounce" />
                   <div className="text-center">
-                    <p className="font-semibold text-white group-hover:text-gold-200 transition-colors text-sm lg:text-base">Expert Faculty</p>
-                    <p className="text-xs lg:text-sm text-gray-200">PhD Holders & Professionals</p>
+                    <p className="font-semibold text-white group-hover:text-gold-200 transition-colors text-xs sm:text-sm md:text-base">Expert Faculty</p>
+                    <p className="text-xs sm:text-sm text-gray-200">PhD Holders & Professionals</p>
                   </div>
                 </div>
               </div>
             </div>
             
             {/* Live Stats Card */}
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 lg:p-8 border border-white/25 shadow-xl">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
-                    <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
-                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+            <div className="max-w-xs sm:max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto px-3 sm:px-0">
+              <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 sm:p-6 md:p-8 border border-white/25 shadow-xl">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <div className="w-2 sm:w-3 h-2 sm:h-3 bg-red-400 rounded-full animate-pulse"></div>
+                    <div className="w-2 sm:w-3 h-2 sm:h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                    <div className="w-2 sm:w-3 h-2 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
                   </div>
-                  <span className="text-white/80 text-sm font-medium">✨ Live Now</span>
+                  <span className="text-white/80 text-xs sm:text-sm font-medium">✨ Live Now</span>
                 </div>
                 
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm text-center hover:bg-white/15 transition-all">
-                    <div className="flex flex-col items-center space-y-2">
-                      <FaUserGraduate className="h-5 lg:h-6 w-5 lg:w-6 text-gold-300" />
-                      <span className="text-white font-semibold text-xs lg:text-sm">Active Learners</span>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                  <div className="bg-white/10 rounded-xl p-3 sm:p-4 backdrop-blur-sm text-center hover:bg-white/15 transition-all">
+                    <div className="flex flex-col items-center space-y-1 sm:space-y-2">
+                      <FaUserGraduate className="h-4 sm:h-5 md:h-6 w-4 sm:w-5 md:w-6 text-gold-300" />
+                      <span className="text-white font-semibold text-xs sm:text-sm">Active Learners</span>
                     </div>
-                    <p className="text-xl lg:text-2xl font-bold text-white mt-2">5,000+</p>
+                    <p className="text-lg sm:text-xl md:text-2xl font-bold text-white mt-1 sm:mt-2">5,000+</p>
                   </div>
                   
-                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm text-center hover:bg-white/15 transition-all">
-                    <div className="flex flex-col items-center space-y-2">
-                      <FaCertificate className="h-5 lg:h-6 w-5 lg:w-6 text-gold-300" />
-                      <span className="text-white font-semibold text-xs lg:text-sm">Graduates</span>
+                  <div className="bg-white/10 rounded-xl p-3 sm:p-4 backdrop-blur-sm text-center hover:bg-white/15 transition-all">
+                    <div className="flex flex-col items-center space-y-1 sm:space-y-2">
+                      <FaCertificate className="h-4 sm:h-5 md:h-6 w-4 sm:w-5 md:w-6 text-gold-300" />
+                      <span className="text-white font-semibold text-xs sm:text-sm">Graduates</span>
                     </div>
-                    <p className="text-xl lg:text-2xl font-bold text-white mt-2">5,000+</p>
+                    <p className="text-lg sm:text-xl md:text-2xl font-bold text-white mt-1 sm:mt-2">5,000+</p>
                   </div>
                   
-                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm text-center hover:bg-white/15 transition-all">
-                    <div className="flex flex-col items-center space-y-2">
-                      <FaStar className="h-5 lg:h-6 w-5 lg:w-6 text-gold-300" />
-                      <span className="text-white font-semibold text-xs lg:text-sm">Student Satisfaction</span>
+                  <div className="bg-white/10 rounded-xl p-3 sm:p-4 backdrop-blur-sm text-center hover:bg-white/15 transition-all">
+                    <div className="flex flex-col items-center space-y-1 sm:space-y-2">
+                      <FaStar className="h-4 sm:h-5 md:h-6 w-4 sm:w-5 md:w-6 text-gold-300" />
+                      <span className="text-white font-semibold text-xs sm:text-sm">Student Satisfaction</span>
                     </div>
-                    <p className="text-xl lg:text-2xl font-bold text-white mt-2">4.8/5.0 ⭐</p>
+                    <p className="text-lg sm:text-xl md:text-2xl font-bold text-white mt-1 sm:mt-2">4.8/5.0 ⭐</p>
                   </div>
                   
-                  <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm text-center hover:bg-white/15 transition-all">
-                    <div className="flex flex-col items-center space-y-2">
-                      <FaGlobe className="h-5 lg:h-6 w-5 lg:w-6 text-gold-300" />
-                      <span className="text-white font-semibold text-xs lg:text-sm">Countries</span>
+                  <div className="bg-white/10 rounded-xl p-3 sm:p-4 backdrop-blur-sm text-center hover:bg-white/15 transition-all">
+                    <div className="flex flex-col items-center space-y-1 sm:space-y-2">
+                      <FaGlobe className="h-4 sm:h-5 md:h-6 w-4 sm:w-5 md:w-6 text-gold-300" />
+                      <span className="text-white font-semibold text-xs sm:text-sm">Countries</span>
                     </div>
-                    <p className="text-xl lg:text-2xl font-bold text-white mt-2">10+</p>
+                    <p className="text-lg sm:text-xl md:text-2xl font-bold text-white mt-1 sm:mt-2">10+</p>
                   </div>
                 </div>
               </div>
