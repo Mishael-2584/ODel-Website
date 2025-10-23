@@ -2,8 +2,14 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['ueab.ac.ke'],
-    unoptimized: true, // Enable local image optimization
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'ueab.ac.ke',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
   eslint: {
     // Warning: This allows production builds to successfully complete even if

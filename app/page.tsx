@@ -167,10 +167,12 @@ export default function Home() {
       <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
-          <img
+          <Image
             src="/images/campus/ODeLbuilding.jpg"
             alt="UEAB ODeL Building"
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            priority
           />
           <div className="absolute inset-0 bg-gradient-to-r from-primary-900/85 via-primary-800/75 to-primary-900/85"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
@@ -379,10 +381,13 @@ export default function Home() {
             <div className="relative">
               {/* UEAB ODeL Building Image */}
               <div className="relative rounded-2xl overflow-hidden shadow-xl">
-                <img
-                  src="/images/campus/odelbuilding.jpg"
+                <Image
+                  src="/images/campus/ODeLbuilding.jpg"
                   alt="UEAB ODeL Building"
+                  width={800}
+                  height={320}
                   className="w-full h-80 object-cover"
+                  priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                 <div className="absolute bottom-6 left-6 text-white">
