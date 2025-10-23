@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 
-// For development, we'll use a simple email service
-// In production, configure with SendGrid, Brevo, or AWS SES
+// SMTP Configuration for Webmin/Virtualmin
+const createTransporter = () => {
+  return nodemailer.createTransporter({
+    host: process.env.SMTP_HOST || 'mail.yourdomain.com',
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+    auth: {
+      user: process.env.SMTP_USER || 'noreply@yourdomain.com',
+      pass: process.env.SMTP_PASS || 'your_email_password'
+    },
+    tls: {
+      rejectUnauthorized: false // For self-signed certificates
+    }
+  })
+}
 
 const getEmailTemplate = (template: string, data: any): { subject: string; html: string } => {
   switch (template) {
@@ -79,19 +92,25 @@ export async function POST(request: NextRequest) {
     // Get email template
     const emailContent = getEmailTemplate(template, { ...data, email: to })
 
-    // For development, log the email
-    console.log(`📧 Email to: ${to}`)
-    console.log(`Subject: ${emailContent.subject}`)
-    console.log(`Code: ${data.code}`)
+    // Create SMTP transporter
+    const transporter = createTransporter()
 
-    // In production, send via your email provider
-    // For now, we'll just return success
-    // TODO: Configure with SendGrid, Brevo, or AWS SES in production
+    // Send email via SMTP
+    const info = await transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@yourdomain.com',
+      to: to,
+      subject: emailContent.subject,
+      html: emailContent.html
+    })
+
+    console.log('📧 Email sent successfully:', info.messageId)
+    console.log('📧 To:', to)
+    console.log('📧 Subject:', emailContent.subject)
 
     return NextResponse.json({
       success: true,
-      messageId: `dev-${Date.now()}`,
-      message: 'Email sent successfully (dev mode)'
+      messageId: info.messageId,
+      message: 'Email sent successfully'
     })
   } catch (error) {
     console.error('Send email error:', error)
