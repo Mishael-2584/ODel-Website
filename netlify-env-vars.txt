@@ -1,0 +1,54 @@
+# Netlify Environment Variables Setup Script
+# Copy and paste these into Netlify → Site Settings → Environment Variables
+
+# ===========================================
+# SUPABASE CONFIGURATION
+# ===========================================
+NEXT_PUBLIC_SUPABASE_URL=https://vsirtnqfvimtkgabxpzy.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzaXJ0bnFmdmltdGtnYWJ4cHp5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDQxMzc5OSwiZXhwIjoyMDc1OTg5Nzk5fQ.sltRl-JxLU6iQznMgXQQJzj_EC5A-ehCx6kPpg8yYO4
+
+# ===========================================
+# ZAMMAD CONFIGURATION
+# ===========================================
+NEXT_PUBLIC_ZAMMAD_URL=https://support.ueab.ac.ke
+NEXT_PUBLIC_ZAMMAD_GROUP_ID=4
+NEXT_PUBLIC_ZAMMAD_PRIORITY_ID=2
+ZAMMAD_API_TOKEN=xd07L8w4rCem7WWZwc38vztr0VsnIOZB_XkkYMjPSDmPGsfOoo1TKwobAwYnaGnD
+
+# ===========================================
+# MOODLE CONFIGURATION
+# ===========================================
+NEXT_PUBLIC_MOODLE_URL=https://ielearning.ueab.ac.ke/
+MOODLE_API_TOKEN=b81f3639eb484fda3d4679960c91fbfa
+
+# ===========================================
+# JWT AUTHENTICATION
+# ===========================================
+JWT_SECRET=2da876f7586ff222c2673efeb6932ee59b7f32c04e42439529248aefe4e87c50
+JWT_EXPIRY=24h
+
+# ===========================================
+# SMTP CONFIGURATION (UPDATE THESE!)
+# ===========================================
+SMTP_HOST=mail.odel.ueab.ac.ke
+SMTP_PORT=587
+SMTP_USER=noreply@odel.ueab.ac.ke
+SMTP_PASS=YOUR_EMAIL_PASSWORD_HERE
+SMTP_SECURE=false
+SMTP_FROM=noreply@odel.ueab.ac.ke
+
+# ===========================================
+# ADMIN CONFIGURATION
+# ===========================================
+ADMIN_EMAIL=admin@ueab.ac.ke
+ADMIN_PASSWORD_HASH=$2b$10$NfOEZsGn/E753DWdSUN/weobXe0uHYY7HrehHHbAIDuXD/lFWIJoG
+
+# ===========================================
+# INSTRUCTIONS:
+# ===========================================
+# 1. Go to Netlify Dashboard → Your Site → Site Settings → Environment Variables
+# 2. Add each variable above (one by one)
+# 3. Update SMTP_PASS with your actual email password
+# 4. Update SMTP_HOST if your mail server has a different hostname
+# 5. Save and redeploy your site
+# ===========================================
