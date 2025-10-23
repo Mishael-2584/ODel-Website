@@ -153,242 +153,229 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-primary-900 to-slate-900 flex flex-col">
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">UEAB ODeL</h1>
-            <p className="text-gray-200 text-lg">Student Login</p>
-          </div>
+        <div className="w-full max-w-5xl">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Main Login Section - Takes 2 columns on desktop */}
+            <div className="lg:col-span-2">
+              {/* Header */}
+              <div className="text-center mb-8">
+                <h1 className="text-4xl font-bold text-white mb-2">UEAB ODeL</h1>
+                <p className="text-gray-200 text-lg">Student Login</p>
+              </div>
 
-          {/* Main Card - White background for clarity */}
-          <div className="bg-white rounded-2xl shadow-2xl p-8 mb-8">
-            {step === 'email' && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign In with Your Email</h2>
-                  <p className="text-gray-600">Enter your UEAB email to receive a magic code</p>
-                </div>
-
-                {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-red-700 font-medium">{error}</p>
-                  </div>
-                )}
-
-                {success && (
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center gap-3">
-                    <FaCheckCircle className="text-emerald-600 text-xl" />
+              {/* Main Card - White background for clarity */}
+              <div className="bg-white rounded-2xl shadow-2xl p-8">
+                {step === 'email' && (
+                  <div className="space-y-6">
                     <div>
-                      <p className="text-emerald-900 font-semibold">Code sent successfully!</p>
-                      <p className="text-emerald-700 text-sm">Check your email for the code</p>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign In with Your Email</h2>
+                      <p className="text-gray-600">Enter your UEAB email to receive a magic code</p>
                     </div>
-                  </div>
-                )}
 
-                <form onSubmit={handleSendCode} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <FaEnvelope className="inline mr-2 text-primary-600" />
-                      UEAB Email Address
-                    </label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your.name@ueab.ac.ke"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition"
-                      required
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {loading ? (
-                      <>
-                        <FaSpinner className="animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        Send Magic Code
-                        <FaArrowRight />
-                      </>
+                    {error && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p className="text-red-700 font-medium">{error}</p>
+                      </div>
                     )}
-                  </button>
-                </form>
-              </div>
-            )}
 
-            {step === 'code' && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Enter Your Code</h2>
-                  <p className="text-gray-600">Check your email and enter the 6-digit code</p>
-                </div>
-
-                {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-red-700 font-medium">{error}</p>
-                  </div>
-                )}
-
-                {success && (
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center gap-3">
-                    <FaCheckCircle className="text-emerald-600 text-xl" />
-                    <p className="text-emerald-900 font-semibold">Code verified! Logging in...</p>
-                  </div>
-                )}
-
-                <form onSubmit={handleVerifyCode} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      6-Digit Code
-                    </label>
-                    <input
-                      type="text"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="000000"
-                      maxLength="6"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition text-center text-2xl tracking-widest font-bold"
-                      required
-                    />
-                  </div>
-
-                  {/* Timer */}
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600 flex items-center gap-2">
-                      <FaClock className="text-primary-600" />
-                      Code expires in
-                    </span>
-                    <span className={`font-bold text-lg ${getTimerColor()}`}>
-                      {formatTime(timeRemaining)}
-                    </span>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {loading ? (
-                      <>
-                        <FaSpinner className="animate-spin" />
-                        Verifying...
-                      </>
-                    ) : (
-                      <>
-                        Verify Code
-                        <FaArrowRight />
-                      </>
+                    {success && (
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center gap-3">
+                        <FaCheckCircle className="text-emerald-600 text-xl" />
+                        <div>
+                          <p className="text-emerald-900 font-semibold">Code sent successfully!</p>
+                          <p className="text-emerald-700 text-sm">Check your email for the code</p>
+                        </div>
+                      </div>
                     )}
-                  </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStep('email')
-                      setCode('')
-                      setError('')
-                    }}
-                    className="w-full text-gray-600 hover:text-gray-900 font-medium py-2 transition"
-                  >
-                    ← Back to Email
-                  </button>
-                </form>
+                    <form onSubmit={handleSendCode} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <FaEnvelope className="inline mr-2 text-primary-600" />
+                          UEAB Email Address
+                        </label>
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="your.name@ueab.ac.ke"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition"
+                          required
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {loading ? (
+                          <>
+                            <FaSpinner className="animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            Send Magic Code
+                            <FaArrowRight />
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                {step === 'code' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">Enter Your Code</h2>
+                      <p className="text-gray-600">Check your email and enter the 6-digit code</p>
+                    </div>
+
+                    {error && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p className="text-red-700 font-medium">{error}</p>
+                      </div>
+                    )}
+
+                    {success && (
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center gap-3">
+                        <FaCheckCircle className="text-emerald-600 text-xl" />
+                        <p className="text-emerald-900 font-semibold">Code verified! Logging in...</p>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleVerifyCode} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          6-Digit Code
+                        </label>
+                        <input
+                          type="text"
+                          value={code}
+                          onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          placeholder="000000"
+                          maxLength="6"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition text-center text-2xl tracking-widest font-bold"
+                          required
+                        />
+                      </div>
+
+                      {/* Timer */}
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm text-gray-600 flex items-center gap-2">
+                          <FaClock className="text-primary-600" />
+                          Code expires in
+                        </span>
+                        <span className={`font-bold text-lg ${getTimerColor()}`}>
+                          {formatTime(timeRemaining)}
+                        </span>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {loading ? (
+                          <>
+                            <FaSpinner className="animate-spin" />
+                            Verifying...
+                          </>
+                        ) : (
+                          <>
+                            Verify Code
+                            <FaArrowRight />
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStep('email')
+                          setCode('')
+                          setError('')
+                        }}
+                        className="w-full text-gray-600 hover:text-gray-900 font-medium py-2 transition"
+                      >
+                        ← Back to Email
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                {step === 'redirecting' && (
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 border-4 border-primary-500 border-t-primary-300 rounded-full animate-spin mx-auto"></div>
+                    <p className="text-gray-900 font-semibold">Redirecting to dashboard...</p>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
-            {step === 'redirecting' && (
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 border-4 border-primary-500 border-t-primary-300 rounded-full animate-spin mx-auto"></div>
-                <p className="text-gray-900 font-semibold">Redirecting to dashboard...</p>
-              </div>
-            )}
-          </div>
-
-          {/* Info Sections - Light backgrounds for visibility */}
-          <div className="space-y-4">
-            {/* iCampus Registration Info - More Prominent */}
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-lg p-6 shadow-md hover:shadow-lg transition-all">
-              <h3 className="font-bold text-amber-900 mb-3 flex items-center gap-2 text-lg">
-                <FaGraduationCap className="text-amber-600 text-xl" />
-                Not Yet Registered?
-              </h3>
-              <p className="text-amber-800 text-sm mb-4 leading-relaxed">
-                Start your registration in <strong>iCampus</strong> - the official student portal. Once you complete registration there, your account will be immediately available on this platform!
-              </p>
-              <div className="flex gap-2 flex-wrap">
+            {/* Side Notes - Sidebar on right */}
+            <div className="lg:col-span-1 space-y-4">
+              {/* iCampus Registration Info */}
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 rounded-lg p-4 shadow-md hover:shadow-lg transition-all h-fit sticky top-4">
+                <h3 className="font-bold text-amber-900 mb-2 flex items-center gap-2 text-sm">
+                  <FaGraduationCap className="text-amber-600" />
+                  Not Registered?
+                </h3>
+                <p className="text-amber-800 text-xs mb-3 leading-relaxed">
+                  Start registration in <strong>iCampus</strong> - your account will sync automatically.
+                </p>
                 <a
                   href="http://icampus.ueab.ac.ke/iUserLog/Register"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors shadow-md hover:shadow-lg transform hover:scale-105"
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-amber-600 text-white font-semibold rounded text-xs hover:bg-amber-700 transition-colors"
                 >
-                  <FaExternalLinkAlt className="text-sm" />
-                  Go to iCampus Registration
+                  <FaExternalLinkAlt className="text-xs" />
+                  Go to iCampus
                 </a>
               </div>
-              <p className="text-amber-700 text-xs font-medium mt-3 flex items-center gap-1">
-                <FaHeadset className="text-amber-600" />
-                Having issues? Use the chatbot below for instant help!
-              </p>
-            </div>
 
-            {/* ITS Support Info */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 hover:border-blue-300 hover:shadow-md transition-all">
-              <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                <FaShieldAlt className="text-blue-600" />
-                Need Your UEAB Email?
-              </h3>
-              <p className="text-blue-800 text-sm mb-3">
-                If you don't have your UEAB email yet, visit the <strong>ITS Office</strong> at the Main Campus to get your credentials set up.
-              </p>
-              <p className="text-blue-700 text-xs font-medium mb-2">
-                📍 Location: IT Services Office, Main Campus
-              </p>
-              <a
-                href="mailto:odel@ueab.ac.ke"
-                className="inline-flex items-center gap-2 text-blue-700 hover:text-blue-900 font-semibold text-sm transition-colors"
-              >
-                <FaEnvelope className="text-blue-600" />
-                Email ITS Support
-              </a>
-            </div>
-
-            {/* Chatbot Help CTA - More Prominent */}
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-6 shadow-lg border-2 border-purple-400 text-white transform hover:scale-105 transition-all cursor-pointer">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="bg-white rounded-full p-3 shadow-md">
-                  <FaRobot className="text-purple-600 text-2xl" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg">Need Help? Ask Me!</h3>
-                  <p className="text-purple-100 text-sm">24/7 AI Support</p>
-                </div>
+              {/* ITS Support Info */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all h-fit">
+                <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2 text-sm">
+                  <FaShieldAlt className="text-blue-600" />
+                  No UEAB Email?
+                </h3>
+                <p className="text-blue-800 text-xs mb-2">
+                  Visit ITS Office at Main Campus to get your credentials set up.
+                </p>
+                <a
+                  href="mailto:odel@ueab.ac.ke"
+                  className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-900 font-semibold text-xs transition-colors"
+                >
+                  <FaEnvelope className="text-blue-600" />
+                  Email ITS
+                </a>
               </div>
-              <p className="text-sm mb-3 opacity-95">
-                Got questions about registration, login, or anything else? Our chatbot is here to help instantly!
-              </p>
-              <button
-                onClick={() => {
-                  // Trigger chatbot - assuming it's available globally
-                  if (typeof window !== 'undefined' && (window as any).fcWidget) {
-                    (window as any).fcWidget.open();
-                  }
-                }}
-                className="w-full bg-white text-purple-600 font-bold py-2 rounded-lg hover:bg-purple-50 transition-colors shadow-md"
-              >
-                💬 Chat Now
-              </button>
+
+              {/* Admin Login Link */}
+              <div className="bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-300 rounded-lg p-4 hover:border-primary-400 hover:shadow-md transition-all h-fit">
+                <h3 className="font-semibold text-primary-900 mb-2 flex items-center gap-2 text-sm">
+                  <FaShieldAlt className="text-primary-600" />
+                  Admin Access
+                </h3>
+                <p className="text-primary-800 text-xs mb-3">
+                  Admin staff can access the management panel here.
+                </p>
+                <Link
+                  href="/admin/login"
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-primary-600 text-white font-semibold rounded text-xs hover:bg-primary-700 transition-colors"
+                >
+                  <FaArrowRight className="text-xs" />
+                  Admin Login
+                </Link>
+              </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="mt-8 text-center text-gray-400 text-xs">
+          <div className="mt-12 text-center text-gray-400 text-xs">
             <p>🔒 Your data is secure. Single sign-on powered by UEAB's official systems.</p>
           </div>
         </div>
