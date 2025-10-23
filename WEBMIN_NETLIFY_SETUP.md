@@ -11,18 +11,18 @@
 
 # Add these DNS records for odel.ueab.ac.ke:
 
-# 1. CNAME Record (Points to Netlify)
-CNAME   odel.ueab.ac.ke    →    your-netlify-site.netlify.app
+# 1. Name Alias Record (Points to Netlify) - This is CNAME in Webmin
+Name Alias   odel.ueab.ac.ke    →    your-netlify-site.netlify.app
 
-# 2. CNAME Record for www subdomain
-CNAME   www.odel.ueab.ac.ke    →    your-netlify-site.netlify.app
+# 2. Name Alias Record for www subdomain
+Name Alias   www.odel.ueab.ac.ke    →    your-netlify-site.netlify.app
 
-# 3. A Record (Alternative to CNAME)
-A       odel.ueab.ac.ke    →    75.2.60.5 (Netlify's IP)
+# 3. Address Record (Alternative to Name Alias)
+Address      odel.ueab.ac.ke    →    75.2.60.5 (Netlify's IP)
 
 # 4. Mail Server Records (for SMTP)
-A       mail.odel.ueab.ac.ke    →    YOUR_SERVER_IP
-MX      odel.ueab.ac.ke         →    mail.odel.ueab.ac.ke (priority 10)
+Address      mail.odel.ueab.ac.ke    →    YOUR_SERVER_IP
+Mail Server  odel.ueab.ac.ke         →    mail.odel.ueab.ac.ke (priority 10)
 ```
 
 #### **B. Verify DNS Propagation**
@@ -206,7 +206,7 @@ tail -f /var/log/mail.err
 1. **Domain Not Resolving**
    - Check DNS records in Webmin
    - Wait for DNS propagation (up to 48 hours)
-   - Verify CNAME/A record is correct
+   - Verify Name Alias/Address record is correct
 
 2. **SSL Certificate Issues**
    - Enable "Force HTTPS" in Netlify
