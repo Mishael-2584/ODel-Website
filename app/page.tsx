@@ -182,20 +182,20 @@ export default function Home() {
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
         
         {/* Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-12 sm:py-16 md:py-20 pb-24 sm:pb-20 md:pb-20 relative z-10 w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 pt-20 sm:pt-24 md:pt-28 pb-24 sm:pb-20 md:pb-20 relative z-10 w-full">
           <div className="text-center text-white">
             {/* Badge */}
-            <div className="inline-flex items-center bg-gold-500/25 backdrop-blur-sm border border-gold-500/40 rounded-full px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 mb-6 sm:mb-8 md:mb-10 shadow-lg">
-              <span className="text-gold-200 text-sm sm:text-base md:text-lg font-semibold">🎓 Premier Open Distance eLearning Platform</span>
+            <div className="inline-flex items-center bg-gold-500/25 backdrop-blur-sm border border-gold-500/40 rounded-full px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 mb-4 sm:mb-6 md:mb-8 shadow-lg">
+              <span className="text-gold-200 text-xs sm:text-sm md:text-base font-semibold">🎓 Premier Open Distance eLearning Platform</span>
             </div>
             
             {/* Main Heading */}
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold mb-6 sm:mb-8 md:mb-10 leading-tight px-2 sm:px-4 md:px-6">
-              Transform Your Future with <span className="text-gold-300 bg-gradient-to-r from-gold-300 to-gold-200 bg-clip-text text-transparent animate-pulse block sm:inline mt-2 sm:mt-0">UEAB ODeL</span>
+            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-bold mb-4 sm:mb-6 md:mb-8 leading-tight px-2 sm:px-4 md:px-6">
+              Transform Your Future with <span className="text-gold-300 bg-gradient-to-r from-gold-300 to-gold-200 bg-clip-text text-transparent animate-pulse block sm:inline mt-1 sm:mt-0">UEAB ODeL</span>
             </h1>
             
             {/* Description */}
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-100 mb-8 sm:mb-10 md:mb-12 max-w-sm sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto leading-relaxed px-4 sm:px-6 md:px-8">
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-100 mb-6 sm:mb-8 md:mb-10 max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto leading-relaxed px-2 sm:px-4 md:px-6">
               Join the University of Eastern Africa, Baraton's premier Open Distance eLearning platform. 
               Experience flexible, accessible, and quality education that empowers you to learn from anywhere, 
               at your own pace, with internationally recognized programs across five comprehensive academic schools.
