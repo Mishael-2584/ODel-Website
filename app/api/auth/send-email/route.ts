@@ -1,20 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 
-// SMTP Configuration for Webmin/Virtualmin
+// SMTP Configuration for Local Postfix
 const createTransporter = () => {
-  return nodemailer.createTransporter({
-    host: process.env.SMTP_HOST || 'mail.yourdomain.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
+  const config = {
+    host: process.env.SMTP_HOST || 'localhost',
+    port: parseInt(process.env.SMTP_PORT || '25'),
     secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
-    auth: {
-      user: process.env.SMTP_USER || 'noreply@yourdomain.com',
-      pass: process.env.SMTP_PASS || 'your_email_password'
-    },
     tls: {
       rejectUnauthorized: false // For self-signed certificates
     }
-  })
+  }
+
+  // Add authentication only if credentials are provided
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    config.auth = {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
+  }
+
+  return nodemailer.createTransporter(config)
 }
 
 const getEmailTemplate = (template: string, data: any): { subject: string; html: string } => {
@@ -58,7 +64,7 @@ const getEmailTemplate = (template: string, data: any): { subject: string; html:
                   </div>
                   <p>This code will expire in <strong>${data.expiryMinutes} minutes</strong>.</p>
                   <p>
-                    <a href="http://localhost:3000/auth/verify?code=${data.code}&email=${encodeURIComponent(data.email)}" 
+                    <a href="https://odel.ueab.ac.ke/auth/verify?code=${data.code}&email=${encodeURIComponent(data.email)}" 
                        style="display: inline-block; background: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
                        Verify Code
                     </a>
