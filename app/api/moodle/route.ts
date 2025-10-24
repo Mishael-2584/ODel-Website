@@ -443,16 +443,29 @@ export async function GET(request: NextRequest) {
           }
 
           console.log(`📡 Fetching calendar events for user ${userId}`)
+          
+          // Get user's enrolled courses first to filter relevant events
+          const userCourses = await moodleService.getUserCourses(parseInt(userId))
+          const courseIds = userCourses.map((c: any) => c.id)
+          
+          // Get calendar events (now using correct API parameters)
           const events = await moodleService.getCalendarEvents(parseInt(userId))
-          console.log(`📊 Retrieved ${events.length} calendar events`)
+          
+          // Filter events to only include those from user's courses
+          const filteredEvents = events.filter((event: any) => {
+            // Include site-wide events and events from user's courses
+            return !event.courseid || courseIds.includes(event.courseid)
+          })
+          
+          console.log(`📊 Retrieved ${filteredEvents.length} calendar events (filtered from ${events.length} total)`)
           
           // Save to Supabase for future requests
-          if (supabase && events.length > 0) {
-            await saveSupabaseCache(cacheKey, events, 30)
+          if (supabase && filteredEvents.length > 0) {
+            await saveSupabaseCache(cacheKey, filteredEvents, 30)
           }
           
           return NextResponse.json(
-            { success: true, data: events, cached: false, source: 'moodle' },
+            { success: true, data: filteredEvents, cached: false, source: 'moodle' },
             { headers: CACHE_HEADERS }
           )
         } catch (err) {

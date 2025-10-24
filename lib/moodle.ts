@@ -1170,12 +1170,23 @@ class MoodleService {
   async getCalendarEvents(userId: number): Promise<any[]> {
     try {
       // Get the user's calendar events using core_calendar_get_calendar_events
-      // This function returns events that the user is subscribed to or participates in
+      // This function doesn't accept userid directly, instead we need to use different parameters
       const params = new URLSearchParams({
         wstoken: this.config.apiToken,
         wsfunction: 'core_calendar_get_calendar_events',
         moodlewsrestformat: 'json',
-        userid: userId.toString()
+        events: JSON.stringify({
+          eventids: [],
+          courseids: [],
+          groupids: [],
+          categoryids: []
+        }),
+        options: JSON.stringify({
+          userevents: true,
+          siteevents: true,
+          timestart: Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60), // 30 days ago
+          timeend: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60) // 30 days from now
+        })
       })
 
       const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
