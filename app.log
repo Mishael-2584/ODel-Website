@@ -2,19 +2,87 @@
 > ueab-odel-elearning@1.0.0 start
 > next start
 
- ⨯ Failed to start server
-Error: listen EADDRINUSE: address already in use :::3000
-    at Server.setupListenHandle [as _listen2] (node:net:1817:16)
-    at listenInCluster (node:net:1865:12)
-    at Server.listen (node:net:1953:7)
-    at /home/odel/public_html/node_modules/next/dist/server/lib/start-server.js:280:16
-    at new Promise (<anonymous>)
-    at startServer (/home/odel/public_html/node_modules/next/dist/server/lib/start-server.js:191:11)
-    at Module.nextStart (/home/odel/public_html/node_modules/next/dist/cli/next-start.js:25:40)
-    at /home/odel/public_html/node_modules/next/dist/bin/next:105:856 {
-  code: 'EADDRINUSE',
-  errno: -98,
-  syscall: 'listen',
-  address: '::',
-  port: 3000
+  ▲ Next.js 14.2.33
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ✓ Ready in 619ms
+⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
+ℹ️ Server-side: skipping localStorage cache load
+ℹ️ Server-side: skipping aggressive preload
+Email config failed: {"host":"localhost","port":25,"secure":false,"tls":{"rejectUnauthorized":false}}
+Email config failed: {"sendmail":true,"newline":"unix","path":"/usr/sbin/sendmail"}
+Email config failed: {"host":"localhost","port":587,"secure":false,"tls":{"rejectUnauthorized":false}}
+Failed to create transporter: Error: All email configurations failed
+    at c (/home/odel/public_html/.next/server/app/api/auth/send-email/route.js:1:1397)
+    at d (/home/odel/public_html/.next/server/app/api/auth/send-email/route.js:50:276)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/odel/public_html/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/home/odel/public_html/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/home/odel/public_html/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async doRender (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1588:28)
+    at async NextNodeServer.renderToResponseWithComponentsImpl (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1496:28)
+    at async NextNodeServer.renderPageComponent (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1924:24)
+📧 EMAIL (Console Fallback):
+📧 To: harrietsa@ueab.ac.ke
+📧 Subject: Your ODeL Dashboard Access Code
+📧 Code: 613309
+📧 Full HTML: 
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9; border-radius: 10px; }
+                .header { text-align: center; padding: 20px 0; border-bottom: 3px solid #1e3a8a; }
+                .logo { font-size: 28px; font-weight: bold; color: #1e3a8a; }
+                .content { padding: 30px 0; }
+                .code-box { 
+                  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+                  color: white;
+                  padding: 20px;
+                  border-radius: 8px;
+                  text-align: center;
+                  margin: 20px 0;
+                }
+                .code { font-size: 36px; font-weight: bold; letter-spacing: 3px; font-family: monospace; }
+                .expiry { font-size: 14px; color: #666; margin: 15px 0; }
+                .footer { text-align: center; font-size: 12px; color: #999; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <div class="logo">🎓 ODeL Dashboard</div>
+                </div>
+                <div class="content">
+                  <h2>Hi SAFARI HARRIET MORIO!</h2>
+                  <p>Your one-time access code is:</p>
+                  <div class="code-box">
+                    <div class="code">613309</div>
+                  </div>
+                  <p>This code will expire in <strong>10 minutes</strong>.</p>
+                  <p>
+                    <a href="https://odel.ueab.ac.ke/auth/verify?code=613309&email=harrietsa%40ueab.ac.ke" 
+                       style="display: inline-block; background: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+                       Verify Code
+                    </a>
+                  </p>
+                  <p style="color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
+                </div>
+                <div class="footer">
+                  <p>© 2025 University of Eastern Africa, Baraton - Open Distance eLearning Centre</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        
+📧 Email sent successfully: console-fallback-1761300392569
+📧 To: harrietsa@ueab.ac.ke
+📧 Subject: Your ODeL Dashboard Access Code
+Email sent successfully: {
+  success: true,
+  messageId: 'console-fallback-1761300392569',
+  message: 'Email sent successfully'
 }
