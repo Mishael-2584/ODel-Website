@@ -39,3 +39,6 @@
 [2025-10-24 05:52:22] 🌐 Your application is now running with the latest changes.
 [2025-10-24 05:52:22] 📝 Check the application at: https://odel.ueab.ac.ke
 [2025-10-24 05:52:22] 📊 Application status: RUNNING
+[2025-10-24 06:13:22] 🔄 Starting update process...
+[2025-10-24 06:13:22] ⚠️  Warning: You have uncommitted changes. Please commit or stash them first.
+[2025-10-24 06:13:22]    Use 'git status' to see what files have changed.

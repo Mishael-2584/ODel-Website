@@ -2,37 +2,19 @@
 > ueab-odel-elearning@1.0.0 start
 > next start
 
-  ▲ Next.js 14.2.33
-  - Local:        http://localhost:3000
-
- ✓ Starting...
- ✓ Ready in 699ms
- ⚠ For production Image Optimization with Next.js, the optional 'sharp' package is strongly recommended. Run 'npm i sharp', and Next.js will use it automatically for Image Optimization.
-Read more: https://nextjs.org/docs/messages/sharp-missing-in-production
-⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
-ℹ️ Server-side: skipping localStorage cache load
-ℹ️ Server-side: skipping aggressive preload
-⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
-Send email error: TypeError: p.createTransporter is not a function
-    at c (/home/odel/public_html/.next/server/app/api/auth/send-email/route.js:1:1357)
-    at d (/home/odel/public_html/.next/server/app/api/auth/send-email/route.js:50:270)
-    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
-    at async /home/odel/public_html/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
-    at async e_.execute (/home/odel/public_html/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
-    at async e_.handle (/home/odel/public_html/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
-    at async doRender (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1366:42)
-    at async cacheEntry.responseCache.get.routeKind (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1588:28)
-    at async NextNodeServer.renderToResponseWithComponentsImpl (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1496:28)
-    at async NextNodeServer.renderPageComponent (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1924:24)
-Email send failed with status 500: {"success":false,"error":"Failed to send email"}
-Error sending magic code email: Error: Email send failed: Internal Server Error
-    at d (/home/odel/public_html/.next/server/app/api/auth/verify/route.js:1:3277)
-    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
-    at async d (/home/odel/public_html/.next/server/app/api/auth/send-code/route.js:1:1246)
-    at async /home/odel/public_html/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
-    at async e_.execute (/home/odel/public_html/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
-    at async e_.handle (/home/odel/public_html/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
-    at async doRender (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1366:42)
-    at async cacheEntry.responseCache.get.routeKind (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1588:28)
-    at async NextNodeServer.renderToResponseWithComponentsImpl (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1496:28)
-    at async NextNodeServer.renderPageComponent (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1924:24)
+ ⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use :::3000
+    at Server.setupListenHandle [as _listen2] (node:net:1817:16)
+    at listenInCluster (node:net:1865:12)
+    at Server.listen (node:net:1953:7)
+    at /home/odel/public_html/node_modules/next/dist/server/lib/start-server.js:280:16
+    at new Promise (<anonymous>)
+    at startServer (/home/odel/public_html/node_modules/next/dist/server/lib/start-server.js:191:11)
+    at Module.nextStart (/home/odel/public_html/node_modules/next/dist/cli/next-start.js:25:40)
+    at /home/odel/public_html/node_modules/next/dist/bin/next:105:856 {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 3000
+}

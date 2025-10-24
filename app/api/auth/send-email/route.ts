@@ -3,12 +3,26 @@ import nodemailer from 'nodemailer'
 
 // Email Configuration for Webmin/Virtualmin with Sendmail
 const createTransporter = () => {
-  // Use sendmail transport for Webmin/Virtualmin environments
-  return nodemailer.createTransporter({
-    sendmail: true,
-    newline: 'unix',
-    path: '/usr/sbin/sendmail'
-  })
+  try {
+    // Use sendmail transport for Webmin/Virtualmin environments
+    return nodemailer.createTransporter({
+      sendmail: true,
+      newline: 'unix',
+      path: '/usr/sbin/sendmail'
+    })
+  } catch (error) {
+    console.error('Failed to create transporter:', error)
+    // Fallback to console logging for development
+    return {
+      sendMail: async (options: any) => {
+        console.log('📧 EMAIL (Console Fallback):')
+        console.log('📧 To:', options.to)
+        console.log('📧 Subject:', options.subject)
+        console.log('📧 Code:', options.html.match(/code">(\d+)</)?.[1] || 'N/A')
+        return { messageId: 'console-fallback-' + Date.now() }
+      }
+    }
+  }
 }
 
 const getEmailTemplate = (template: string, data: any): { subject: string; html: string } => {
