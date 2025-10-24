@@ -1,15 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 
-// Email Configuration for Webmin/Virtualmin with Sendmail
+// Email Configuration for Webmin/Virtualmin
 const createTransporter = () => {
   try {
-    // Use sendmail transport for Webmin/Virtualmin environments
-    return nodemailer.createTransporter({
-      sendmail: true,
-      newline: 'unix',
-      path: '/usr/sbin/sendmail'
-    })
+    // Try multiple email methods in order of preference
+    const configs = [
+      // Method 1: Direct SMTP to localhost
+      {
+        host: 'localhost',
+        port: 25,
+        secure: false,
+        tls: { rejectUnauthorized: false }
+      },
+      // Method 2: Sendmail transport
+      {
+        sendmail: true,
+        newline: 'unix',
+        path: '/usr/sbin/sendmail'
+      },
+      // Method 3: SMTP with different port
+      {
+        host: 'localhost',
+        port: 587,
+        secure: false,
+        tls: { rejectUnauthorized: false }
+      }
+    ]
+
+    for (const config of configs) {
+      try {
+        return nodemailer.createTransporter(config)
+      } catch (error) {
+        console.log(`Email config failed: ${JSON.stringify(config)}`)
+        continue
+      }
+    }
+
+    throw new Error('All email configurations failed')
   } catch (error) {
     console.error('Failed to create transporter:', error)
     // Fallback to console logging for development
@@ -19,6 +47,7 @@ const createTransporter = () => {
         console.log('📧 To:', options.to)
         console.log('📧 Subject:', options.subject)
         console.log('📧 Code:', options.html.match(/code">(\d+)</)?.[1] || 'N/A')
+        console.log('📧 Full HTML:', options.html)
         return { messageId: 'console-fallback-' + Date.now() }
       }
     }
@@ -100,16 +129,39 @@ export async function POST(request: NextRequest) {
     // Get email template
     const emailContent = getEmailTemplate(template, { ...data, email: to })
 
-    // Create sendmail transporter
+    // Create email transporter
     const transporter = createTransporter()
 
-    // Send email via sendmail
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || 'noreply@ueab.ac.ke',
-      to: to,
-      subject: emailContent.subject,
-      html: emailContent.html
-    })
+    // Send email with retry logic
+    let info
+    try {
+      info = await transporter.sendMail({
+        from: process.env.EMAIL_FROM || 'noreply@ueab.ac.ke',
+        to: to,
+        subject: emailContent.subject,
+        html: emailContent.html
+      })
+    } catch (sendError) {
+      console.error('Email send error:', sendError)
+      // If sendmail fails, try direct SMTP
+      try {
+        const smtpTransporter = nodemailer.createTransporter({
+          host: 'localhost',
+          port: 25,
+          secure: false,
+          tls: { rejectUnauthorized: false }
+        })
+        info = await smtpTransporter.sendMail({
+          from: process.env.EMAIL_FROM || 'noreply@ueab.ac.ke',
+          to: to,
+          subject: emailContent.subject,
+          html: emailContent.html
+        })
+      } catch (smtpError) {
+        console.error('SMTP send error:', smtpError)
+        throw sendError // Re-throw original error
+      }
+    }
 
     console.log('📧 Email sent successfully:', info.messageId)
     console.log('📧 To:', to)
