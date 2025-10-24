@@ -164,7 +164,7 @@ export default function Home() {
       <Navbar />
       
       {/* Hero Banner Section with ODeL Building Background */}
-      <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
+      <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden mt-20">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -182,7 +182,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
         
         {/* Content */}
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pt-24 sm:pt-28 md:pt-32 pb-24 sm:pb-20 md:pb-20 relative z-10 w-full">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pt-8 sm:pt-12 md:pt-16 pb-24 sm:pb-20 md:pb-20 relative z-10 w-full">
           <div className="text-center text-white">
             {/* Badge */}
             <div className="inline-flex items-center bg-gold-500/25 backdrop-blur-sm border border-gold-500/40 rounded-full px-2 sm:px-3 md:px-4 py-1 sm:py-2 md:py-3 mb-2 sm:mb-4 md:mb-6 shadow-lg">
