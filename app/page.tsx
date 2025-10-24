@@ -164,7 +164,7 @@ export default function Home() {
       <Navbar />
       
       {/* Hero Banner Section with ODeL Building Background */}
-      <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden mt-20">
+      <section className="relative h-[calc(100vh-5rem)] min-h-[600px] flex items-center justify-center overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -182,7 +182,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
         
         {/* Content */}
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pt-8 sm:pt-12 md:pt-16 pb-24 sm:pb-20 md:pb-20 relative z-10 w-full">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pt-12 sm:pt-16 md:pt-20 pb-24 sm:pb-20 md:pb-20 relative z-10 w-full">
           <div className="text-center text-white">
             {/* Badge */}
             <div className="inline-flex items-center bg-gold-500/25 backdrop-blur-sm border border-gold-500/40 rounded-full px-2 sm:px-3 md:px-4 py-1 sm:py-2 md:py-3 mb-2 sm:mb-4 md:mb-6 shadow-lg">
@@ -190,31 +190,31 @@ export default function Home() {
             </div>
             
             {/* Main Heading */}
-            <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold mb-2 sm:mb-4 md:mb-6 leading-tight px-1 sm:px-2 md:px-4">
+            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-bold mb-3 sm:mb-4 md:mb-6 leading-tight px-2 sm:px-4 md:px-6">
               Transform Your Future with <span className="text-gold-300 bg-gradient-to-r from-gold-300 to-gold-200 bg-clip-text text-transparent animate-pulse block sm:inline mt-1 sm:mt-0">UEAB ODeL</span>
             </h1>
             
             {/* Description */}
-            <p className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-100 mb-4 sm:mb-6 md:mb-8 max-w-xs sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl mx-auto leading-relaxed px-1 sm:px-2 md:px-4">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-100 mb-6 sm:mb-8 md:mb-10 max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto leading-relaxed px-2 sm:px-4 md:px-6">
               Join the University of Eastern Africa, Baraton's premier Open Distance eLearning platform. 
               Experience flexible, accessible, and quality education that empowers you to learn from anywhere, 
               at your own pace, with internationally recognized programs across five comprehensive academic schools.
             </p>
             
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6 justify-center mb-6 sm:mb-8 md:mb-10 px-2 sm:px-4 md:px-6">
-              <Link href="/login" className="btn-gold inline-flex items-center justify-center group text-xs sm:text-sm md:text-base px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 shadow-xl hover:shadow-2xl transition-all">
-                <FaRocket className="mr-1 sm:mr-2 group-hover:rotate-12 transition-transform" />
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6 justify-center mb-8 sm:mb-10 md:mb-12 px-2 sm:px-4 md:px-6">
+              <Link href="/login" className="btn-gold inline-flex items-center justify-center group text-sm sm:text-base md:text-lg px-5 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 shadow-xl hover:shadow-2xl transition-all">
+                <FaRocket className="mr-2 sm:mr-3 group-hover:rotate-12 transition-transform" />
                 Get Started Today
               </Link>
-              <Link href="/courses" className="btn-outline-white inline-flex items-center justify-center group text-xs sm:text-sm md:text-base px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 shadow-xl hover:shadow-2xl transition-all">
-                <FaPlay className="mr-1 sm:mr-2 group-hover:scale-110 transition-transform" />
+              <Link href="/courses" className="btn-outline-white inline-flex items-center justify-center group text-sm sm:text-base md:text-lg px-5 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 shadow-xl hover:shadow-2xl transition-all">
+                <FaPlay className="mr-2 sm:mr-3 group-hover:scale-110 transition-transform" />
                 Explore Programs
               </Link>
             </div>
             
             {/* Achievement Badges */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6 max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-5xl mx-auto mb-6 sm:mb-8 md:mb-10 px-2 sm:px-4 md:px-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-sm sm:max-w-2xl md:max-w-4xl lg:max-w-5xl mx-auto mb-8 sm:mb-10 md:mb-12 px-2 sm:px-4 md:px-6">
               <div className="bg-white/15 backdrop-blur-sm rounded-xl px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg">
                 <div className="flex flex-col items-center space-y-1 sm:space-y-2">
                   <FaTrophy className="h-5 sm:h-6 md:h-8 w-5 sm:w-6 md:w-8 text-gold-300 group-hover:animate-bounce" />
@@ -257,7 +257,7 @@ export default function Home() {
             </div>
             
             {/* Live Stats Card */}
-            <div className="max-w-xs sm:max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto px-2 sm:px-4 md:px-6">
+            <div className="max-w-sm sm:max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto px-2 sm:px-4 md:px-6">
               <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 sm:p-6 md:p-8 border border-white/25 shadow-xl">
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
                   <div className="flex items-center space-x-2 sm:space-x-3">
