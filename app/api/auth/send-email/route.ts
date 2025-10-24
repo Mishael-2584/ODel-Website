@@ -3,37 +3,44 @@ import nodemailer from 'nodemailer'
 
 // Email Configuration for Webmin/Virtualmin
 const createTransporter = () => {
-  // Simple SMTP configuration that should work with most setups
   try {
+    // Use sendmail transport which works better with Webmin/Virtualmin
     const transporter = nodemailer.createTransporter({
-      host: 'localhost',
-      port: 25,
-      secure: false,
-      ignoreTLS: true,
-      auth: false
+      sendmail: true,
+      newline: 'unix',
+      path: '/usr/sbin/sendmail'
     })
     
-    // Test the connection
-    transporter.verify((error, success) => {
-      if (error) {
-        console.log('📧 SMTP connection test failed:', error.message)
-      } else {
-        console.log('📧 SMTP connection test successful!')
-      }
-    })
-    
+    console.log('📧 Using sendmail transport for Webmin/Virtualmin')
     return transporter
   } catch (error) {
-    console.error('Failed to create transporter:', error)
-    // Fallback to console logging
-    return {
-      sendMail: async (options: any) => {
-        console.log('📧 EMAIL (Console Fallback):')
-        console.log('📧 To:', options.to)
-        console.log('📧 Subject:', options.subject)
-        console.log('📧 Code:', options.html.match(/code">(\d+)</)?.[1] || 'N/A')
-        console.log('📧 Full HTML:', options.html)
-        return { messageId: 'console-fallback-' + Date.now() }
+    console.error('Failed to create sendmail transporter:', error)
+    
+    // Fallback to SMTP
+    try {
+      const smtpTransporter = nodemailer.createTransporter({
+        host: 'localhost',
+        port: 25,
+        secure: false,
+        ignoreTLS: true,
+        auth: false
+      })
+      
+      console.log('📧 Using SMTP fallback')
+      return smtpTransporter
+    } catch (smtpError) {
+      console.error('Failed to create SMTP transporter:', smtpError)
+      
+      // Final fallback to console logging
+      return {
+        sendMail: async (options: any) => {
+          console.log('📧 EMAIL (Console Fallback):')
+          console.log('📧 To:', options.to)
+          console.log('📧 Subject:', options.subject)
+          console.log('📧 Code:', options.html.match(/code">(\d+)</)?.[1] || 'N/A')
+          console.log('📧 Full HTML:', options.html)
+          return { messageId: 'console-fallback-' + Date.now() }
+        }
       }
     }
   }
