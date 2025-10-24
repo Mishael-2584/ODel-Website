@@ -3,9 +3,11 @@ import nodemailer from 'nodemailer'
 
 // Email Configuration for Webmin/Virtualmin
 const createTransporter = () => {
+  console.log('📧 Creating email transporter...')
+  
   try {
     // Use sendmail transport which works better with Webmin/Virtualmin
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       sendmail: true,
       newline: 'unix',
       path: '/usr/sbin/sendmail'
@@ -18,7 +20,7 @@ const createTransporter = () => {
     
     // Fallback to SMTP
     try {
-      const smtpTransporter = nodemailer.createTransporter({
+      const smtpTransporter = nodemailer.createTransport({
         host: 'localhost',
         port: 25,
         secure: false,

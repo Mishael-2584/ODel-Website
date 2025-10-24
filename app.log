@@ -6,11 +6,13 @@
   - Local:        http://localhost:3000
 
  ✓ Starting...
- ✓ Ready in 742ms
+ ✓ Ready in 588ms
 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
 ℹ️ Server-side: skipping localStorage cache load
 ℹ️ Server-side: skipping aggressive preload
-Failed to create transporter: TypeError: p.createTransporter is not a function
+ ⚠ For production Image Optimization with Next.js, the optional 'sharp' package is strongly recommended. Run 'npm i sharp', and Next.js will use it automatically for Image Optimization.
+Read more: https://nextjs.org/docs/messages/sharp-missing-in-production
+Failed to create sendmail transporter: TypeError: p.createTransporter is not a function
     at c (/home/odel/public_html/.next/server/app/api/auth/send-email/route.js:1:1090)
     at d (/home/odel/public_html/.next/server/app/api/auth/send-email/route.js:50:276)
     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
@@ -21,167 +23,8 @@ Failed to create transporter: TypeError: p.createTransporter is not a function
     at async cacheEntry.responseCache.get.routeKind (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1588:28)
     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1496:28)
     at async NextNodeServer.renderPageComponent (/home/odel/public_html/node_modules/next/dist/server/base-server.js:1924:24)
-📧 EMAIL (Console Fallback):
-📧 To: harrietsa@ueab.ac.ke
-📧 Subject: Your ODeL Dashboard Access Code
-📧 Code: 689694
-📧 Full HTML: 
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <style>
-                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9; border-radius: 10px; }
-                .header { text-align: center; padding: 20px 0; border-bottom: 3px solid #1e3a8a; }
-                .logo { font-size: 28px; font-weight: bold; color: #1e3a8a; }
-                .content { padding: 30px 0; }
-                .code-box { 
-                  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-                  color: white;
-                  padding: 20px;
-                  border-radius: 8px;
-                  text-align: center;
-                  margin: 20px 0;
-                }
-                .code { font-size: 36px; font-weight: bold; letter-spacing: 3px; font-family: monospace; }
-                .expiry { font-size: 14px; color: #666; margin: 15px 0; }
-                .footer { text-align: center; font-size: 12px; color: #999; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <div class="header">
-                  <div class="logo">🎓 ODeL Dashboard</div>
-                </div>
-                <div class="content">
-                  <h2>Hi SAFARI HARRIET MORIO!</h2>
-                  <p>Your one-time access code is:</p>
-                  <div class="code-box">
-                    <div class="code">689694</div>
-                  </div>
-                  <p>This code will expire in <strong>10 minutes</strong>.</p>
-                  <p>
-                    <a href="https://odel.ueab.ac.ke/auth/verify?code=689694&email=harrietsa%40ueab.ac.ke" 
-                       style="display: inline-block; background: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
-                       Verify Code
-                    </a>
-                  </p>
-                  <p style="color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
-                </div>
-                <div class="footer">
-                  <p>© 2025 University of Eastern Africa, Baraton - Open Distance eLearning Centre</p>
-                </div>
-              </div>
-            </body>
-          </html>
-        
-📧 Email sent successfully via SMTP: console-fallback-1761300646347
-📧 Email sent successfully: console-fallback-1761300646347
-📧 To: harrietsa@ueab.ac.ke
-📧 Subject: Your ODeL Dashboard Access Code
-Email sent successfully: {
-  success: true,
-  messageId: 'console-fallback-1761300646347',
-  message: 'Email sent successfully'
-}
-📋 User roles for smorsa2021: [ 'student' ]
-Fetching courses for user 4487
-📡 Fetching calendar events for user 4487
-📡 Fetching assignments for user 4487
-Error fetching calendar events: {
-  exception: 'invalid_parameter_exception',
-  errorcode: 'invalidparameter',
-  message: 'Invalid parameter value detected',
-  debuginfo: 'Unexpected keys (userid) detected in parameter array.'
-}
-📊 Retrieved 0 calendar events
-📡 Fetching grades for user 4487
-📊 Retrieved 0 assignments for user 4487
-📊 Retrieved 0 assignments
-📊 User enrolled in 24 courses
-  Fetching grades for course: ELEARNING  PLATFORM ORIENTATION (ID: 6054)
-    Grade response for ELEARNING  PLATFORM ORIENTATION: {"tables":[{"courseid":6054,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div 
-    ⚠️ No grades found for course ELEARNING  PLATFORM ORIENTATION
-  Fetching grades for course: SURVEY OF MUSIC HISTORY III - MUHL370 [Main] (ID: 11394)
-✓ Cached to Supabase: user_courses_4487
-    Grade response for SURVEY OF MUSIC HISTORY III - MUHL370 [Main]: {"tables":[{"courseid":11394,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div
-    ⚠️ No grades found for course SURVEY OF MUSIC HISTORY III - MUHL370 [Main]
-  Fetching grades for course: SURVEY OF MUSIC HISTORY II - MUHL271 [Main] (ID: 11393)
-    Grade response for SURVEY OF MUSIC HISTORY II - MUHL271 [Main]: {"tables":[{"courseid":11393,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div
-    ⚠️ No grades found for course SURVEY OF MUSIC HISTORY II - MUHL271 [Main]
-  Fetching grades for course: INTRODUCTIONS TO COUNTERPOINT - MUTH401 [Main] (ID: 10831)
-    Grade response for INTRODUCTIONS TO COUNTERPOINT - MUTH401 [Main]: {"tables":[{"courseid":10831,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div
-    ⚠️ No grades found for course INTRODUCTIONS TO COUNTERPOINT - MUTH401 [Main]
-  Fetching grades for course: SURVEY OF MUSIC HISTORY I - MUHL270 [Main] (ID: 10828)
-    Grade response for SURVEY OF MUSIC HISTORY I - MUHL270 [Main]: {"tables":[{"courseid":10828,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div
-    ⚠️ No grades found for course SURVEY OF MUSIC HISTORY I - MUHL270 [Main]
-  Fetching grades for course: PIANO CONCENTRATION V - MUPF310 [Main] (ID: 10809)
-    Grade response for PIANO CONCENTRATION V - MUPF310 [Main]: {"tables":[{"courseid":10809,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div
-    ⚠️ No grades found for course PIANO CONCENTRATION V - MUPF310 [Main]
-  Fetching grades for course: SONG WRITING  - MUTH460 [Main] (ID: 10270)
-    Grade response for SONG WRITING  - MUTH460 [Main]: {"tables":[{"courseid":10270,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div
-    ⚠️ No grades found for course SONG WRITING  - MUTH460 [Main]
-  Fetching grades for course: INTRODUCTIONS TO COUNTERPOINT - MUTH401 [Main] (ID: 10150)
-    Grade response for INTRODUCTIONS TO COUNTERPOINT - MUTH401 [Main]: {"tables":[{"courseid":10150,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div
-    ⚠️ No grades found for course INTRODUCTIONS TO COUNTERPOINT - MUTH401 [Main]
-  Fetching grades for course: MUSIC RESEARCH PROJECT - MURS480 [Main] (ID: 10147)
-    Grade response for MUSIC RESEARCH PROJECT - MURS480 [Main]: {"tables":[{"courseid":10147,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div
-    ⚠️ No grades found for course MUSIC RESEARCH PROJECT - MURS480 [Main]
-  Fetching grades for course: APPLIED MUSIC-BRASS - MUPF114 [Main] (ID: 10087)
-    Grade response for APPLIED MUSIC-BRASS - MUPF114 [Main]: {"tables":[{"courseid":10087,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div
-    ⚠️ No grades found for course APPLIED MUSIC-BRASS - MUPF114 [Main]
-  Fetching grades for course: EDUCATIONAL MEASUREMENT AND EVALUATION - EDTE326 [Group C] (ID: 10287)
-    Grade response for EDUCATIONAL MEASUREMENT AND EVALUATION - EDTE326 [Group C]: {"tables":[{"courseid":10287,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div
-    ⚠️ No grades found for course EDUCATIONAL MEASUREMENT AND EVALUATION - EDTE326 [Group C]
-  Fetching grades for course: PHYSICAL AND RECREATIONAL ACTIVITIES - PEAC107 [Main] (ID: 9441)
-    Grade response for PHYSICAL AND RECREATIONAL ACTIVITIES - PEAC107 [Main]: {"tables":[{"courseid":9441,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div 
-    ⚠️ No grades found for course PHYSICAL AND RECREATIONAL ACTIVITIES - PEAC107 [Main]
-  Fetching grades for course: HUMAN BIOLOGY - BIOL105 [Group B] (ID: 9680)
-    Grade response for HUMAN BIOLOGY - BIOL105 [Group B]: {"tables":[{"courseid":9680,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div 
-    ⚠️ No grades found for course HUMAN BIOLOGY - BIOL105 [Group B]
-  Fetching grades for course: AUTOMOBILE DRIVING - AUTO110 [Group A] (ID: 9877)
-    Grade response for AUTOMOBILE DRIVING - AUTO110 [Group A]: {"tables":[{"courseid":9877,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div 
-    ⚠️ No grades found for course AUTOMOBILE DRIVING - AUTO110 [Group A]
-  Fetching grades for course: MUSIC THEORY IV - MUTH201 [Main] (ID: 8484)
-    Grade response for MUSIC THEORY IV - MUTH201 [Main]: {"tables":[{"courseid":8484,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div 
-    ⚠️ No grades found for course MUSIC THEORY IV - MUTH201 [Main]
-  Fetching grades for course: Music Theory IV (ID: 6713)
-    Grade response for Music Theory IV: {"tables":[{"courseid":6713,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div 
-    ⚠️ No grades found for course Music Theory IV
-  Fetching grades for course: Transcription of African Music (ID: 6700)
-    Grade response for Transcription of African Music: {"tables":[{"courseid":6700,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div 
-    ⚠️ No grades found for course Transcription of African Music
-  Fetching grades for course: Music Research Project (ID: 6699)
-    Grade response for Music Research Project: {"tables":[{"courseid":6699,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div 
-    ⚠️ No grades found for course Music Research Project
-  Fetching grades for course: Survey of Music History I (ID: 6695)
-    Grade response for Survey of Music History I: {"tables":[{"courseid":6695,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div 
-    ⚠️ No grades found for course Survey of Music History I
-  Fetching grades for course: Applied Music - Percussion (ID: 6691)
-    Grade response for Applied Music - Percussion: {"tables":[{"courseid":6691,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div 
-    ⚠️ No grades found for course Applied Music - Percussion
-  Fetching grades for course: Orchestration (ID: 6681)
-    Grade response for Orchestration: {"tables":[{"courseid":6681,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div 
-    ⚠️ No grades found for course Orchestration
-  Fetching grades for course: Composition and Vocal Arranging (ID: 6680)
-    Grade response for Composition and Vocal Arranging: {"tables":[{"courseid":6680,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div 
-    ⚠️ No grades found for course Composition and Vocal Arranging
-  Fetching grades for course: Writing Skills (ID: 6617)
-    Grade response for Writing Skills: {"tables":[{"courseid":6617,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div 
-    ⚠️ No grades found for course Writing Skills
-  Fetching grades for course: Life And Teachings Of Jesus-General (ID: 6998)
-    Grade response for Life And Teachings Of Jesus-General: {"tables":[{"courseid":6998,"userid":4487,"userfullname":"SAFARI HARRIET MORIO","maxdepth":2,"tabledata":[{"itemname":{"class":"level1 d1 b1b b1t category column-itemname","colspan":8,"content":"<div 
-    ⚠️ No grades found for course Life And Teachings Of Jesus-General
-📈 Calculated average grade: 0 from 0 courses
-✓ Cached to Supabase: user_grades_4487
-🔐 SSO Request - Attempting to generate login URL for user: 4487
-🔐 SSO Attempting with user[idnumber] and user[username] only
-🔐 SSO Response from Moodle: {
-  loginurl: 'https://ielearning.ueab.ac.ke/auth/userkey/login.php?key=23c529fb30ef27589445a5273b7716ce'
-}
-✅ SSO Success! Generated secure login URL: https://ielearning.ueab.ac.ke/auth/userkey/login.php?key=23c529fb30ef27589445a5273b7716ce
-Failed to create transporter: TypeError: p.createTransporter is not a function
-    at c (/home/odel/public_html/.next/server/app/api/auth/send-email/route.js:1:1090)
+Failed to create SMTP transporter: TypeError: p.createTransporter is not a function
+    at c (/home/odel/public_html/.next/server/app/api/auth/send-email/route.js:1:1327)
     at d (/home/odel/public_html/.next/server/app/api/auth/send-email/route.js:50:276)
     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
     at async /home/odel/public_html/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
@@ -194,7 +37,7 @@ Failed to create transporter: TypeError: p.createTransporter is not a function
 📧 EMAIL (Console Fallback):
 📧 To: worancham@ueab.ac.ke
 📧 Subject: Your ODeL Dashboard Access Code
-📧 Code: 149063
+📧 Code: 357716
 📧 Full HTML: 
           <!DOCTYPE html>
           <html>
@@ -227,11 +70,11 @@ Failed to create transporter: TypeError: p.createTransporter is not a function
                   <h2>Hi Mishael Gebre!</h2>
                   <p>Your one-time access code is:</p>
                   <div class="code-box">
-                    <div class="code">149063</div>
+                    <div class="code">357716</div>
                   </div>
                   <p>This code will expire in <strong>10 minutes</strong>.</p>
                   <p>
-                    <a href="https://odel.ueab.ac.ke/auth/verify?code=149063&email=worancham%40ueab.ac.ke" 
+                    <a href="https://odel.ueab.ac.ke/auth/verify?code=357716&email=worancham%40ueab.ac.ke" 
                        style="display: inline-block; background: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
                        Verify Code
                     </a>
@@ -245,12 +88,12 @@ Failed to create transporter: TypeError: p.createTransporter is not a function
             </body>
           </html>
         
-📧 Email sent successfully via SMTP: console-fallback-1761300825105
-📧 Email sent successfully: console-fallback-1761300825105
+📧 Email sent successfully via SMTP: console-fallback-1761301193070
+📧 Email sent successfully: console-fallback-1761301193070
 📧 To: worancham@ueab.ac.ke
 📧 Subject: Your ODeL Dashboard Access Code
 Email sent successfully: {
   success: true,
-  messageId: 'console-fallback-1761300825105',
+  messageId: 'console-fallback-1761301193070',
   message: 'Email sent successfully'
 }
