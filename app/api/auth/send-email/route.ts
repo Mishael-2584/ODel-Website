@@ -1,26 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 
-// SMTP Configuration for Local Postfix
+// Email Configuration for Webmin/Virtualmin with Sendmail
 const createTransporter = () => {
-  const config = {
-    host: process.env.SMTP_HOST || 'localhost',
-    port: parseInt(process.env.SMTP_PORT || '25'),
-    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
-    tls: {
-      rejectUnauthorized: false // For self-signed certificates
-    }
-  }
-
-  // Add authentication only if credentials are provided
-  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-    config.auth = {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
-    }
-  }
-
-  return nodemailer.createTransporter(config)
+  // Use sendmail transport for Webmin/Virtualmin environments
+  return nodemailer.createTransporter({
+    sendmail: true,
+    newline: 'unix',
+    path: '/usr/sbin/sendmail'
+  })
 }
 
 const getEmailTemplate = (template: string, data: any): { subject: string; html: string } => {
@@ -98,12 +86,12 @@ export async function POST(request: NextRequest) {
     // Get email template
     const emailContent = getEmailTemplate(template, { ...data, email: to })
 
-    // Create SMTP transporter
+    // Create sendmail transporter
     const transporter = createTransporter()
 
-    // Send email via SMTP
+    // Send email via sendmail
     const info = await transporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@yourdomain.com',
+      from: process.env.EMAIL_FROM || 'noreply@ueab.ac.ke',
       to: to,
       subject: emailContent.subject,
       html: emailContent.html
