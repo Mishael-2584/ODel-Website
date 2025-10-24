@@ -51,18 +51,35 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Stop existing application gracefully
+# Stop existing application aggressively
 log "🛑 Stopping existing application..."
 pkill -f "next start" || true
+pkill -f "next-server" || true
+pkill -f "node.*next" || true
 sleep 3
 
-# Ensure port 3000 is free
+# Force kill any processes using port 3000
+log "🔪 Force killing processes on port 3000..."
+lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+sleep 2
+
+# Double-check port 3000 is free
 PORT_CHECK=$(netstat -tulpn | grep :3000)
 if [ ! -z "$PORT_CHECK" ]; then
-    log "⚠️  Port 3000 still in use, forcing cleanup..."
-    lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+    log "⚠️  Port 3000 still in use after cleanup, trying alternative method..."
+    fuser -k 3000/tcp 2>/dev/null || true
     sleep 2
 fi
+
+# Final verification
+FINAL_CHECK=$(netstat -tulpn | grep :3000)
+if [ ! -z "$FINAL_CHECK" ]; then
+    log "❌ Port 3000 is still in use. Manual intervention required."
+    log "   Run: lsof -ti:3000 | xargs kill -9"
+    exit 1
+fi
+
+log "✅ Port 3000 is now free"
 
 # Start the application in production mode
 log "🚀 Starting application in production mode..."
