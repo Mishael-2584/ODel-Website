@@ -182,12 +182,19 @@ export default function EventsManager() {
 
   // Handle edit
   const handleEdit = (event: Event) => {
+    // Parse datetime-local format (YYYY-MM-DDTHH:MM) from ISO string
+    const parseDateTime = (dateString: string) => {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return date.toISOString().slice(0, 16); // Returns YYYY-MM-DDTHH:MM
+    };
+
     setFormData({
       title: event.title,
       description: event.description,
       content: event.content,
-      startDate: event.start_date?.split('T')[0] || '',
-      endDate: event.end_date?.split('T')[0] || '',
+      startDate: parseDateTime(event.start_date),
+      endDate: parseDateTime(event.end_date),
       location: event.location,
       eventType: event.event_type,
       maxAttendees: event.max_attendees?.toString() || '',
