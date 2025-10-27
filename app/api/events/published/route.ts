@@ -8,12 +8,15 @@ const supabase = createClient(
 
 export async function GET() {
   try {
-    // Fetch published events that are upcoming
+    // Fetch published events that are upcoming or happening today
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    
     const { data, error } = await supabase
       .from('events')
       .select('*')
       .eq('is_published', true)
-      .gte('start_date', new Date().toISOString())
+      .gte('start_date', todayStart)
       .order('start_date', { ascending: true })
       .limit(4);
 
