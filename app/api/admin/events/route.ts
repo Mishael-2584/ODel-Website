@@ -33,7 +33,9 @@ export async function GET(req: NextRequest) {
         query = query.eq('is_published', true);
       }
       if (upcoming === 'true') {
-        query = query.gte('start_date', new Date().toISOString());
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+        query = query.gte('start_date', todayStart);
       }
       query = query.order('start_date', { ascending: true });
 
