@@ -279,13 +279,13 @@ export default function AboutPage() {
               <div className="relative rounded-2xl overflow-hidden shadow-xl">
                 <img
                   src="/images/directors/director.jpg"
-                  alt="Dr. Meshack Misoi - Director of UEAB ODeL Center"
+                  alt="Dr. Meshack Misoi - Director of UEAB ODeL"
                   className="w-full h-96 object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                 <div className="absolute bottom-6 left-6 text-white">
                   <h3 className="text-2xl font-bold mb-2">Dr. Meshack Misoi</h3>
-                  <p className="text-lg opacity-90">Director of ODeL Center</p>
+                  <p className="text-lg opacity-90">Director of ODeL</p>
                 </div>
               </div>
             </div>

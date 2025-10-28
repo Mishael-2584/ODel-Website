@@ -634,7 +634,7 @@ export default function Home() {
               {/* Embedded Map */}
               <div className="w-full h-96 rounded-2xl overflow-hidden shadow-lg border border-gray-200">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.783174506244!2d35.27361!3d0.52056!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17829d5d5d5d5d5d%3A0x5d5d5d5d5d5d5d5d!2sUniversity%20of%20Eastern%20Africa%20Baraton%20Main%20Campus!5e0!3m2!1sen!2ske!4v1729510800000"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.7783273283326!2d35.07958708456931!3d0.2565390634635225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17805da0163652e9%3A0xa37f363566d01b9c!2sUniversity%20Of%20Eastern%20Africa%20Baraton!5e0!3m2!1sen!2sus!4v1761635291814!5m2!1sen!2sus" 
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}

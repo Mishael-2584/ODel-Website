@@ -382,7 +382,7 @@ export default function ContactPage() {
                 
                 <div className="relative">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.783174506244!2d35.27361!3d0.52056!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17829d5d5d5d5d5d%3A0x5d5d5d5d5d5d5d5d!2sUniversity%20of%20Eastern%20Africa%20Baraton%20Main%20Campus!5e0!3m2!1sen!2ske!4v1729510800000"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.7783273283326!2d35.07958708456931!3d0.2565390634635225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17805da0163652e9%3A0xa37f363566d01b9c!2sUniversity%20Of%20Eastern%20Africa%20Baraton!5e0!3m2!1sen!2sus!4v1761635291814!5m2!1sen!2sus" 
                     width="100%"
                     height="300"
                     style={{ border: 0 }}
@@ -390,7 +390,7 @@ export default function ContactPage() {
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                     className="w-full"
-                    title="UEAB Campus Location - Main Campus, Eldoret"
+                    title="UEAB Campus Location - Main Campus"
                   ></iframe>
                   
                   {/* Map Overlay Controls */}
@@ -419,7 +419,7 @@ export default function ContactPage() {
                       Directions
                     </a>
                     <a
-                      href="https://www.google.com/maps/place/University+of+Eastern+Africa+Baraton+Eldoret+Kenya"
+                      href="https://www.google.com/maps/place/University+of+Eastern+Africa+Baraton+Kenya"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center px-4 py-2 bg-gold-600 text-white rounded-lg hover:bg-gold-700 transition-colors text-sm font-medium"

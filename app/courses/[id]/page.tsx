@@ -53,7 +53,7 @@ export default function CourseDetailPage() {
     features: [
       { icon: FaBook, text: 'Comprehensive Curriculum' },
       { icon: FaCertificate, text: 'CUE Accredited Degree' },
-      { icon: FaUsers, text: 'Expert Faculty' },
+      { icon: FaUsers, text: 'Experienced Faculty' },
       { icon: FaGraduationCap, text: 'Career Preparation' },
       { icon: FaLanguage, text: 'Flexible Learning' },
       { icon: FaTrophy, text: 'Industry Recognition' }
@@ -410,7 +410,7 @@ export default function CourseDetailPage() {
                       <div className="text-6xl">👨‍🎓</div>
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-gray-900 mb-1">Dr. Meshack Misoi</h3>
-                        <p className="text-gray-600 mb-4">Director of ODeL Center</p>
+                        <p className="text-gray-600 mb-4">Director of ODeL</p>
                         <div className="flex items-center space-x-6 text-sm text-gray-600">
                           <div className="flex items-center space-x-1">
                             <FaGraduationCap className="text-primary-500" />

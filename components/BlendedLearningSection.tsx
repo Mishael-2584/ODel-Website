@@ -35,7 +35,7 @@ export default function BlendedLearningSection() {
     { icon: FaPhone, title: 'Live Interactive Sessions', desc: 'Real-time Zoom classes with expert instructors' },
     { icon: SiMoodle, title: 'Moodle LMS', desc: 'Comprehensive course management & tracking' },
     { icon: FaBook, title: 'On-Demand Content', desc: 'Access lectures anytime, anywhere' },
-    { icon: FaHeadset, title: '24/7 Support', desc: 'Dedicated student success team' }
+    { icon: FaHeadset, title: '24/7 Support', desc: 'Dedicated student support team' }
   ]
 
   return (
