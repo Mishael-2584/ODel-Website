@@ -12,7 +12,6 @@ import {
   FaGraduationCap, 
   FaCalendarAlt,
   FaChartBar,
-  FaBell,
   FaClock 
 } from 'react-icons/fa'
 
@@ -136,7 +135,7 @@ export default function StudentDashboard() {
     { id: 'dashboard', label: 'Dashboard', icon: <FaChartBar /> },
     { id: 'courses', label: 'My Courses', icon: <FaBook /> },
     { id: 'calendar', label: 'Calendar', icon: <FaCalendarAlt /> },
-    { id: 'grades', label: 'Grades', icon: <FaBell /> },
+    { id: 'grades', label: 'Grades', icon: <FaChartBar /> },
     { id: 'assignments', label: 'Assignments', icon: <FaClock /> }
   ]
 
@@ -241,7 +240,7 @@ export default function StudentDashboard() {
               {/* Email */}
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <FaBell className="text-amber-600 text-2xl" />
+                  <FaChartBar className="text-amber-600 text-2xl" />
                   <h3 className="font-semibold text-gray-900">Email</h3>
                 </div>
                 <p className="text-sm font-mono text-gray-600 truncate">{studentData.email}</p>

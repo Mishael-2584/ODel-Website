@@ -3,7 +3,19 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FaEnvelope, FaGraduationCap, FaArrowRight, FaCheckCircle, FaShieldAlt, FaClock, FaSpinner, FaExternalLinkAlt, FaRobot, FaHeadset } from 'react-icons/fa'
+import {
+  FaEnvelope,
+  FaGraduationCap,
+  FaArrowRight,
+  FaCheckCircle,
+  FaKey,
+  FaClock,
+  FaSpinner,
+  FaExternalLinkAlt,
+  FaRobot,
+  FaHeadset,
+  FaUserShield
+} from 'react-icons/fa'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -339,7 +351,7 @@ export default function LoginPage() {
               {/* ITS Support Info */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all h-fit">
                 <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2 text-sm">
-                  <FaShieldAlt className="text-blue-600" />
+                  <FaKey className="text-blue-600" />
                   No UEAB Email?
                 </h3>
                 <p className="text-blue-800 text-xs mb-2">
@@ -357,7 +369,7 @@ export default function LoginPage() {
               {/* Admin Login Link */}
               <div className="bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-300 rounded-lg p-4 hover:border-primary-400 hover:shadow-md transition-all h-fit">
                 <h3 className="font-semibold text-primary-900 mb-2 flex items-center gap-2 text-sm">
-                  <FaShieldAlt className="text-primary-600" />
+                  <FaUserShield className="text-primary-600" />
                   Admin Access
                 </h3>
                 <p className="text-primary-800 text-xs mb-3">
