@@ -1,12 +1,11 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
+import { Bird } from 'lucide-react'
 import { 
-  FaRobot, FaTimes, FaPaperPlane, FaUser, FaSpinner, 
-  FaQuestionCircle, FaPhone, FaEnvelope, FaTicketAlt,
-  FaGraduationCap, FaBook, FaCalendarAlt, FaMapMarkerAlt,
-  FaUniversity, FaCertificate, FaUsers, FaClock, FaCheckCircle,
-  FaEdit, FaSave, FaArrowLeft
+  FaTimes, FaPaperPlane, FaUser, FaSpinner, 
+  FaTicketAlt, FaBook, FaCalendarAlt, FaRobot, FaGraduationCap, FaSave, FaArrowLeft
 } from 'react-icons/fa'
 
 interface Message {
@@ -46,6 +45,7 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
   const [currentTicketId, setCurrentTicketId] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [isPolling, setIsPolling] = useState(false)
+  const [moodleUserId, setMoodleUserId] = useState<number | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Knowledge base for common questions
@@ -139,18 +139,41 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
     return 'I can show you our current course offerings. We have programs across 5 schools with flexible learning options.'
   }
 
+  // Fetch session to decide registration flow (do not ask logged-in users)
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const r = await fetch('/api/auth/verify', { cache: 'no-store' })
+        const j = await r.json()
+        if (j?.authenticated && j?.user) {
+          setUserInfo({
+            name: j.user.studentName || j.user.email,
+            email: j.user.email,
+            phone: '',
+            studentId: j.user.studentId || '',
+            isRegistered: true
+          })
+          if (j.user.moodleUserId) setMoodleUserId(j.user.moodleUserId)
+        }
+      } catch {}
+    }
+    checkSession()
+  }, [])
+
+  // Open greeting uses session-aware messaging
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      if (!userInfo.isRegistered) {
-        addBotMessage("Hello! Welcome to UEAB ODeL Support. To provide you with the best assistance, I'll need some basic information first. Let me get your details!")
-        setTimeout(() => {
-          setShowUserForm(true)
-        }, 1500)
+      if (userInfo.isRegistered) {
+        addBotMessage(`Hello ${userInfo.name?.split(' ')[0] || ''}! I'm CRANE. How can I help?`, [
+          'My deadlines', 'My grades', 'Programs', 'Events'
+        ])
       } else {
-        addBotMessage(`Welcome back, ${userInfo.name}! How can I help you today?`)
+        addBotMessage(
+          "Hi! I'm CRANE (UEAB ODeL Chatbot). If you're a registered UEAB student or staff, please type your UEAB email and I'll personalize help for you.\n\nIf you're new and not yet registered, I'll ask for a few details (Full Name, Email, Phone) so I can assist you or create a support ticket."
+        )
       }
     }
-  }, [isOpen])
+  }, [isOpen, userInfo.isRegistered])
 
   useEffect(() => {
     scrollToBottom()
@@ -196,103 +219,49 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
     return null
   }
 
+  // Call CRANE answer endpoint
+  const askCrane = async (text: string) => {
+    const payload: any = { message: text }
+    if (userInfo.isRegistered) payload.user = { email: userInfo.email, studentId: userInfo.studentId, moodleUserId }
+    if (!userInfo.isRegistered && /@/.test(text) && text.includes('.')) payload.emailOnly = text.trim()
+
+    const r = await fetch('/api/crane/answer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    const j = await r.json()
+    return j
+  }
+
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return
-
     const userMessage = inputValue.trim()
     addMessage(userMessage, 'user')
     setInputValue('')
     setIsTyping(true)
 
-    // If user is registered and has a ticket, add message to existing ticket
-    if (userInfo.isRegistered && currentTicketId) {
-      // Add message to existing ticket
-      try {
-        const response = await fetch('/api/live-chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: userMessage,
-            userInfo: {
-              name: userInfo.name,
-              email: userInfo.email,
-              phone: userInfo.phone,
-              studentId: userInfo.studentId
-            },
-            category: 'Live Chat Message',
-            sessionId: sessionId,
-            ticketId: currentTicketId
-          })
-        })
-
-        const result = await response.json()
-        setIsTyping(false)
-        
-        if (result.success) {
-          addBotMessage("Message sent to support team. They'll respond soon!")
+    try {
+      const answer = await askCrane(userMessage)
+      setIsTyping(false)
+      if (answer?.type === 'links') {
+        const text = `${answer.data.title}\n\n${answer.data.text || ''}\n\n${(answer.data.items||[]).slice(0,3).map((x:any,i:number)=>`${i+1}. ${x.title || x.name || x.fullname || 'Item'}`).join('\n')}`
+        addBotMessage(text, (answer.data.links||[]).map((l:any)=>l.label))
+      } else if (answer?.type === 'personal') {
+        const text = `${answer.data.title}\n\n${(answer.data.items||[]).slice(0,5).map((x:any,i:number)=>`${i+1}. ${x.name || x.title || x.coursename || 'Item'}`).join('\n')}`
+        addBotMessage(text)
+      } else if (answer?.type === 'user-lookup') {
+        if (answer.data) {
+          setUserInfo(prev => ({ ...prev, name: `${answer.data.firstname} ${answer.data.lastname}`.trim() || prev.name, isRegistered: true }))
+          addBotMessage(`Welcome ${answer.data.firstname}! How can I help you today?`, ['My deadlines', 'My grades', 'Programs', 'Events'])
         } else {
-          addBotMessage("Message logged. Our team will get back to you.")
+          addBotMessage("I couldn't find that email in Moodle. If you're new, I can open a support ticket—please share your name & phone.")
+          setShowUserForm(true)
         }
-      } catch (error) {
-        setIsTyping(false)
-        addBotMessage("Message logged. Our team will get back to you.")
+      } else if (answer?.type === 'fallback') {
+        addBotMessage(answer.data.text, ['Create Ticket', 'Programs', 'Events'])
+      } else {
+        addBotMessage('Let me connect you with the right resource. Would you like to create a ticket? ', ['Create Ticket', 'Contact'])
       }
-    } else {
-      // Handle regular chatbot responses
-      setTimeout(() => {
-        setIsTyping(false)
-        
-        // Check if it's a greeting
-        if (userMessage.toLowerCase().includes('hello') || userMessage.toLowerCase().includes('hi')) {
-          addBotMessage("Hello! Welcome to UEAB ODeL. I'm here to help with admissions, courses, fees, and technical support. What would you like to know?")
-          return
-        }
-
-        // Enhanced intelligent responses with Moodle integration
-        const lowerMessage = userMessage.toLowerCase()
-        
-        // Check for course search queries
-        if (lowerMessage.includes('search') && (lowerMessage.includes('course') || lowerMessage.includes('program'))) {
-          const searchTerm = userMessage.replace(/search|course|program/gi, '').trim()
-          if (searchTerm) {
-            searchMoodleCourses(searchTerm).then(searchResults => {
-              addBotMessage(searchResults, ['Search More Courses', 'View All Courses', 'Contact Admissions'])
-            })
-            return
-          }
-        }
-        
-        // Check for course statistics
-        if (lowerMessage.includes('statistics') || lowerMessage.includes('how many courses') || lowerMessage.includes('total courses')) {
-          getCourseStatistics().then(stats => {
-            addBotMessage(stats, ['Search Courses', 'View All Courses', 'Contact Admissions'])
-          })
-          return
-        }
-        
-        // Check for specific course mentions
-        const courseKeywords = ['business administration', 'nursing', 'education', 'agriculture', 'hospitality', 'journalism', 'chemistry', 'mathematics', 'public health']
-        const mentionedCourse = courseKeywords.find(keyword => lowerMessage.includes(keyword))
-        
-        if (mentionedCourse) {
-          searchMoodleCourses(mentionedCourse).then(courseResults => {
-            addBotMessage(courseResults, ['Search More Courses', 'View All Courses', 'Contact Admissions'])
-          })
-          return
-        }
-        
-        // Find best response from knowledge base
-        const bestResponse = findBestResponse(userMessage)
-        
-        if (bestResponse) {
-          addBotMessage(bestResponse.response, bestResponse.quickReplies)
-        } else {
-          // Escalate to helpdesk for unknown questions
-          addBotMessage("I'm not sure about that specific question. Let me connect you with our support team who can provide detailed assistance.", ['Contact Support', 'Create Ticket', 'Call Support'])
-        }
-      }, 1000)
+    } catch (e) {
+      setIsTyping(false)
+      addBotMessage('Something went wrong. Please try again or choose Create Ticket.', ['Create Ticket'])
     }
   }
 
@@ -328,6 +297,42 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
         break
       case 'Search Courses':
         addBotMessage("What would you like to search for? I can help you find courses by name, school, or subject area.")
+        break
+      case 'Programs':
+        askCrane('programs').then((ans) => {
+          if (ans?.data?.links) addBotMessage('Opening programs…', ans.data.links.map((l:any)=>l.label))
+          else addBotMessage('Browse our programs at /courses')
+        })
+        break
+      case 'Events':
+        askCrane('events').then(() => addBotMessage('You can view all events on the Events Calendar.', ['Events Calendar']))
+        break
+      case 'My deadlines':
+        askCrane('my deadlines').then((ans)=>{
+          const items = ans?.data?.items||[]
+          addBotMessage(`Your upcoming deadlines:\n\n${items.slice(0,5).map((x:any,i:number)=>`${i+1}. ${x.name || x.title || 'Item'}`).join('\n')}`)
+        })
+        break
+      case 'My grades':
+        askCrane('my grades').then((ans)=>{
+          const items = ans?.data?.items||[]
+          addBotMessage(`Your grades summary:\n\n${items.slice(0,5).map((x:any,i:number)=>`${i+1}. ${x.coursename || x.name || 'Course'}`).join('\n')}`)
+        })
+        break
+      case 'iCampus Registration':
+        if (typeof window !== 'undefined') window.open('http://icampus.ueab.ac.ke/iUserLog/Register','_blank')
+        break
+      case 'Browse Courses':
+        if (typeof window !== 'undefined') window.location.assign('/courses')
+        break
+      case 'Events Calendar':
+        if (typeof window !== 'undefined') window.location.assign('/events')
+        break
+      case 'News & Updates':
+        if (typeof window !== 'undefined') window.location.assign('/news')
+        break
+      case 'Contact Page':
+        if (typeof window !== 'undefined') window.location.assign('/contact')
         break
       default:
         const response = findBestResponse(reply)
@@ -464,14 +469,14 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
         >
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="bg-white rounded-full p-2 sm:p-3 shadow-md group-hover:animate-pulse">
-              <FaRobot className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+              <Bird className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
             </div>
             <div className="text-left hidden sm:block">
-              <div className="font-bold text-sm sm:text-base leading-tight">Need Help?</div>
-              <div className="text-xs text-purple-100">Ask Me! 💬</div>
+              <div className="font-bold text-sm sm:text-base leading-tight">CRANE</div>
+              <div className="text-xs text-purple-100">UEAB ODeL Assistant</div>
             </div>
             <div className="text-left sm:hidden">
-              <div className="font-bold text-xs leading-tight">Help</div>
+              <div className="font-bold text-xs leading-tight">CRANE</div>
             </div>
           </div>
           <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center animate-bounce shadow-lg">
@@ -487,11 +492,11 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
           <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-4 rounded-t-2xl flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="bg-white/20 p-2 rounded-full">
-                <FaRobot className="h-5 w-5" />
+                <Bird className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold">UEAB ODeL Assistant</h3>
-                <p className="text-xs text-primary-200">Online now</p>
+                <h3 className="font-semibold">CRANE</h3>
+                <p className="text-xs text-primary-200">UEAB ODeL Support</p>
               </div>
             </div>
             <button

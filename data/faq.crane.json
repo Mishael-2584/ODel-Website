@@ -1,0 +1,45 @@
+{
+  "admissions": {
+    "keywords": ["admission", "apply", "registration", "enroll", "icampus"],
+    "answer": "To apply, use iCampus registration. After registering, your account syncs here automatically.",
+    "links": [
+      { "label": "iCampus Registration", "url": "http://icampus.ueab.ac.ke/iUserLog/Register" },
+      { "label": "Programs", "url": "/courses" }
+    ]
+  },
+  "email": {
+    "keywords": ["ueab email", "email account", "its"],
+    "answer": "For UEAB email setup, visit the ITS Office at Main Campus or email odel@ueab.ac.ke.",
+    "links": [
+      { "label": "Email ITS", "url": "mailto:odel@ueab.ac.ke" }
+    ]
+  },
+  "contact": {
+    "keywords": ["contact", "phone", "call", "location", "map"],
+    "answer": "You can call +254 714 333 111 or email info@ueab.ac.ke. Our campus map is available on Contact.",
+    "links": [
+      { "label": "Contact Page", "url": "/contact" }
+    ]
+  },
+  "programs": {
+    "keywords": ["courses", "programs", "catalogue"],
+    "answer": "Explore programs across 5 UEAB schools. You can browse all courses here.",
+    "links": [
+      { "label": "Browse Courses", "url": "/courses" }
+    ]
+  },
+  "events": {
+    "keywords": ["events", "calendar", "happening"],
+    "answer": "See upcoming events and details on our Events Calendar.",
+    "links": [
+      { "label": "Events Calendar", "url": "/events" }
+    ]
+  },
+  "news": {
+    "keywords": ["news", "updates", "announcements"],
+    "answer": "Latest news and announcements are posted here.",
+    "links": [
+      { "label": "News & Updates", "url": "/news" }
+    ]
+  }
+}

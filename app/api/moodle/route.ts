@@ -82,8 +82,24 @@ export async function GET(request: NextRequest) {
     const courseId = searchParams.get('courseId')
     const limit = searchParams.get('limit')
     const offset = searchParams.get('offset')
+    const email = searchParams.get('email')
 
     switch (action) {
+      case 'user-by-email': {
+        if (!email) {
+          return NextResponse.json(
+            { error: 'email is required' },
+            { status: 400 }
+          )
+        }
+        try {
+          const user = await moodleService.getUserByEmail(email)
+          return NextResponse.json({ success: true, data: user || null }, { headers: CACHE_HEADERS })
+        } catch (err) {
+          console.error('Error fetching user by email:', err)
+          return NextResponse.json({ success: true, data: null }, { headers: CACHE_HEADERS })
+        }
+      }
       case 'courses':
         const courses = await moodleService.getCourses({
           categoryId: categoryId ? parseInt(categoryId) : undefined,
