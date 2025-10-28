@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail, LogIn, AlertCircle } from 'lucide-react';
+import { Mail, LogIn, AlertCircle } from 'lucide-react';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -59,14 +61,22 @@ export default function AdminLogin() {
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border border-slate-700 shadow-2xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                <Lock className="w-6 h-6 text-white" />
+            <Link href="/" className="inline-block group mb-4">
+              <div className="flex justify-center">
+                <div className="bg-gradient-to-br from-blue-500 to-emerald-500 p-2 rounded-lg group-hover:scale-110 group-hover:shadow-lg transition-all">
+                  <Image 
+                    src="https://ueab.ac.ke/wp-content/uploads/2025/03/logo-2.png" 
+                    alt="UEAB ODeL Logo - Click to go home"
+                    width={40}
+                    height={40}
+                    className="object-contain"
+                  />
+                </div>
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                ODeL Admin
-              </h1>
-            </div>
+            </Link>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+              ODeL Admin
+            </h1>
             <p className="text-gray-400">Admin Panel Login</p>
           </div>
 
@@ -105,7 +115,7 @@ export default function AdminLogin() {
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3.5 w-5 h-5 text-gray-500" />
+                {/* Lock icon removed as per edit hint */}
                 <input
                   type="password"
                   value={password}

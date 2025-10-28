@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import {
   FaEnvelope,
@@ -171,8 +172,20 @@ export default function LoginPage() {
             <div className="lg:col-span-2">
               {/* Header */}
               <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold text-white mb-2">UEAB ODeL</h1>
-                <p className="text-gray-200 text-lg">Student Login</p>
+                <Link href="/" className="inline-block group">
+                  <div className="bg-white rounded-2xl p-4 shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all">
+                    <Image 
+                      src="https://ueab.ac.ke/wp-content/uploads/2025/03/logo-2.png" 
+                      alt="UEAB ODeL Logo - Click to go home"
+                      width={60}
+                      height={60}
+                      className="object-contain"
+                    />
+                  </div>
+                </Link>
+                <h1 className="text-4xl font-bold text-white mb-1">UEAB ODeL</h1>
+                <p className="text-gray-200 text-lg">Open Distance eLearning Portal</p>
+                <p className="text-gray-300 text-sm mt-2">Flexible Learning, Quality Education</p>
               </div>
 
               {/* Main Card - White background for clarity */}

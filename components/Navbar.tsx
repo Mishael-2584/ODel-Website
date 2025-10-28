@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import NotificationCenter from './NotificationCenter'
 import { 
-  FaBars, FaTimes, FaGraduationCap, FaBook, FaUser, FaHome, 
+  FaBars, FaTimes, FaBook, FaUser, FaHome, 
   FaInfoCircle, FaPhone, FaTh, FaSignOutAlt, FaUserCircle, FaCalendarAlt, FaNewspaper
 } from 'react-icons/fa'
 
@@ -106,8 +107,14 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-3 group">
-              <div className="bg-gradient-to-br from-primary-500 to-primary-700 p-2 rounded-lg group-hover:scale-110 transition-transform">
-                <FaGraduationCap className="h-8 w-8 text-white" />
+              <div className="bg-white p-1 rounded-lg group-hover:scale-110 transition-transform">
+                <Image 
+                  src="https://ueab.ac.ke/wp-content/uploads/2025/03/logo-2.png" 
+                  alt="UEAB ODeL Logo"
+                  width={40}
+                  height={40}
+                  className="object-contain"
+                />
               </div>
               <div>
                   <h1 className="text-xl font-bold text-primary-600">UEAB ODeL</h1>
