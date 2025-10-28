@@ -70,7 +70,7 @@ export default function Home() {
     },
     {
       icon: FaChalkboardTeacher,
-      title: 'Expert Faculty',
+      title: 'Expirienced Faculty',
       description: 'Learn from PhD holders and industry professionals with years of teaching and research experience.',
       color: 'from-primary-500 to-primary-700',
       iconBg: 'bg-primary-500'
@@ -144,7 +144,7 @@ export default function Home() {
       level: 'Undergraduate',
       image: '📚',
       credits: 120,
-      badge: 'Professional'
+      badge: 'In-Demand'
     },
     {
       title: 'Master of Business Administration',
@@ -155,7 +155,7 @@ export default function Home() {
       level: 'Graduate',
       image: '💼',
       credits: 60,
-      badge: 'Executive'
+      badge: 'Top Rated'
     }
   ]
 
@@ -249,7 +249,7 @@ export default function Home() {
                 <div className="flex flex-col items-center space-y-1 sm:space-y-2">
                   <FaChalkboardTeacher className="h-5 sm:h-6 md:h-8 w-5 sm:w-6 md:w-8 text-gold-300 group-hover:animate-bounce" />
                   <div className="text-center">
-                    <p className="font-semibold text-white group-hover:text-gold-200 transition-colors text-xs sm:text-sm md:text-base">Expert Faculty</p>
+                    <p className="font-semibold text-white group-hover:text-gold-200 transition-colors text-xs sm:text-sm md:text-base">Expirienced Faculty</p>
                     <p className="text-xs sm:text-sm text-gray-200">PhD Holders & Professionals</p>
                   </div>
                 </div>
@@ -282,7 +282,7 @@ export default function Home() {
                       <FaCertificate className="h-4 sm:h-5 md:h-6 w-4 sm:w-5 md:w-6 text-gold-300" />
                       <span className="text-white font-semibold text-xs sm:text-sm">Graduates</span>
                     </div>
-                    <p className="text-lg sm:text-xl md:text-2xl font-bold text-white mt-1 sm:mt-2">5,000+</p>
+                    <p className="text-lg sm:text-xl md:text-2xl font-bold text-white mt-1 sm:mt-2">15,000+</p>
                   </div>
                   
                   <div className="bg-white/10 rounded-xl p-3 sm:p-4 backdrop-blur-sm text-center hover:bg-white/15 transition-all">
@@ -391,7 +391,7 @@ export default function Home() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                 <div className="absolute bottom-6 left-6 text-white">
-                  <h3 className="text-2xl font-bold mb-2">UEAB ODeL Building</h3>
+                  <h3 className="text-2xl font-bold mb-2">UEAB ODeL Center</h3>
                   <p className="text-lg opacity-90">State-of-the-art facility for online learning</p>
                   <p className="text-sm opacity-75 mt-1">📍 P.O. Box 2500, 30100 Eldoret, Kenya</p>
                 </div>
@@ -463,13 +463,13 @@ export default function Home() {
               <div className="relative rounded-2xl overflow-hidden shadow-xl">
                 <img
                   src="/images/directors/director.jpg"
-                  alt="Dr. Meshack Misoi - Director of UEAB ODeL Center"
+                  alt="Dr. Meshack Misoi - Director of UEAB ODeL"
                   className="w-full h-96 object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                 <div className="absolute bottom-6 left-6 text-white">
                   <h3 className="text-2xl font-bold mb-2">Dr. Meshack Misoi</h3>
-                  <p className="text-lg opacity-90">Director of ODeL Center</p>
+                  <p className="text-lg opacity-90">Director of ODeL</p>
                 </div>
               </div>
             </div>
@@ -662,7 +662,7 @@ export default function Home() {
           
           <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
             Join UEAB ODeL today and gain access to world-class education. 
-            Flexible learning, expert faculty, and internationally recognized programs await you.
+            Flexible learning, expirienced faculty, and internationally recognized programs await you.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
