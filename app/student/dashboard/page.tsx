@@ -31,11 +31,17 @@ export default function StudentDashboard() {
   const [courses, setCourses] = useState<any[]>([])
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState<TabType>('dashboard')
+  const [roles, setRoles] = useState<string[]>([])
   const [calendarEvents, setCalendarEvents] = useState<any[]>([])
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date())
   const [assignments, setAssignments] = useState<any[]>([])
   const [grades, setGrades] = useState<{ avgGrade: number; courses: any[] }>({ avgGrade: 0, courses: [] })
   const [ssoLoginUrl, setSsoLoginUrl] = useState<string | null>(null)
   const [loadingMoodle, setLoadingMoodle] = useState(false)
+  const [eventModalOpen, setEventModalOpen] = useState(false)
+  const [eventModalDay, setEventModalDay] = useState<string>('')
+  const [eventModalItems, setEventModalItems] = useState<any[]>([])
+  const [teachingCourses, setTeachingCourses] = useState<any[]>([])
   const router = useRouter()
 
   useEffect(() => {
@@ -56,7 +62,7 @@ export default function StudentDashboard() {
               // Fetch all data in PARALLEL, not sequentially
               const [coursesResponse, calendarResponse, assignmentsResponse, gradesResponse] = await Promise.all([
                 fetch(`/api/moodle?action=user-courses&userId=${data.user.moodleUserId}`),
-                fetch(`/api/moodle?action=calendar-events&userId=${data.user.moodleUserId}`),
+                fetch(`/api/moodle/calendar?userId=${data.user.moodleUserId}`),
                 fetch(`/api/moodle?action=assignments&userId=${data.user.moodleUserId}`),
                 fetch(`/api/moodle?action=user-grades&userId=${data.user.moodleUserId}`)
               ])
@@ -76,8 +82,23 @@ export default function StudentDashboard() {
 
               // Process assignments
               const assignmentsData = await assignmentsResponse.json()
-              if (assignmentsData.success && assignmentsData.data) {
+              if (assignmentsData.success && assignmentsData.data && assignmentsData.data.length > 0) {
                 setAssignments(assignmentsData.data)
+              }
+
+              // Roles (from session or API)
+              const fetchedRoles: string[] = Array.isArray(data.user.roles) && data.user.roles.length > 0
+                ? data.user.roles
+                : (await (await fetch(`/api/moodle?action=user-roles&userId=${data.user.moodleUserId}`)).json()).data || ['student']
+              setRoles(fetchedRoles)
+
+              // If instructor, fetch teaching courses
+              if (fetchedRoles.includes('instructor')) {
+                const teachingRes = await fetch(`/api/moodle?action=teaching-courses&userId=${data.user.moodleUserId}`)
+                const teachingJson = await teachingRes.json()
+                if (teachingJson.success && teachingJson.data) {
+                  setTeachingCourses(teachingJson.data)
+                }
               }
 
               // Process grades
@@ -102,13 +123,52 @@ export default function StudentDashboard() {
       } catch (err) {
         console.error('Error:', err)
         router.push('/auth')
-      } finally {
-        setLoading(false)
-      }
+    } finally {
+      setLoading(false)
     }
+  }
 
     verifySession()
   }, [router])
+
+  // Refetch calendar when month changes
+  useEffect(() => {
+    const fetchMonth = async () => {
+      if (!studentData?.moodleUserId) return
+      const from = Math.floor(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getTime() / 1000)
+      const to = Math.floor(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0, 23, 59, 59).getTime() / 1000)
+      try {
+        const res = await fetch(`/api/moodle/calendar?userId=${studentData.moodleUserId}&from=${from}&to=${to}`)
+        const data = await res.json()
+        if (data.success && data.data) setCalendarEvents(data.data)
+      } catch (e) {
+        console.error('Calendar fetch error', e)
+      }
+    }
+    fetchMonth()
+  }, [currentMonth, studentData?.moodleUserId])
+
+  // Derive assignments from calendar if API returns none
+  useEffect(() => {
+    if (assignments.length === 0 && calendarEvents.length > 0) {
+      const derived = calendarEvents
+        .filter((e: any) => e.module === 'assign' && (e.eventtype === 'due' || e.eventtype === 'gradingdue'))
+        .map((e: any) => ({
+          id: e.id,
+          name: e.name,
+          coursename: e.courseid,
+          duedate: e.timestart || e.timesort,
+          url: e.url
+        }))
+      if (derived.length > 0) setAssignments(derived)
+    }
+  }, [calendarEvents, assignments.length])
+
+  const openMoodleUrl = async (url?: string) => {
+    const target = url || (process.env.NEXT_PUBLIC_MOODLE_URL as string)
+    // Single navigation via our server endpoint avoids popup blockers and attaches wantsurl
+    window.location.href = `/api/moodle/sso-launch?userId=${studentData!.moodleUserId}&username=${encodeURIComponent(studentData!.moodleUsername)}&target=${encodeURIComponent(target)}`
+  }
 
   const handleLogout = async () => {
     try {
@@ -131,12 +191,15 @@ export default function StudentDashboard() {
     return null
   }
 
+  const isInstructor = roles.includes('instructor')
+  const isStudent = roles.includes('student') || roles.length === 0
+
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <FaChartBar /> },
-    { id: 'courses', label: 'My Courses', icon: <FaBook /> },
+    { id: 'courses', label: isInstructor ? 'Enrolled' : 'My Courses', icon: <FaBook /> },
     { id: 'calendar', label: 'Calendar', icon: <FaCalendarAlt /> },
-    { id: 'grades', label: 'Grades', icon: <FaChartBar /> },
-    { id: 'assignments', label: 'Assignments', icon: <FaClock /> }
+    ...(isStudent ? [{ id: 'grades' as TabType, label: 'Grades', icon: <FaChartBar /> }] : []),
+    ...(isStudent ? [{ id: 'assignments' as TabType, label: 'Assignments', icon: <FaClock /> }] : [])
   ]
 
   return (
@@ -149,7 +212,7 @@ export default function StudentDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">Welcome, {studentData.studentName}!</h1>
-              <p className="text-gray-300">Your ODeL Student Portal</p>
+              <p className="text-gray-300">Your ODeL Portal</p>
             </div>
             <button
               onClick={async () => {
@@ -220,7 +283,7 @@ export default function StudentDashboard() {
                   <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-primary-800 rounded-full flex items-center justify-center text-white">
                     <FaUser className="text-lg" />
                   </div>
-                  <div>
+                <div>
                     <p className="text-xs text-gray-600">Profile</p>
                     <p className="font-semibold text-gray-900">{studentData.studentName}</p>
                   </div>
@@ -235,7 +298,7 @@ export default function StudentDashboard() {
                 </div>
                 <p className="text-3xl font-bold text-primary-600">{courses.length}</p>
                 <p className="text-xs text-gray-600 mt-2">Active 2025/2026</p>
-              </div>
+            </div>
 
               {/* Email */}
               <div className="bg-white rounded-lg shadow p-6">
@@ -244,7 +307,7 @@ export default function StudentDashboard() {
                   <h3 className="font-semibold text-gray-900">Email</h3>
                 </div>
                 <p className="text-sm font-mono text-gray-600 truncate">{studentData.email}</p>
-              </div>
+            </div>
 
               {/* Access Moodle */}
               <div className="bg-white rounded-lg shadow p-6">
@@ -304,6 +367,55 @@ export default function StudentDashboard() {
                 </div>
               </div>
             </div>
+
+            {/* Today summary */}
+            {(() => {
+              const t = new Date()
+              const todays = calendarEvents.filter((ev: any) => {
+                const d = new Date((ev.timestart || ev.timesort) * 1000)
+                return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate()
+              })
+              if (todays.length === 0) return null
+              const due = todays.filter((e: any) => e.eventtype === 'due' || e.eventtype === 'gradingdue').length
+              const open = todays.filter((e: any) => e.eventtype === 'open').length
+              const close = todays.filter((e: any) => e.eventtype === 'close').length
+              return (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-gray-900">Today</h3>
+                    <div className="text-xs text-gray-500">
+                      {due > 0 && <span className="mr-3">due {due}</span>}
+                      {open > 0 && <span className="mr-3">open {open}</span>}
+                      {close > 0 && <span>close {close}</span>}
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {todays.map((e: any, i: number) => (
+                      <div key={i} className="border rounded p-3">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0">
+                            <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">{e.eventtype || e.module}</div>
+                            <div className="font-semibold text-gray-900 truncate">{e.name || 'Event'}</div>
+                            {e.coursename && (
+                              <div className="text-sm text-gray-600 truncate">{e.coursename}</div>
+                            )}
+                            <div className="text-xs text-gray-500 mt-1">{new Date((e.timestart || e.timesort) * 1000).toLocaleString()}</div>
+                            {e.description && (
+                              <div className="text-xs text-gray-500 mt-2 line-clamp-2" dangerouslySetInnerHTML={{ __html: e.description }} />
+                            )}
+                          </div>
+                          <div className="shrink-0">
+                            <button onClick={() => openMoodleUrl(e.url)} className="text-sm bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded">
+                              {e.url ? 'Open activity' : 'Open Moodle'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
           </div>
         )}
 
@@ -311,9 +423,9 @@ export default function StudentDashboard() {
         {activeTab === 'courses' && (
           <div>
             <div className="mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">My Courses</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">{isInstructor ? 'Enrolled Courses' : 'My Courses'}</h2>
               <p className="text-gray-600">You are enrolled in {courses.length} course{courses.length !== 1 ? 's' : ''}</p>
-            </div>
+                </div>
 
             {courses.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-12 text-center">
@@ -327,9 +439,9 @@ export default function StudentDashboard() {
                   className="inline-block bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg transition-colors font-semibold"
                 >
                   Go to Moodle →
-                </a>
-              </div>
-            ) : (
+                    </a>
+                  </div>
+                ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {courses.map((course) => (
                   <div key={course.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
@@ -345,47 +457,10 @@ export default function StudentDashboard() {
                         <p className="text-xs text-gray-500 line-clamp-2 mb-4">{course.summary}</p>
                       )}
                       <button
-                        onClick={async () => {
-                          try {
-                            setLoadingMoodle(true)
-                            console.log(`📖 Opening course ${course.id}...`)
-                            
-                            // Generate SSO first to ensure login
-                            const ssoResponse = await fetch(`/api/moodle?action=sso-login&userId=${studentData!.moodleUserId}&username=${encodeURIComponent(studentData!.moodleUsername)}`)
-                            const ssoData = await ssoResponse.json()
-                            console.log('🔐 SSO response:', ssoData)
-                            
-                            if (ssoData.success && ssoData.data) {
-                              // Open SSO URL first - this logs the user in
-                              const ssoUrl = ssoData.data
-                              console.log('🔐 Opening SSO login:', ssoUrl)
-                              
-                              // Open SSO in a window to complete login
-                              const ssoWindow = window.open(ssoUrl, 'moodle_sso', 'width=800,height=600')
-                              
-                              // After brief delay to ensure login is processed, open course
-                              setTimeout(() => {
-                                const courseUrl = `${process.env.NEXT_PUBLIC_MOODLE_URL}/course/view.php?id=${course.id}`
-                                console.log(`📚 Opening course URL:`, courseUrl)
-                                window.open(courseUrl, '_blank')
-                                if (ssoWindow) ssoWindow.close()
-                              }, 2000) // Give Moodle 2 seconds to process SSO login
-                            } else {
-                              console.error('SSO failed:', ssoData)
-                              // Fallback: Direct course link
-                              window.open(`${process.env.NEXT_PUBLIC_MOODLE_URL}/course/view.php?id=${course.id}`, '_blank')
-                            }
-                          } catch (err) {
-                            console.error('Error opening course:', err)
-                            window.open(`${process.env.NEXT_PUBLIC_MOODLE_URL}/course/view.php?id=${course.id}`, '_blank')
-                          } finally {
-                            setLoadingMoodle(false)
-                          }
-                        }}
-                        className="inline-block w-full text-center bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={loadingMoodle}
+                        onClick={() => openMoodleUrl(`${process.env.NEXT_PUBLIC_MOODLE_URL}/course/view.php?id=${course.id}`)}
+                        className="inline-block w-full text-center bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors font-semibold text-sm"
                       >
-                        {loadingMoodle ? 'Opening...' : 'View Course →'}
+                        View Course →
                       </button>
                     </div>
                   </div>
@@ -395,36 +470,149 @@ export default function StudentDashboard() {
           </div>
         )}
 
+        {/* Teaching Courses (for instructors) */}
+        {isInstructor && activeTab === 'dashboard' && teachingCourses && teachingCourses.length > 0 && (
+          <div className="bg-white rounded-lg shadow p-8 mt-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">My Teaching</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {teachingCourses.map((course: any) => (
+                <div key={course.id} className="bg-white rounded-lg border shadow-sm p-6">
+                  <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{course.fullname || course.name}</h3>
+                  <button
+                    onClick={() => openMoodleUrl(`${process.env.NEXT_PUBLIC_MOODLE_URL}/course/view.php?id=${course.id}`)}
+                    className="mt-2 inline-block bg-primary-600 hover:bg-primary-700 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Open course →
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Calendar Tab */}
         {activeTab === 'calendar' && (
-          <div>
-            {calendarEvents.length > 0 ? (
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-8">Academic Calendar</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {calendarEvents.slice(0, 12).map((event: any, idx: number) => (
-                    <div key={idx} className="bg-white rounded-lg shadow p-6 border-l-4 border-primary-600">
-                      <div className="flex items-start justify-between mb-3">
-                        <h3 className="font-bold text-gray-900 line-clamp-2">{event.name || event.eventtype}</h3>
-                        <span className="text-xs bg-primary-100 text-primary-800 px-2 py-1 rounded whitespace-nowrap ml-2">
-                          {event.eventtype}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">
-                        📅 {new Date(event.timestart * 1000).toLocaleDateString()}
-                      </p>
-                      {event.description && (
-                        <p className="text-xs text-gray-500 line-clamp-2">{event.description}</p>
-                      )}
-                    </div>
-                  ))}
+                              <div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Academic Calendar</h2>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
+                  className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm"
+                >
+                  ← Prev
+                </button>
+                <div className="font-semibold">
+                  {currentMonth.toLocaleString('en-US', { month: 'long', year: 'numeric' })}
                 </div>
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow p-12 text-center">
-                <FaCalendarAlt className="mx-auto text-6xl text-primary-600 mb-6" />
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Academic Calendar</h2>
-                <p className="text-gray-600 mb-8">No upcoming events scheduled</p>
+                <button
+                  onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
+                  className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm"
+                >
+                  Next →
+                </button>
+                              </div>
+
+              {(() => {
+                const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+                const getFirstDayOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay()
+                const days = getDaysInMonth(currentMonth)
+                const startPad = getFirstDayOfMonth(currentMonth)
+                const today = new Date()
+
+                const eventsByDay: Record<string, any[]> = {}
+                calendarEvents.forEach((ev: any) => {
+                  const ts = (ev.timestart || ev.timesort) * 1000
+                  const d = new Date(ts)
+                  if (d.getMonth() !== currentMonth.getMonth() || d.getFullYear() !== currentMonth.getFullYear()) return
+                  const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+                  if (!eventsByDay[key]) eventsByDay[key] = []
+                  eventsByDay[key].push(ev)
+                })
+
+                return (
+                  <div className="grid grid-cols-7 gap-2">
+                    {[...Array(startPad)].map((_, i) => (
+                      <div key={`pad-${i}`} className="h-28 bg-gray-50 rounded" />
+                    ))}
+                    {[...Array(days)].map((_, dayIdx) => {
+                      const day = dayIdx + 1
+                      const key = `${currentMonth.getFullYear()}-${currentMonth.getMonth()}-${day}`
+                      const dayEvents = eventsByDay[key] || []
+                      const isToday =
+                        day === today.getDate() &&
+                        currentMonth.getMonth() === today.getMonth() &&
+                        currentMonth.getFullYear() === today.getFullYear()
+                      const dueCount = dayEvents.filter((e: any) => e.eventtype === 'due' || e.eventtype === 'gradingdue').length
+                      const openCount = dayEvents.filter((e: any) => e.eventtype === 'open').length
+                      const closeCount = dayEvents.filter((e: any) => e.eventtype === 'close').length
+                      return (
+                        <div key={day} className={`h-28 border rounded p-2 overflow-hidden ${isToday ? 'border-amber-500 bg-amber-50' : ''}`}> 
+                          <div className="text-xs text-gray-500 mb-1 flex items-center justify-between">
+                            <span>{day}{isToday && <span className="ml-2 text-[10px] text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">Today</span>}</span>
+                            {dayEvents.length > 0 && (
+                              <span className="text-[10px] text-gray-400">
+                                {dueCount > 0 && <span className="mr-2">due {dueCount}</span>}
+                                {openCount > 0 && <span className="mr-2">open {openCount}</span>}
+                                {closeCount > 0 && <span>close {closeCount}</span>}
+                              </span>
+                            )}
+                            </div>
+                          <div className="space-y-1 overflow-y-auto max-h-24 pr-1">
+                            {dayEvents.length === 0 ? (
+                              <div className="text-[10px] text-gray-300">—</div>
+                            ) : (
+                              dayEvents.slice(0, 4).map((e: any, i: number) => (
+                                <button
+                                  key={i}
+                                  onClick={() => {
+                                    setEventModalDay(`${currentMonth.toLocaleString('en-US', { month: 'long' })} ${day}`)
+                                    setEventModalItems(dayEvents)
+                                    setEventModalOpen(true)
+                                  }}
+                                  className="w-full text-left text-[11px] bg-primary-50 hover:bg-primary-100 text-primary-800 rounded px-1 py-0.5 truncate"
+                                >
+                                  {e.eventtype ? `${e.eventtype}: ` : ''}{e.name || 'Event'}
+                                </button>
+                              ))
+                            )}
+                              </div>
+                            </div>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
+            </div>
+            {eventModalOpen && (
+              <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg shadow-xl w-full max-w-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Events — {eventModalDay}</h3>
+                    <button onClick={() => setEventModalOpen(false)} className="text-gray-500 hover:text-gray-700">✕</button>
+                  </div>
+                  <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                    {eventModalItems.map((e: any, i: number) => (
+                      <div key={i} className="border rounded p-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="font-semibold">{e.name || 'Event'}</div>
+                            <div className="text-xs text-gray-500">{e.eventtype || e.module}</div>
+                            {e.coursename && (
+                              <div className="text-xs text-gray-500">Course: {e.coursename}</div>
+                            )}
+                            <div className="text-xs text-gray-600 mt-1">{new Date((e.timestart || e.timesort) * 1000).toLocaleString()}</div>
+                              </div>
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => openMoodleUrl(e.url)} className="text-sm bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded">
+                              {e.url ? 'Open activity' : 'Open Moodle'}
+                              </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -445,7 +633,7 @@ export default function StudentDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {grades.courses.map((course: any, idx: number) => (
                     <div key={idx} className="bg-white rounded-lg shadow p-6">
-                      <h3 className="font-bold text-gray-900 mb-3">{course.coursename}</h3>
+                      <h3 className="font-bold text-gray-900 mb-3">{course.courseName || course.coursename || 'Course'}</h3>
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-gray-600">Grade</span>
@@ -469,7 +657,7 @@ export default function StudentDashboard() {
                 <p className="text-gray-600 mb-8">No grades available yet</p>
               </div>
             )}
-          </div>
+            </div>
         )}
 
         {/* Assignments Tab */}
@@ -489,7 +677,7 @@ export default function StudentDashboard() {
                             : 'bg-green-100 text-green-800'
                         }`}>
                           {assignment.duedate < Date.now() / 1000 ? 'Overdue' : 'Pending'}
-                        </span>
+                          </span>
                       </div>
                       <p className="text-sm text-gray-600 mb-2">📚 {assignment.coursename}</p>
                       <p className="text-sm text-gray-600">

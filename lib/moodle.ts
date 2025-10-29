@@ -1166,28 +1166,33 @@ class MoodleService {
     }
   }
 
-  // Get course calendar events
-  async getCalendarEvents(userId: number): Promise<any[]> {
+  // Get calendar events (site/user and optional course-filtered), bracket params per Moodle spec
+  async getCalendarEvents(
+    userId: number,
+    opts?: { courseIds?: number[]; fromUnix?: number; toUnix?: number; includeSite?: boolean; includeUser?: boolean }
+  ): Promise<any[]> {
     try {
-      // Get the user's calendar events using core_calendar_get_calendar_events
-      // This function doesn't accept userid directly, instead we need to use different parameters
+      const includeSite = opts?.includeSite !== false
+      const includeUser = opts?.includeUser !== false
+      const start = typeof opts?.fromUnix === 'number' ? opts!.fromUnix : Math.floor(new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime() / 1000)
+      const end = typeof opts?.toUnix === 'number' ? opts!.toUnix : Math.floor(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59).getTime() / 1000)
+
       const params = new URLSearchParams({
         wstoken: this.config.apiToken,
         wsfunction: 'core_calendar_get_calendar_events',
-        moodlewsrestformat: 'json',
-        events: JSON.stringify({
-          eventids: [],
-          courseids: [],
-          groupids: [],
-          categoryids: []
-        }),
-        options: JSON.stringify({
-          userevents: true,
-          siteevents: true,
-          timestart: Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60), // 30 days ago
-          timeend: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60) // 30 days from now
-        })
+        moodlewsrestformat: 'json'
       })
+
+      // Bracket-style options
+      if (includeUser) params.append('options[userevents]', '1')
+      if (includeSite) params.append('options[siteevents]', '1')
+      params.append('options[timestart]', String(start))
+      params.append('options[timeend]', String(end))
+
+      // Optional course filter
+      if (opts?.courseIds && opts.courseIds.length > 0) {
+        opts.courseIds.forEach((id, idx) => params.append(`events[courseids][${idx}]`, String(id)))
+      }
 
       const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
         method: 'POST',
@@ -1202,12 +1207,100 @@ class MoodleService {
         return []
       }
 
-      // Filter events to only include those relevant to the user
       const events = result.events || []
-      console.log(`📊 Retrieved ${events.length} calendar events for user ${userId}`)
       return events
     } catch (error) {
       console.error('Error getting calendar events:', error)
+      return []
+    }
+  }
+
+  // Get action events by timesort (Edwiser parity)
+  async getActionEventsByTimesort(paramsIn: {
+    userId: number
+    fromUnix?: number
+    toUnix?: number
+    limitnum?: number
+    limitToNonSuspended?: boolean
+  }): Promise<any[]> {
+    const { userId, fromUnix, toUnix, limitnum = 200, limitToNonSuspended = true } = paramsIn
+    try {
+      const now = Math.floor(Date.now() / 1000)
+      const start = typeof fromUnix === 'number' ? fromUnix : Math.floor(new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime() / 1000)
+      const end = typeof toUnix === 'number' ? toUnix : Math.floor(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59).getTime() / 1000)
+
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'core_calendar_get_action_events_by_timesort',
+        moodlewsrestformat: 'json',
+        timesortfrom: start.toString(),
+        timesortto: end.toString(),
+        limitnum: String(limitnum),
+        userid: String(userId)
+      })
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+      })
+
+      const result = await response.json()
+      if (this.isErrorResponse(result)) {
+        console.warn('Error fetching action events (timesort):', result)
+        return []
+      }
+
+      const events = Array.isArray(result?.events) ? result.events : []
+      return events
+    } catch (error) {
+      console.error('Error getting action events by timesort:', error)
+      return []
+    }
+  }
+
+  // Get action events by courses
+  async getActionEventsByCourses(paramsIn: {
+    userId: number
+    courseIds: number[]
+    fromUnix?: number
+    toUnix?: number
+    limitnum?: number
+  }): Promise<any[]> {
+    const { userId, courseIds, fromUnix, toUnix, limitnum = 200 } = paramsIn
+    if (!courseIds || courseIds.length === 0) return []
+    try {
+      const start = typeof fromUnix === 'number' ? fromUnix : Math.floor(new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime() / 1000)
+      const end = typeof toUnix === 'number' ? toUnix : Math.floor(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59).getTime() / 1000)
+
+      const params = new URLSearchParams({
+        wstoken: this.config.apiToken,
+        wsfunction: 'core_calendar_get_action_events_by_courses',
+        moodlewsrestformat: 'json',
+        timesortfrom: start.toString(),
+        timesortto: end.toString(),
+        limitnum: String(limitnum),
+        userid: String(userId)
+      })
+
+      courseIds.forEach((id, idx) => params.append(`courseids[${idx}]`, String(id)))
+
+      const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+      })
+
+      const result = await response.json()
+      if (this.isErrorResponse(result)) {
+        console.warn('Error fetching action events (by courses):', result)
+        return []
+      }
+
+      const events = Array.isArray(result?.events) ? result.events : []
+      return events
+    } catch (error) {
+      console.error('Error getting action events by courses:', error)
       return []
     }
   }
@@ -1304,7 +1397,7 @@ class MoodleService {
   }
 
   // Generate Moodle login URL using SSO token (now enabled in external service)
-  async generateMoodleLoginUrl(userId: number, moodleUsername: string): Promise<string> {
+  async generateMoodleLoginUrl(userId: number, moodleUsername: string, targetUrl?: string): Promise<string> {
     try {
       console.log('🔐 SSO Request - Attempting to generate login URL for user:', userId)
       
@@ -1317,6 +1410,7 @@ class MoodleService {
         'user[idnumber]': moodleUsername,
         'user[username]': moodleUsername
       })
+      // Do NOT send wantsurl in POST; append to returned loginurl instead
 
       console.log('🔐 SSO Attempting with user[idnumber] and user[username] only')
       const response = await fetch(`${this.config.baseUrl}/webservice/rest/server.php`, {
@@ -1329,8 +1423,13 @@ class MoodleService {
       console.log('🔐 SSO Response from Moodle:', result)
 
       if (result.loginurl) {
-        console.log('✅ SSO Success! Generated secure login URL:', result.loginurl)
-        return result.loginurl
+        let url: string = result.loginurl
+        if (targetUrl && !url.includes('wantsurl=')) {
+          const sep = url.includes('?') ? '&' : '?'
+          url = `${url}${sep}wantsurl=${encodeURIComponent(targetUrl)}`
+        }
+        console.log('✅ SSO Success! Generated secure login URL:', url)
+        return url
       }
 
       if (this.isErrorResponse(result)) {

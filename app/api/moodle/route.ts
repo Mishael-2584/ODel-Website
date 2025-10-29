@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { moodleService } from '@/lib/moodle'
+import { moodleAuthService } from '@/lib/moodle-auth'
 import { createClient } from '@supabase/supabase-js'
 
 // Initialize Supabase with proper error handling
@@ -564,7 +565,7 @@ export async function GET(request: NextRequest) {
           const userCourses = await moodleService.getUserCourses(parseInt(userId))
           console.log(`📊 User enrolled in ${userCourses.length} courses`)
           
-          // Then fetch grades for each course
+          // Then fetch grades for each course using gradereport_user_get_grade_items
           const gradesData: any[] = []
           let totalGrade = 0
           let gradeCount = 0
@@ -572,26 +573,30 @@ export async function GET(request: NextRequest) {
           for (const course of userCourses) {
             try {
               console.log(`  Fetching grades for course: ${course.fullname} (ID: ${course.id})`)
-              const courseGrades = await moodleService.getCourseGrades(parseInt(userId), course.id)
-              
-              if (courseGrades) {
-                console.log(`    Grade response for ${course.fullname}:`, JSON.stringify(courseGrades).substring(0, 200))
-              }
-              
-              if (courseGrades && courseGrades.usergrades && courseGrades.usergrades.length > 0) {
-                const userGrade = courseGrades.usergrades[0]
-                if (userGrade && userGrade.grade) {
-                  gradesData.push({
-                    courseName: course.fullname,
-                    courseId: course.id,
-                    grade: parseFloat(userGrade.grade) || 0
-                  })
-                  totalGrade += parseFloat(userGrade.grade) || 0
-                  gradeCount++
-                  console.log(`    ✓ Grade recorded: ${userGrade.grade}`)
-                }
+              const userGrades = await moodleAuthService.getUserGrades(parseInt(userId), course.id)
+
+              const gradeItems = userGrades?.[0]?.gradeitems || []
+
+              // Prefer the course total if present; fallback to average of numeric grade items
+              let courseGrade: number | null = null
+              const courseTotal = gradeItems.find((gi: any) => gi.itemtype === 'course')
+              if (courseTotal && typeof courseTotal.graderaw === 'number') {
+                courseGrade = courseTotal.graderaw
               } else {
-                console.log(`    ⚠️ No grades found for course ${course.fullname}`)
+                const numericItems = gradeItems
+                  .filter((gi: any) => typeof gi.graderaw === 'number')
+                  .map((gi: any) => gi.graderaw as number)
+                if (numericItems.length > 0) {
+                  courseGrade = numericItems.reduce((a: number, b: number) => a + b, 0) / numericItems.length
+                }
+              }
+
+              if (typeof courseGrade === 'number') {
+                gradesData.push({ courseName: course.fullname, courseId: course.id, grade: courseGrade })
+                totalGrade += courseGrade
+                gradeCount++
+              } else {
+                console.log(`    ⚠️ No numeric grade for ${course.fullname}`)
               }
             } catch (err) {
               console.warn(`Error fetching grades for course ${course.id}:`, err)
@@ -624,6 +629,52 @@ export async function GET(request: NextRequest) {
           console.error('Error fetching grades:', err)
           return NextResponse.json(
             { success: true, data: { avgGrade: 0, courses: [] } },
+            { headers: CACHE_HEADERS }
+          )
+        }
+      }
+
+      case 'user-roles': {
+        const userId = searchParams.get('userId')
+        if (!userId) {
+          return NextResponse.json(
+            { error: 'userId is required' },
+            { status: 400 }
+          )
+        }
+        try {
+          const roles = await moodleService.getUserRoles(parseInt(userId))
+          return NextResponse.json(
+            { success: true, data: roles },
+            { headers: CACHE_HEADERS }
+          )
+        } catch (err) {
+          console.error('Error fetching user roles:', err)
+          return NextResponse.json(
+            { success: true, data: ['student'] },
+            { headers: CACHE_HEADERS }
+          )
+        }
+      }
+
+      case 'teaching-courses': {
+        const userId = searchParams.get('userId')
+        if (!userId) {
+          return NextResponse.json(
+            { error: 'userId is required' },
+            { status: 400 }
+          )
+        }
+        try {
+          const courses = await moodleService.getUserTeachingCourses(parseInt(userId))
+          return NextResponse.json(
+            { success: true, data: courses },
+            { headers: CACHE_HEADERS }
+          )
+        } catch (err) {
+          console.error('Error fetching teaching courses:', err)
+          return NextResponse.json(
+            { success: true, data: [] },
             { headers: CACHE_HEADERS }
           )
         }
