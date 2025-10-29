@@ -207,8 +207,8 @@ export default function LoginPage() {
                       <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center gap-3">
                         <FaCheckCircle className="text-emerald-600 text-xl" />
                         <div>
-                          <p className="text-emerald-900 font-semibold">✓ Code sent to your email</p>
-                          <p className="text-emerald-700 text-sm">Please check your inbox (including spam folder) for a 6-digit code. It will expire in 10 minutes.</p>
+                          <p className="text-emerald-900 font-semibold">✓ Verified email — sending magic code</p>
+                          <p className="text-emerald-700 text-sm">Check your inbox (or spam) for a 6‑digit code. It expires in 10 minutes.</p>
                         </div>
                       </div>
                     )}
@@ -266,7 +266,7 @@ export default function LoginPage() {
                     {success && (
                       <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center gap-3">
                         <FaCheckCircle className="text-emerald-600 text-xl" />
-                        <p className="text-emerald-900 font-semibold">Code verified! Logging in...</p>
+                        <p className="text-emerald-900 font-semibold">Email verified — Sending code to your inbox...</p>
                       </div>
                     )}
 

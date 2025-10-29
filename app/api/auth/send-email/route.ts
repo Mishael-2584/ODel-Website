@@ -129,8 +129,10 @@ export async function POST(request: NextRequest) {
     // Send email
     let info
     try {
+      const fromEmail = process.env.EMAIL_FROM || 'noreply@ueab.ac.ke'
+      const fromName = process.env.EMAIL_FROM_NAME || 'ODeL'
       info = await transporter.sendMail({
-        from: process.env.EMAIL_FROM || 'noreply@ueab.ac.ke',
+        from: `${fromName} <${fromEmail}>`,
         to: to,
         subject: emailContent.subject,
         html: emailContent.html
