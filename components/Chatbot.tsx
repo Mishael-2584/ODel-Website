@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Bird } from 'lucide-react'
+import Image from 'next/image'
 import { 
   FaTimes, FaPaperPlane, FaUser, FaSpinner, 
-  FaTicketAlt, FaBook, FaCalendarAlt, FaRobot, FaGraduationCap, FaSave, FaArrowLeft
+  FaTicketAlt, FaBook, FaCalendarAlt, FaGraduationCap, FaSave, FaArrowLeft, FaCheck
 } from 'react-icons/fa'
 
 interface Message {
@@ -13,14 +13,23 @@ interface Message {
   text: string
   sender: 'user' | 'bot'
   timestamp: Date
-  type?: 'text' | 'quick_reply' | 'escalation' | 'user_form'
+  type?: 'text' | 'quick_reply' | 'escalation' | 'user_form' | 'card' | 'resource'
   quickReplies?: string[]
+  card?: {
+    title: string
+    description: string
+    image?: string
+    link?: string
+    actions?: { label: string; action: string }[]
+  }
+  sentiment?: 'positive' | 'neutral' | 'negative' | 'frustrated'
+  status?: 'sending' | 'sent' | 'delivered'
 }
 
 interface UserInfo {
   name: string
   email: string
-  phone: string
+  phone?: string
   studentId?: string
   isRegistered: boolean
 }
@@ -37,8 +46,6 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
   const [userInfo, setUserInfo] = useState<UserInfo>({
     name: '',
     email: '',
-    phone: '',
-    studentId: '',
     isRegistered: false
   })
   const [showUserForm, setShowUserForm] = useState(false)
@@ -46,7 +53,71 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [isPolling, setIsPolling] = useState(false)
   const [moodleUserId, setMoodleUserId] = useState<number | null>(null)
+  const [conversationContext, setConversationContext] = useState<string[]>([])
+  const [userSentiment, setUserSentiment] = useState<'positive' | 'neutral' | 'negative' | 'frustrated'>('neutral')
+  const [isListening, setIsListening] = useState(false)
+  const [displayedReplyIds, setDisplayedReplyIds] = useState<Set<string>>(new Set())
+  const displayedReplyIdsRef = useRef<Set<string>>(new Set())
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const recognitionRef = useRef<any>(null)
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Helper to check for personal/eLearning queries that require login
+  const isPersonalQuery = (msg: string): boolean => {
+    return /\b(my|grade|deadline|assignment|calendar|dashboard|course|enrol|user|profile|status|progress|event|result|student|attendance|report)\b/i.test(msg)
+  }
+
+  const isLoggedIn = userInfo.isRegistered
+
+  // Enhanced sentiment detection
+  const detectSentiment = (text: string): 'positive' | 'neutral' | 'negative' | 'frustrated' => {
+    const lower = text.toLowerCase()
+    
+    // Frustrated indicators
+    const frustratedWords = ['not working', 'doesn\'t work', 'broken', 'error', 'problem', 'issue', 'help!', 'urgent', 'asap', 'frustrated', 'angry', 'terrible', 'worst', 'useless', 'hate']
+    if (frustratedWords.some(word => lower.includes(word))) return 'frustrated'
+    
+    // Negative indicators
+    const negativeWords = ['bad', 'poor', 'difficult', 'hard', 'confused', 'don\'t understand', 'can\'t', 'unable', 'failed', 'wrong']
+    if (negativeWords.some(word => lower.includes(word))) return 'negative'
+    
+    // Positive indicators
+    const positiveWords = ['thank', 'thanks', 'great', 'good', 'excellent', 'perfect', 'awesome', 'love', 'appreciate', 'helpful']
+    if (positiveWords.some(word => lower.includes(word))) return 'positive'
+    
+    return 'neutral'
+  }
+
+  // Enhanced NLP for better intent recognition
+  const detectIntent = (text: string): string => {
+    const lower = text.toLowerCase()
+    
+    // Resources & Library
+    if (/\b(resource|library|book|journal|research|guide|tutorial|pdf|download|myloft|opac|repository)\b/i.test(lower)) return 'resources'
+    
+    // Technical Support
+    if (/\b(login|password|access|technical|error|bug|issue|problem|not working|broken|reset|forgot)\b/i.test(lower)) return 'technical'
+    
+    // Admissions
+    if (/\b(admission|apply|application|enroll|registration|requirements|how to join|join|register)\b/i.test(lower)) return 'admission'
+    
+    // Courses & Programs
+    if (/\b(course|program|degree|bachelor|master|phd|curriculum|study|major)\b/i.test(lower)) return 'courses'
+    
+    // Fees & Payment
+    if (/\b(fee|tuition|cost|payment|price|scholarship|financial aid|pay)\b/i.test(lower)) return 'fees'
+    
+    // Personal queries (grades, deadlines, etc.)
+    if (/\b(my|grade|deadline|assignment|calendar|dashboard|course|profile|status|progress)\b/i.test(lower)) return 'personal'
+    
+    // Contact
+    if (/\b(contact|phone|email|address|location|office|visit|call)\b/i.test(lower)) return 'contact'
+    
+    // Greetings
+    if (/\b(hi|hello|hey|greetings|good morning|good afternoon|good evening)\b/i.test(lower)) return 'greeting'
+    
+    return 'unknown'
+  }
 
   // Knowledge base for common questions
   const knowledgeBase = {
@@ -72,8 +143,13 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
     },
     'contact': {
       keywords: ['contact', 'phone', 'email', 'address', 'location', 'office'],
-      response: 'Contact UEAB ODeL Center:\n\n📞 Phone: +254 714 333 111\n📧 Email: info@ueab.ac.ke\n📍 Address: P.O. Box 2500, 30100 Eldoret, Kenya\n\nOffice Hours: Monday-Friday, 8:00 AM - 5:00 PM',
+      response: 'Contact UEAB ODeL Center:\n\n📞 Phone: +254 714 333 111\n📧 Email: odel@ueab.ac.ke\n📍 Address: P.O. Box 2500, 30100 Eldoret, Kenya\n\nOffice Hours: Monday-Friday, 8:00 AM - 5:00 PM',
       quickReplies: ['Call Now', 'Send Email', 'Visit Campus', 'Office Hours']
+    },
+    'resources': {
+      keywords: ['resource', 'library', 'book', 'journal', 'research', 'guide', 'tutorial', 'myloft', 'opac'],
+      response: 'UEAB Library Resources:\n\n📚 E-Books & Journals\n🔍 Library Catalog (OPAC)\n📖 MyLOFT Digital Library\n📄 Research Guides & Tutorials\n🎓 Academic Tools\n\nAccess all resources, FAQs, and user guides on our Resources page.',
+      quickReplies: ['View Resources', 'Library Support', 'E-Resources', 'User Guides']
     }
   }
 
@@ -149,8 +225,7 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
           setUserInfo({
             name: j.user.studentName || j.user.email,
             email: j.user.email,
-            phone: '',
-            studentId: j.user.studentId || '',
+            studentId: j.user.studentId,
             isRegistered: true
           })
           if (j.user.moodleUserId) setMoodleUserId(j.user.moodleUserId)
@@ -164,12 +239,13 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       if (userInfo.isRegistered) {
-        addBotMessage(`Hello ${userInfo.name?.split(' ')[0] || ''}! I'm CRANE. How can I help?`, [
-          'My deadlines', 'My grades', 'Programs', 'Events'
+        addBotMessage(`Hello ${userInfo.name?.split(' ')[0] || ''}! I'm CRANE, your ODeL assistant. How can I help you today?`, [
+          'My deadlines', 'My grades', 'Programs', 'Browse FAQs'
         ])
       } else {
         addBotMessage(
-          "Hi! I'm CRANE (UEAB ODeL Chatbot). If you're a registered UEAB student or staff, please type your UEAB email and I'll personalize help for you.\n\nIf you're new and not yet registered, I'll ask for a few details (Full Name, Email, Phone) so I can assist you or create a support ticket."
+          "Hi! I'm CRANE (UEAB ODeL Chatbot). I can help you with:\n\n• General course information\n• Admission process\n• Technical support\n• FAQs\n\nFor personalized help with grades, deadlines, or your courses, please log in first.", 
+          ['Go to Login', 'Browse FAQs', 'Course Information', 'Talk to Support']
         )
       }
     }
@@ -233,9 +309,93 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return
     const userMessage = inputValue.trim()
+    
+    // If there's an active ticket and polling, send message as reply to ticket
+    if (currentTicketId && isPolling) {
+      // Add message with 'sending' status
+      const messageId = Date.now().toString()
+      const newMessage: Message = {
+        id: messageId,
+        text: userMessage,
+        sender: 'user',
+        timestamp: new Date(),
+        type: 'text',
+        status: 'sending'
+      }
+      setMessages(prev => [...prev, newMessage])
+      setInputValue('')
+      
+      try {
+        const response = await fetch('/api/live-chat/replies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: userMessage,
+            userInfo: {
+              name: userInfo.name,
+              email: userInfo.email
+            },
+            ticketId: currentTicketId,
+            sessionId: sessionId
+          })
+        })
+        
+        const result = await response.json()
+        
+        if (result.success) {
+          // Update message status to 'sent'
+          setMessages(prev => prev.map(msg => 
+            msg.id === messageId ? { ...msg, status: 'sent' } : msg
+          ))
+        } else {
+          // Update message status to show error
+          setMessages(prev => prev.map(msg => 
+            msg.id === messageId ? { ...msg, status: undefined } : msg
+          ))
+          addBotMessage('Failed to send message. Please try again or contact support directly.', ['Talk to Support', 'Contact Support Directly'])
+        }
+      } catch (error) {
+        // Update message status to show error
+        setMessages(prev => prev.map(msg => 
+          msg.id === messageId ? { ...msg, status: undefined } : msg
+        ))
+        addBotMessage('Failed to send message. Please try again.', ['Talk to Support'])
+      }
+      return
+    }
+    
+    // Detect sentiment and intent
+    const sentiment = detectSentiment(userMessage)
+    const intent = detectIntent(userMessage)
+    
+    setUserSentiment(sentiment)
     addMessage(userMessage, 'user')
     setInputValue('')
     setIsTyping(true)
+    
+    // Add to conversation context
+    setConversationContext(prev => [...prev.slice(-4), userMessage])
+
+    // Auto-escalate if user is frustrated
+    if (sentiment === 'frustrated') {
+      setIsTyping(false)
+      addBotMessage('I sense you\'re having difficulties. Let me connect you with our support team right away for immediate assistance.', ['Talk to Support Now', 'ITS Support', 'Library Support'])
+      return
+    }
+
+    // Block personal queries if not logged in
+    if (!isLoggedIn && isPersonalQuery(userMessage)) {
+      setIsTyping(false)
+      addBotMessage('For personalized eLearning help (grades, courses, deadlines, events), please log in first.', ['Go to Login', 'Browse FAQs', 'Talk to Support'])
+      return
+    }
+    
+    // Handle resources intent
+    if (intent === 'resources') {
+      setIsTyping(false)
+      addBotMessage('I can help you access library resources! We have:\n\n📚 Electronic Journals & E-Books\n🔍 Library Catalog (OPAC)\n📖 MyLOFT Digital Library\n📄 User Guides & Tutorials\n🎓 Academic Tools (Turnitin, Mendeley)\n\nVisit our Resources page for complete access and FAQs.', ['View Resources', 'Library Support', 'ITS Support', 'User Guides'])
+      return
+    }
 
     try {
       const answer = await askCrane(userMessage)
@@ -251,34 +411,83 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
           setUserInfo(prev => ({ ...prev, name: `${answer.data.firstname} ${answer.data.lastname}`.trim() || prev.name, isRegistered: true }))
           addBotMessage(`Welcome ${answer.data.firstname}! How can I help you today?`, ['My deadlines', 'My grades', 'Programs', 'Events'])
         } else {
-          addBotMessage("I couldn't find that email in Moodle. If you're new, I can open a support ticket—please share your name & phone.")
+          addBotMessage("I couldn't find that email in Moodle. If you're new, I can help you with general questions or connect you to support.", ['Browse FAQs', 'Talk to Support'])
           setShowUserForm(true)
         }
       } else if (answer?.type === 'fallback') {
-        addBotMessage(answer.data.text, ['Create Ticket', 'Programs', 'Events'])
+        addBotMessage(answer.data.text || 'I couldn\'t find a specific answer to that. Would you like to talk to our support team?', ['Talk to Support', 'Browse FAQs', 'View All Courses'])
       } else {
-        addBotMessage('Let me connect you with the right resource. Would you like to create a ticket? ', ['Create Ticket', 'Contact'])
+        addBotMessage('I\'m not sure how to help with that. Would you like to talk to our support team?', ['Talk to Support', 'Browse FAQs'])
       }
     } catch (e) {
       setIsTyping(false)
-      addBotMessage('Something went wrong. Please try again or choose Create Ticket.', ['Create Ticket'])
+      addBotMessage('Something went wrong. Please try again or talk to our support team.', ['Talk to Support', 'Browse FAQs'])
     }
   }
 
   const handleQuickReply = (reply: string) => {
     addMessage(reply, 'user')
     
+    // Handle login redirect
+    if (reply === 'Go to Login') {
+      if (typeof window !== 'undefined') window.location.assign('/login')
+      return
+    }
+
+    // Block personal queries if not logged in
+    if (!isLoggedIn && ['My deadlines', 'My grades', 'My Courses', 'Calendar', 'Dashboard', 'Events', 'Profile', 'Attendance'].includes(reply)) {
+      addBotMessage('For personalized eLearning help, please log in first.', ['Go to Login', 'Browse FAQs', 'Talk to Support'])
+      return
+    }
+    
     // Handle specific quick replies
     switch (reply) {
+      case 'Talk to Support':
       case 'Contact Support':
       case 'Create Ticket':
         handleEscalateToHelpdesk(reply)
+        break
+      case 'Browse FAQs':
+        addBotMessage("Here are some common topics:\n\n• Admission Process\n• Course Information\n• Library Resources\n• Technical Support\n• Fees & Payment\n• Contact Information\n\nWhat would you like to know more about?", ['Admission Process', 'Course Information', 'Library Resources', 'Technical Support'])
+        break
+      case 'View Resources':
+      case 'Library Resources':
+        if (typeof window !== 'undefined') window.location.assign('/resources')
+        break
+      case 'Library Support':
+        addBotMessage('Library Support:\n\n📧 Email: librarysupport@ueab.ac.ke\n📍 Visit: UEAB Main Campus Library\n🕐 Hours: Sun-Thu 7AM-5:30PM, 7PM-10:30PM\n\nFor e-resources, guides, and FAQs, visit our Resources page.', ['View Resources', 'Email Library', 'Talk to Support'])
+        break
+      case 'ITS Support':
+        addBotMessage('ITS Technical Support:\n\n📧 Email: support@ueab.ac.ke\n📍 Visit: ITS Office - Main Campus\n💻 For: Login issues, platform access, technical problems\n\nOur IT team is ready to help!', ['Email ITS', 'Talk to Support', 'View Resources'])
+        break
+      case 'User Guides':
+      case 'E-Resources':
+        addBotMessage('Access comprehensive user guides:\n\n📱 MyLOFT Tutorials (Web & Mobile)\n📚 E-Resources Access Guide\n✍️ APA Citation Guide\n🔍 OPAC Search Guide\n📖 Mendeley Reference Manager\n\nAll guides available on the Resources page!', ['View Resources', 'Library Support'])
+        break
+      case 'Email Library':
+        if (typeof window !== 'undefined') window.location.href = 'mailto:librarysupport@ueab.ac.ke'
+        break
+      case 'Email ITS':
+        if (typeof window !== 'undefined') window.location.href = 'mailto:support@ueab.ac.ke'
+        break
+      case 'Talk to Support Now':
+        handleEscalateToHelpdesk('Urgent Support Request')
         break
       case 'Check Ticket Status':
         checkTicketStatus()
         break
       case 'Add More Information':
         addBotMessage("Please provide any additional information about your request:")
+        break
+      case 'Close Chat':
+        // Stop polling
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current)
+          pollIntervalRef.current = null
+        }
+        setIsPolling(false)
+        setCurrentTicketId(null)
+        addBotMessage('Chat closed. Your ticket remains open and our team will still contact you via email. Feel free to start a new conversation anytime!', ['Talk to Support', 'Browse FAQs'])
         break
       case 'Contact Support Directly':
         addBotMessage("You can contact our support team directly:\n\n📞 Phone: +254 714 333 111\n📧 Email: info@ueab.ac.ke\n\nOffice Hours: Monday-Friday, 8:00 AM - 5:00 PM")
@@ -308,16 +517,32 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
         askCrane('events').then(() => addBotMessage('You can view all events on the Events Calendar.', ['Events Calendar']))
         break
       case 'My deadlines':
-        askCrane('my deadlines').then((ans)=>{
-          const items = ans?.data?.items||[]
-          addBotMessage(`Your upcoming deadlines:\n\n${items.slice(0,5).map((x:any,i:number)=>`${i+1}. ${x.name || x.title || 'Item'}`).join('\n')}`)
-        })
+        if (!isLoggedIn) {
+          addBotMessage('Please log in to view your personalized deadlines.', ['Go to Login', 'Talk to Support'])
+        } else {
+          askCrane('my deadlines').then((ans)=>{
+            const items = ans?.data?.items||[]
+            if (items.length > 0) {
+              addBotMessage(`Your upcoming deadlines:\n\n${items.slice(0,5).map((x:any,i:number)=>`${i+1}. ${x.name || x.title || 'Item'}`).join('\n')}`)
+            } else {
+              addBotMessage('No upcoming deadlines found. You\'re all caught up!')
+            }
+          }).catch(() => addBotMessage('Unable to fetch deadlines. Please try again later.', ['Talk to Support']))
+        }
         break
       case 'My grades':
-        askCrane('my grades').then((ans)=>{
-          const items = ans?.data?.items||[]
-          addBotMessage(`Your grades summary:\n\n${items.slice(0,5).map((x:any,i:number)=>`${i+1}. ${x.coursename || x.name || 'Course'}`).join('\n')}`)
-        })
+        if (!isLoggedIn) {
+          addBotMessage('Please log in to view your grades.', ['Go to Login', 'Talk to Support'])
+        } else {
+          askCrane('my grades').then((ans)=>{
+            const items = ans?.data?.items||[]
+            if (items.length > 0) {
+              addBotMessage(`Your grades summary:\n\n${items.slice(0,5).map((x:any,i:number)=>`${i+1}. ${x.coursename || x.name || 'Course'}`).join('\n')}`)
+            } else {
+              addBotMessage('No grades available yet.')
+            }
+          }).catch(() => addBotMessage('Unable to fetch grades. Please try again later.', ['Talk to Support']))
+        }
         break
       case 'iCampus Registration':
         if (typeof window !== 'undefined') window.open('http://icampus.ueab.ac.ke/iUserLog/Register','_blank')
@@ -353,7 +578,7 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
     setSessionId(newSessionId)
     
     addBotMessage(`Thank you, ${formData.name}! Your information has been saved. How can I assist you today?`, [
-      'Admission Process', 'Course Information', 'Technical Support', 'Contact Support'
+      'Admission Process', 'Course Information', 'Technical Support', 'Talk to Support'
     ])
   }
 
@@ -377,8 +602,8 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
           userInfo: {
             name: userInfo.name,
             email: userInfo.email,
-            phone: userInfo.phone,
-            studentId: userInfo.studentId
+            phone: userInfo.phone || 'Not provided',
+            studentId: userInfo.studentId || 'Not provided'
           },
           category: reason,
           sessionId: sessionId,
@@ -397,7 +622,7 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
           startPollingForReplies(result.ticketId)
         }
         
-        addBotMessage(`✅ Support ticket #${result.ticketId} created successfully!\n\nOur support team will contact you at:\n📧 ${userInfo.email}\n📞 ${userInfo.phone}\n\nExpected response time: Within 24 hours\n\nYou can also reach us directly at +254 714 333 111.`, [
+        addBotMessage(`✅ Support ticket #${result.ticketId} created successfully!\n\nOur support team will contact you at:\n📧 ${userInfo.email}\n\nExpected response time: Within 24 hours\n\nYou can also reach us directly at:\n📞 +254 714 333 111\n📧 odel@ueab.ac.ke`, [
           'Check Ticket Status', 'Add More Information', 'Contact Support Directly'
         ])
       } else {
@@ -410,18 +635,63 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
   }
 
   const startPollingForReplies = (ticketId: string) => {
+    // Clear any existing polling interval
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current)
+    }
+
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch(`/api/live-chat/replies?ticketId=${ticketId}&sessionId=${sessionId}`)
         const result = await response.json()
         
         if (result.success && result.replies && result.replies.length > 0) {
-          // Add new replies to chat
+          // Create a batch of new reply IDs to add
+          const newReplyIds: string[] = []
+          const newMessages: Message[] = []
+          
           result.replies.forEach((reply: any) => {
-            addBotMessage(`💬 Support Reply:\n\n${reply.body}\n\nFrom: ${reply.from}`, [
-              'Reply to Support', 'Ask Another Question', 'Close Chat'
-            ])
+            const replyId = reply.id ? String(reply.id) : `${reply.from}-${reply.created_at}`
+            
+            // Check against ref (which persists across renders)
+            if (!displayedReplyIdsRef.current.has(replyId) && !newReplyIds.includes(replyId)) {
+              console.log('New reply detected:', replyId)
+              newReplyIds.push(replyId)
+              
+              // Create the message
+              const newMessage: Message = {
+                id: `reply-${replyId}`,
+                text: `💬 Support Team:\n\n${reply.body}`,
+                sender: 'bot',
+                timestamp: new Date(reply.created_at || Date.now()),
+                type: 'text',
+                quickReplies: ['Close Chat']
+              }
+              newMessages.push(newMessage)
+            } else {
+              console.log('Reply already displayed:', replyId)
+            }
           })
+
+          // Add all new messages at once
+          if (newMessages.length > 0) {
+            console.log(`Adding ${newMessages.length} new messages`)
+            
+            // Update ref immediately
+            newReplyIds.forEach(id => displayedReplyIdsRef.current.add(id))
+            
+            // Update state
+            setDisplayedReplyIds(prev => {
+              const newSet = new Set(prev)
+              newReplyIds.forEach(id => newSet.add(id))
+              return newSet
+            })
+            
+            // Add messages
+            setMessages(prev => [...prev, ...newMessages])
+          } else {
+            console.log('No new messages to add')
+          }
         }
       } catch (error) {
         console.error('Error polling for replies:', error)
@@ -429,12 +699,12 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
     }, 10000) // Poll every 10 seconds
 
     // Store interval for cleanup
-    return pollInterval
+    pollIntervalRef.current = pollInterval
   }
 
   const checkTicketStatus = async () => {
     if (!currentTicketId) {
-      addBotMessage("No active ticket found. Would you like to create a new support request?")
+      addBotMessage("No active ticket found. Would you like to create a new support request?", ['Talk to Support', 'Browse FAQs'])
       return
     }
 
@@ -443,12 +713,12 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
       const result = await response.json()
       
       if (result.success) {
-        addBotMessage(`📋 Ticket #${currentTicketId} Status: ${result.status}\n\nOur team is working on your request. You'll be notified when there's an update.\n\nCurrent status: ${result.state}`)
+        addBotMessage(`📋 Ticket #${currentTicketId} Status: ${result.status}\n\nOur team is working on your request. You'll be notified when there's an update.\n\nCurrent status: ${result.state}`, ['Add More Information', 'Contact Support Directly'])
       } else {
-        addBotMessage(`Ticket #${currentTicketId} is being processed. Our team will contact you soon.`)
+        addBotMessage(`Ticket #${currentTicketId} is being processed. Our team will contact you soon.`, ['Contact Support Directly'])
       }
     } catch (error) {
-      addBotMessage(`Ticket #${currentTicketId} is being processed. Our team will contact you soon.`)
+      addBotMessage(`Unable to check ticket status right now. Please try again later or contact support directly at +254 714 333 111.`, ['Talk to Support'])
     }
   }
 
@@ -468,8 +738,9 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
           className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 z-50 group transform hover:scale-105 border-2 border-purple-400 hover:border-purple-300"
         >
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="bg-white rounded-full p-2 sm:p-3 shadow-md group-hover:animate-pulse">
-              <Bird className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+            <div className="bg-white rounded-full p-2 sm:p-3 shadow-md group-hover:animate-pulse animate-float animate-glow relative">
+              <span className="absolute inset-0 rounded-full bg-purple-500/20 animate-ping"></span>
+              <Image src="/images/icons/bird-crane-shape.svg" alt="CRANE" width={20} height={20} className="relative z-10 h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div className="text-left hidden sm:block">
               <div className="font-bold text-sm sm:text-base leading-tight">CRANE</div>
@@ -491,8 +762,8 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
           {/* Header */}
           <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-4 rounded-t-2xl flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-white/20 p-2 rounded-full">
-                <Bird className="h-5 w-5 text-white" />
+              <div className="bg-white/20 p-2 rounded-full animate-float">
+                <Image src="/images/icons/bird-crane-shape.svg" alt="CRANE" width={20} height={20} className="h-5 w-5 invert" />
               </div>
               <div>
                 <h3 className="font-semibold">CRANE</h3>
@@ -517,7 +788,7 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
                       {message.sender === 'user' ? (
                         <FaUser className="h-4 w-4 text-primary-600" />
                       ) : (
-                        <FaRobot className="h-4 w-4 text-gray-600" />
+                        <Image src="/images/icons/bird-crane-shape.svg" alt="CRANE" width={16} height={16} className="h-4 w-4" />
                       )}
                     </div>
                     <div className={`rounded-2xl px-4 py-3 ${
@@ -526,11 +797,20 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
                         : 'bg-gray-100 text-gray-800'
                     }`}>
                       <p className="text-sm whitespace-pre-line">{message.text}</p>
-                      <p className={`text-xs mt-1 ${
+                      <div className={`flex items-center justify-between mt-1 ${
                         message.sender === 'user' ? 'text-primary-200' : 'text-gray-500'
                       }`}>
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
+                        <p className="text-xs">
+                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                        {message.sender === 'user' && message.status && (
+                          <span className="text-xs ml-2">
+                            {message.status === 'sending' && '○'}
+                            {message.status === 'sent' && '✓'}
+                            {message.status === 'delivered' && '✓✓'}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
@@ -558,7 +838,7 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
                 <div className="max-w-[80%]">
                   <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
                     <div className="flex items-center space-x-2 mb-3">
-                      <FaRobot className="h-4 w-4 text-blue-600" />
+                      <Image src="/images/icons/bird-crane-shape.svg" alt="CRANE" width={16} height={16} className="h-4 w-4" />
                       <span className="text-sm font-semibold text-blue-800">Please provide your details:</span>
                     </div>
                     <UserRegistrationForm 
@@ -574,7 +854,7 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
             {isTyping && (
               <div className="flex justify-start">
                 <div className="bg-gray-100 rounded-2xl px-4 py-3 flex items-center space-x-2">
-                  <FaRobot className="h-4 w-4 text-gray-600" />
+                  <Image src="/images/icons/bird-crane-shape.svg" alt="CRANE" width={16} height={16} className="h-4 w-4" />
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -589,13 +869,28 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
 
           {/* Input */}
           <div className="p-4 border-t border-gray-200">
+            {/* Live Chat Active Indicator */}
+            {currentTicketId && isPolling && (
+              <div className="mb-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700 flex items-center justify-between">
+                <span>💬 Live chat active - Ticket #{currentTicketId}</span>
+                <span className="animate-pulse">●</span>
+              </div>
+            )}
+            
+            {/* Sentiment Indicator */}
+            {userSentiment === 'frustrated' && (
+              <div className="mb-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
+                ⚠️ I notice you might be frustrated. Let me help you connect with support.
+              </div>
+            )}
+            
             <div className="flex items-center space-x-2">
               <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Type your message..."
+                placeholder={currentTicketId && isPolling ? "Type your reply to support..." : "Type your message..."}
                 className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
               <button
@@ -607,8 +902,16 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
               </button>
             </div>
             
-            {/* Quick Action Buttons */}
-            <div className="mt-2 flex justify-center space-x-2">
+            {/* Smart Quick Action Buttons - Context Aware */}
+            <div className="mt-2 flex justify-center space-x-2 flex-wrap gap-1">
+              {!isLoggedIn && (
+                <button
+                  onClick={() => handleQuickReply('Go to Login')}
+                  className="text-xs bg-gold-50 text-gold-700 px-3 py-1 rounded-full hover:bg-gold-100 transition-colors border border-gold-200"
+                >
+                  🔐 Login
+                </button>
+              )}
               <button
                 onClick={() => handleQuickReply('Admission Process')}
                 className="text-xs bg-primary-50 text-primary-600 px-3 py-1 rounded-full hover:bg-primary-100 transition-colors"
@@ -624,7 +927,13 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
                 Courses
               </button>
               <button
-                onClick={() => handleQuickReply('Contact Support')}
+                onClick={() => handleQuickReply('View Resources')}
+                className="text-xs bg-accent-cyan/10 text-accent-cyan px-3 py-1 rounded-full hover:bg-accent-cyan/20 transition-colors"
+              >
+                📚 Resources
+              </button>
+              <button
+                onClick={() => handleQuickReply('Talk to Support')}
                 className="text-xs bg-primary-50 text-primary-600 px-3 py-1 rounded-full hover:bg-primary-100 transition-colors"
               >
                 <FaTicketAlt className="inline h-3 w-3 mr-1" />
@@ -647,9 +956,7 @@ interface UserRegistrationFormProps {
 function UserRegistrationForm({ onSubmit, onCancel }: UserRegistrationFormProps) {
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
-    phone: '',
-    studentId: ''
+    email: ''
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -664,12 +971,6 @@ function UserRegistrationForm({ onSubmit, onCancel }: UserRegistrationFormProps)
       newErrors.email = 'Email is required'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid'
-    }
-    
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required'
-    } else if (!/^[\+]?[0-9\s\-\(\)]{10,}$/.test(formData.phone)) {
-      newErrors.phone = 'Phone number is invalid'
     }
     
     setErrors(newErrors)
@@ -723,30 +1024,9 @@ function UserRegistrationForm({ onSubmit, onCancel }: UserRegistrationFormProps)
         {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
       </div>
 
-      <div>
-        <label className="block text-xs font-medium text-blue-800 mb-1">Phone Number *</label>
-        <input
-          type="tel"
-          value={formData.phone}
-          onChange={(e) => handleChange('phone', e.target.value)}
-          className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            errors.phone ? 'border-red-300' : 'border-blue-200'
-          }`}
-          placeholder="Enter your phone number"
-        />
-        {errors.phone && <p className="text-xs text-red-600 mt-1">{errors.phone}</p>}
-      </div>
-
-      <div>
-        <label className="block text-xs font-medium text-blue-800 mb-1">Student ID (Optional)</label>
-        <input
-          type="text"
-          value={formData.studentId}
-          onChange={(e) => handleChange('studentId', e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter your student ID if applicable"
-        />
-      </div>
+      <p className="text-xs text-blue-600 italic">
+        💡 We only need your name and email to help you. Our support team will contact you via email.
+      </p>
 
       <div className="flex space-x-2 pt-2">
         <button
@@ -754,7 +1034,7 @@ function UserRegistrationForm({ onSubmit, onCancel }: UserRegistrationFormProps)
           className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center"
         >
           <FaSave className="h-3 w-3 mr-1" />
-          Save & Continue
+          Continue
         </button>
         <button
           type="button"
@@ -762,7 +1042,7 @@ function UserRegistrationForm({ onSubmit, onCancel }: UserRegistrationFormProps)
           className="px-3 py-2 text-xs text-blue-600 hover:text-blue-800 transition-colors flex items-center justify-center"
         >
           <FaArrowLeft className="h-3 w-3 mr-1" />
-          Skip
+          Cancel
         </button>
       </div>
     </form>

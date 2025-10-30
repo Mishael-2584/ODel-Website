@@ -55,6 +55,7 @@ export default function Navbar() {
       submenu: [
         { href: '/courses', label: 'ODeL Catalogue' },
         { href: '/programs', label: 'Programs' },
+        { href: '/resources', label: 'Resources & FAQs' },
       ]
     },
     { 

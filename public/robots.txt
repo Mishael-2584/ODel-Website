@@ -1,0 +1,27 @@
+# robots.txt for UEAB ODeL (odel.ueab.ac.ke)
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /private/
+
+# Allow important pages
+Allow: /courses
+Allow: /resources
+Allow: /about
+Allow: /contact
+Allow: /login
+Allow: /register
+Allow: /news
+Allow: /events
+
+# Sitemap location
+Sitemap: https://odel.ueab.ac.ke/sitemap.xml
+
+# Crawl delay (optional, in seconds)
+Crawl-delay: 1

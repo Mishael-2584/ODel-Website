@@ -161,7 +161,7 @@ export default function AboutPage() {
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="h-6 w-6 text-primary-600" />
-                  <span className="text-gray-700 font-medium">SDA Accrediting Association</span>
+                  <span className="text-gray-700 font-medium">AAA Accrediting Association</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="h-6 w-6 text-primary-600" />
@@ -169,7 +169,7 @@ export default function AboutPage() {
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="h-6 w-6 text-primary-600" />
-                  <span className="text-gray-700 font-medium">Advanced Learning Management System</span>
+                  <span className="text-gray-700 font-medium">Advanced Moodle Learning Management System</span>
                 </div>
               </div>
             </div>
@@ -454,18 +454,27 @@ export default function AboutPage() {
               <div className="text-center">
                 <div className="bg-white rounded-xl p-4 shadow-lg border border-purple-200">
                   <FaUsers className="h-6 w-6 text-purple-600 mx-auto mb-2" />
-                  <h5 className="font-semibold text-gray-900 text-sm">Felix Chepsiror</h5>
-                  <p className="text-gray-600 text-xs">E-learning Coordinator</p>
+                  <h5 className="font-semibold text-gray-900 text-sm">E-learning Coordinator</h5>
+                  <p className="text-gray-600 text-xs">Learning Management & Facilitation</p>
                 </div>
               </div>
             </div>
             
             {/* Sixth Level - Support */}
-            <div className="text-center">
-              <div className="inline-block bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl p-4 border border-orange-300">
-                <FaAward className="h-5 w-5 text-orange-600 mx-auto mb-2" />
-                <h5 className="font-semibold text-gray-900 text-sm">Brian Lelei</h5>
-                <p className="text-gray-600 text-xs">E-learning Support</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 justify-center mb-8">
+              <div className="text-center">
+                <div className="inline-block bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl p-4 border border-orange-300">
+                  <FaAward className="h-5 w-5 text-orange-600 mx-auto mb-2" />
+                  <h5 className="font-semibold text-gray-900 text-sm">Brian Lelei</h5>
+                  <p className="text-gray-600 text-xs">E-learning Support</p>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="inline-block bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-4 border border-blue-300">
+                  <FaAward className="h-5 w-5 text-blue-600 mx-auto mb-2" />
+                  <h5 className="font-semibold text-gray-900 text-sm">Mishael Gebre</h5>
+                  <p className="text-gray-600 text-xs">ODeL IT Technician</p>
+                </div>
               </div>
             </div>
           </div>

@@ -288,23 +288,11 @@ Source: Website Chatbot
       // Create a new article (reply) for the ticket
       const article = {
         ticket_id: ticketId,
-        subject: `Re: Live Chat Update`,
-        body: `
-Live Chat Reply
-
-User Information:
-- Name: ${replyData.userInfo.name}
-- Email: ${replyData.userInfo.email}
-- Phone: ${replyData.userInfo.phone}
-- Student ID: ${replyData.userInfo.studentId || 'Not provided'}
-
-Message:
-${replyData.message}
-
-This is a reply from the live chat system.
-        `,
+        subject: `Re: Live Chat`,
+        body: replyData.message,
         type: 'web',
         internal: false,
+        sender: 'Customer',
         from: replyData.userInfo.email,
         to: 'support@ueab.ac.ke'
       }
@@ -364,13 +352,25 @@ This is a reply from the live chat system.
 
       const articles = await articlesResponse.json()
       
-      // Filter for support replies (not from customer)
-      const supportReplies = articles.filter((article: any) => 
-        article.sender === 'Agent' && 
-        article.from !== ticket.customer_email &&
-        article.body && 
-        article.body.trim().length > 0
-      )
+      // Filter for support replies (not from customer and not initial ticket creation)
+      const supportReplies = articles.filter((article: any) => {
+        // Must be from an agent
+        if (article.sender !== 'Agent') return false
+        
+        // Skip the initial ticket creation article
+        if (article.body && article.body.includes('This ticket was created automatically by the UEAB ODeL chatbot')) return false
+        
+        // Skip customer replies (user's own messages)
+        if (article.sender === 'Customer') return false
+        
+        // Skip system-generated replies
+        if (article.body && (article.body.includes('Live Chat Reply') || article.body.includes('User Information:'))) return false
+        
+        // Must have actual content
+        if (!article.body || article.body.trim().length === 0) return false
+        
+        return true
+      })
 
       return { 
         success: true, 

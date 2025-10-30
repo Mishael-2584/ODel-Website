@@ -2,11 +2,14 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import Head from 'next/head'
+import { useState, useEffect } from 'react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import NewsSection from '@/components/NewsSection'
 import EventsSection from '@/components/EventsSection'
 import BlendedLearningSection from '@/components/BlendedLearningSection'
+import LoadingSpinner, { CardSkeleton } from '@/components/LoadingSpinner'
 import { 
   FaBook, FaUsers, FaCertificate, FaLaptop, FaChartLine, FaGlobe,
   FaPlay, FaClock, FaStar, FaArrowRight, FaGraduationCap, FaAward,
@@ -17,6 +20,31 @@ import {
 } from 'react-icons/fa'
 
 export default function Home() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    // Simulate loading time for demonstration
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+      setIsVisible(true)
+    }, 1500)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <LoadingSpinner 
+          size="xl" 
+          message="Loading UEAB ODeL Platform..." 
+          fullScreen 
+          variant="pulse"
+        />
+      </div>
+    )
+  }
   const schools = [
     {
       icon: FaBuilding,
@@ -164,7 +192,9 @@ export default function Home() {
       <Navbar />
       
       {/* Hero Banner Section with ODeL Building Background */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <section className={`relative min-h-screen flex items-center justify-center overflow-hidden ${
+        isVisible ? 'animate-fadeIn' : 'opacity-0'
+      }`}>
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -185,7 +215,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pt-2 sm:pt-4 md:pt-6 pb-24 sm:pb-20 md:pb-20 relative z-10 w-full mt-12">
           <div className="text-center text-white">
             {/* Badge */}
-            <div className="inline-flex items-center bg-gold-500/25 backdrop-blur-sm border border-gold-500/40 rounded-full px-2 sm:px-3 md:px-4 py-1 sm:py-2 md:py-3 mb-2 sm:mb-4 md:mb-6 shadow-lg">
+            <div className="inline-flex items-center bg-gold-500/25 backdrop-blur-sm border border-gold-500/40 rounded-full px-2 sm:px-3 md:px-4 py-1 sm:py-2 md:py-3 mb-2 sm:mb-4 md:mb-6 shadow-lg hover-lift">
               <span className="text-gold-200 text-xs sm:text-sm md:text-base font-semibold">🎓 Premier Open Distance eLearning Platform</span>
             </div>
             
@@ -203,11 +233,11 @@ export default function Home() {
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6 justify-center mb-8 sm:mb-10 md:mb-12 px-2 sm:px-4 md:px-6">
-              <Link href="/login" className="btn-gold inline-flex items-center justify-center group text-sm sm:text-base md:text-lg px-5 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 shadow-xl hover:shadow-2xl transition-all">
+              <Link href="/login" className="btn-gold inline-flex items-center justify-center group text-sm sm:text-base md:text-lg px-5 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 shadow-xl hover:shadow-2xl transition-all hover-scale">
                 <FaRocket className="mr-2 sm:mr-3 group-hover:rotate-12 transition-transform" />
                 Get Started Today
               </Link>
-              <Link href="/courses" className="btn-outline-white inline-flex items-center justify-center group text-sm sm:text-base md:text-lg px-5 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 shadow-xl hover:shadow-2xl transition-all">
+              <Link href="/courses" className="btn-outline-white inline-flex items-center justify-center group text-sm sm:text-base md:text-lg px-5 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 shadow-xl hover:shadow-2xl transition-all hover-scale">
                 <FaPlay className="mr-2 sm:mr-3 group-hover:scale-110 transition-transform" />
                 Explore Programs
               </Link>
@@ -215,7 +245,7 @@ export default function Home() {
             
             {/* Achievement Badges */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-sm sm:max-w-2xl md:max-w-4xl lg:max-w-5xl mx-auto mb-8 sm:mb-10 md:mb-12 px-2 sm:px-4 md:px-6">
-              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg">
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 border border-white/25 hover:bg-white/25 transition-all duration-300 group cursor-pointer shadow-lg hover-lift">
                 <div className="flex flex-col items-center space-y-1 sm:space-y-2">
                   <FaTrophy className="h-5 sm:h-6 md:h-8 w-5 sm:w-6 md:w-8 text-gold-300 group-hover:animate-bounce" />
                   <div className="text-center">

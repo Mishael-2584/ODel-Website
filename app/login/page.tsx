@@ -363,20 +363,26 @@ export default function LoginPage() {
 
               {/* ITS Support Info */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all h-fit">
-                <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2 text-sm">
-                  <FaKey className="text-blue-600" />
-                  No UEAB Email?
+                <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2 text-sm">
+                  <FaHeadset className="text-blue-600" />
+                  Need Technical Help?
                 </h3>
-                <p className="text-blue-800 text-xs mb-2">
-                  Visit ITS Office at Main Campus to get your credentials set up.
+                <p className="text-blue-800 text-xs mb-3 leading-relaxed">
+                  Having login issues or need credentials? Contact ITS Support or visit the ITS Office.
                 </p>
-                <a
-                  href="mailto:odel@ueab.ac.ke"
-                  className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-900 font-semibold text-xs transition-colors"
-                >
-                  <FaEnvelope className="text-blue-600" />
-                  Email ITS
-                </a>
+                <div className="space-y-2">
+                  <a
+                    href="mailto:support@ueab.ac.ke"
+                    className="flex items-center gap-2 text-blue-700 hover:text-blue-900 font-semibold text-xs transition-colors"
+                  >
+                    <FaEnvelope className="text-blue-600" />
+                    support@ueab.ac.ke
+                  </a>
+                  <p className="text-blue-700 text-xs flex items-center gap-2">
+                    <FaKey className="text-blue-600" />
+                    Visit ITS Office - Main Campus
+                  </p>
+                </div>
               </div>
 
               {/* Admin Login Link */}

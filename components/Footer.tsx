@@ -98,7 +98,7 @@ export default function Footer() {
             © {currentYear} University of Eastern Africa, Baraton. All Rights Reserved.
           </p>
           <div className="flex justify-center space-x-6 mt-4 text-sm">
-            <Link href="/privacy" className="text-gray-300 hover:text-gold-400 transition-colors">Privacy Policy</Link>
+            <Link href="/privacy-policy" className="text-gray-300 hover:text-gold-400 transition-colors">Privacy Policy</Link>
             <Link href="/terms" className="text-gray-300 hover:text-gold-400 transition-colors">Terms of Service</Link>
             <Link href="/accessibility" className="text-gray-300 hover:text-gold-400 transition-colors">Accessibility</Link>
           </div>

@@ -4,7 +4,7 @@ import { zammadService } from '@/lib/zammad'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { message, userInfo, category } = body
+    const { message, userInfo, category, ticketId } = body
 
     // Validate required fields
     if (!message || !userInfo?.email) {
@@ -64,8 +64,7 @@ export async function POST(request: NextRequest) {
       message: ticketId ? 'Reply added successfully' : 'Live chat ticket created successfully',
       userInfo: {
         name: userInfo.name,
-        email: userInfo.email,
-        phone: userInfo.phone
+        email: userInfo.email
       }
     })
 
