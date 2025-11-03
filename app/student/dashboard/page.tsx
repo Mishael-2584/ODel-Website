@@ -13,6 +13,7 @@ import {
   FaCalendarAlt,
   FaChartBar,
   FaClock 
+  FaBell
 } from 'react-icons/fa'
 
 interface StudentData {
@@ -42,6 +43,7 @@ export default function StudentDashboard() {
   const [eventModalDay, setEventModalDay] = useState<string>('')
   const [eventModalItems, setEventModalItems] = useState<any[]>([])
   const [teachingCourses, setTeachingCourses] = useState<any[]>([])
+  const [moodleAnnouncements, setMoodleAnnouncements] = useState<any[]>([])
   const router = useRouter()
 
   useEffect(() => {
@@ -60,11 +62,12 @@ export default function StudentDashboard() {
               console.log(`Fetching dashboard data for user ID: ${data.user.moodleUserId}`)
               
               // Fetch all data in PARALLEL, not sequentially
-              const [coursesResponse, calendarResponse, assignmentsResponse, gradesResponse] = await Promise.all([
+              const [coursesResponse, calendarResponse, assignmentsResponse, gradesResponse, announcementsResponse] = await Promise.all([
                 fetch(`/api/moodle?action=user-courses&userId=${data.user.moodleUserId}`),
                 fetch(`/api/moodle/calendar?userId=${data.user.moodleUserId}`),
                 fetch(`/api/moodle?action=assignments&userId=${data.user.moodleUserId}`),
-                fetch(`/api/moodle?action=user-grades&userId=${data.user.moodleUserId}`)
+                fetch(`/api/moodle?action=user-grades&userId=${data.user.moodleUserId}`),
+                fetch(`/api/moodle/announcements?userId=${data.user.moodleUserId}`)
               ])
 
               // Process courses
@@ -105,6 +108,12 @@ export default function StudentDashboard() {
               const gradesData = await gradesResponse.json()
               if (gradesData.success && gradesData.data) {
                 setGrades(gradesData.data)
+              }
+
+              // Process Moodle announcements
+              const announcementsData = await announcementsResponse.json()
+              if (announcementsData.success && announcementsData.data) {
+                setMoodleAnnouncements(announcementsData.data)
               }
 
               // Generate SSO login URL - NOW DONE ON-DEMAND WHEN BUTTON CLICKED
@@ -367,6 +376,59 @@ export default function StudentDashboard() {
                 </div>
               </div>
             </div>
+
+            {/* Moodle Announcements */}
+            {moodleAnnouncements.length > 0 && (
+              <div className="bg-white rounded-lg shadow p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <FaBell className="text-primary-600" />
+                    Course Announcements
+                  </h2>
+                  <span className="text-sm text-gray-500">{moodleAnnouncements.length} announcement(s)</span>
+                </div>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {moodleAnnouncements.slice(0, 5).map((announcement: any) => (
+                    <div
+                      key={announcement.id}
+                      className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                        announcement.is_pinned ? 'border-gold-300 bg-gold-50' : 'border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            {announcement.is_pinned && (
+                              <span className="px-2 py-1 bg-gold-500 text-white text-xs rounded">Pinned</span>
+                            )}
+                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                              {announcement.course_name}
+                            </span>
+                          </div>
+                          <h3 className="font-semibold text-gray-900 mb-1">{announcement.title}</h3>
+                          <p className="text-sm text-gray-600 line-clamp-2">{announcement.description}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+                        <span>By {announcement.author_name}</span>
+                        <span>
+                          {new Date(announcement.published_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {moodleAnnouncements.length > 5 && (
+                    <p className="text-center text-sm text-gray-500 pt-2">
+                      Showing 5 of {moodleAnnouncements.length} announcements
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Today summary */}
             {(() => {

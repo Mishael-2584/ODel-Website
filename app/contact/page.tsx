@@ -134,15 +134,15 @@ export default function ContactPage() {
     },
     {
       name: 'Student Affairs',
-      email: 'studentaffairs@ueab.ac.ke',
+      email: 'dos@ueab.ac.ke',
       phone: '+254 781 333 777',
       description: 'Student services, housing, and campus life'
     },
     {
-      name: 'Financial Aid',
-      email: 'financialaid@ueab.ac.ke',
+      name: 'Finance Office',
+      email: 'finance@ueab.ac.ke',
       phone: '+254 714 333 111',
-      description: 'Scholarships, financial assistance, and fee inquiries'
+      description: 'Fee payments, financial inquiries, and billing'
     },
     {
       name: 'ODeL Support',

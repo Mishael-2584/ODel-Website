@@ -63,6 +63,7 @@ export default function Navbar() {
       icon: FaTh,
       submenu: [
         { href: '/events', label: 'Events Calendar' },
+        { href: '/announcements', label: 'Announcements' },
         { href: '/about', label: 'About ODeL' },
         { href: '/news', label: 'News' },
       ]
