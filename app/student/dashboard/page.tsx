@@ -12,7 +12,7 @@ import {
   FaGraduationCap, 
   FaCalendarAlt,
   FaChartBar,
-  FaClock 
+  FaClock,
   FaBell
 } from 'react-icons/fa'
 
