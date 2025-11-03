@@ -502,27 +502,27 @@ export default function AboutPage() {
             <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-primary-500 via-gold-500 to-primary-500 rounded-full"></div>
             
             <div className="space-y-16">
-              {/* Milestone 1 */}
+              {/* Milestone 1 - Most Recent */}
               <div className="relative flex items-center">
                 <div className="w-1/2 pr-8 text-right">
                   <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 group">
                     <div className="flex items-center justify-end mb-4">
-                      <div className="bg-primary-100 p-3 rounded-full group-hover:scale-110 transition-transform">
-                        <FaBuilding className="h-8 w-8 text-primary-600" />
+                      <div className="bg-purple-100 p-3 rounded-full group-hover:scale-110 transition-transform">
+                        <FaCogs className="h-8 w-8 text-purple-600" />
                       </div>
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">Establishment of the Directorate</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">LMS Integration with UMIS & iCampus</h3>
                     <p className="text-gray-600 leading-relaxed mb-4">
-                      The ODeL Directorate was officially established, marking the beginning of UEAB's 
-                      comprehensive online learning transformation and strategic direction.
+                      Successfully integrated Learning Management System with University Management Information System (UMIS) 
+                      and iCampus, streamlining course registration and enrollment processes for seamless student experience.
                     </p>
-                    <div className="inline-flex items-center bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm font-semibold">
-                      2021
+                    <div className="inline-flex items-center bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
+                      Ongoing
                     </div>
                   </div>
                 </div>
                 
-                <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-primary-500 rounded-full border-4 border-white shadow-lg z-10"></div>
+                <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-purple-500 rounded-full border-4 border-white shadow-lg z-10"></div>
                 
                 <div className="w-1/2 pl-8"></div>
               </div>
@@ -531,32 +531,11 @@ export default function AboutPage() {
               <div className="relative flex items-center">
                 <div className="w-1/2 pr-8"></div>
                 
-                <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-gold-500 rounded-full border-4 border-white shadow-lg z-10"></div>
+                <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-green-500 rounded-full border-4 border-white shadow-lg z-10"></div>
                 
                 <div className="w-1/2 pl-8">
                   <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 group">
                     <div className="flex items-center mb-4">
-                      <div className="bg-gold-100 p-3 rounded-full group-hover:scale-110 transition-transform">
-                        <FaGraduationCap className="h-8 w-8 text-gold-600" />
-                      </div>
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">Opening of the E-learning Centre Building</h3>
-                    <p className="text-gray-600 leading-relaxed mb-4">
-                      State-of-the-art E-learning Centre Building opened, providing dedicated infrastructure 
-                      and modern facilities for online education delivery.
-                    </p>
-                    <div className="inline-flex items-center bg-gold-100 text-gold-800 px-3 py-1 rounded-full text-sm font-semibold">
-                      2022
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Milestone 3 */}
-              <div className="relative flex items-center">
-                <div className="w-1/2 pr-8 text-right">
-                  <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 group">
-                    <div className="flex items-center justify-end mb-4">
                       <div className="bg-green-100 p-3 rounded-full group-hover:scale-110 transition-transform">
                         <FaAward className="h-8 w-8 text-green-600" />
                       </div>
@@ -571,32 +550,53 @@ export default function AboutPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+              
+              {/* Milestone 3 */}
+              <div className="relative flex items-center">
+                <div className="w-1/2 pr-8 text-right">
+                  <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 group">
+                    <div className="flex items-center justify-end mb-4">
+                      <div className="bg-gold-100 p-3 rounded-full group-hover:scale-110 transition-transform">
+                        <FaGraduationCap className="h-8 w-8 text-gold-600" />
+                      </div>
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">Opening of the E-learning Centre Building</h3>
+                    <p className="text-gray-600 leading-relaxed mb-4">
+                      State-of-the-art E-learning Centre Building opened, providing dedicated infrastructure 
+                      and modern facilities for online education delivery.
+                    </p>
+                    <div className="inline-flex items-center bg-gold-100 text-gold-800 px-3 py-1 rounded-full text-sm font-semibold">
+                      2022
+                    </div>
+                  </div>
+                </div>
                 
-                <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-green-500 rounded-full border-4 border-white shadow-lg z-10"></div>
+                <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-gold-500 rounded-full border-4 border-white shadow-lg z-10"></div>
                 
                 <div className="w-1/2 pl-8"></div>
               </div>
               
-              {/* Milestone 4 */}
+              {/* Milestone 4 - Oldest */}
               <div className="relative flex items-center">
                 <div className="w-1/2 pr-8"></div>
                 
-                <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-purple-500 rounded-full border-4 border-white shadow-lg z-10"></div>
+                <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-primary-500 rounded-full border-4 border-white shadow-lg z-10"></div>
                 
                 <div className="w-1/2 pl-8">
                   <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 group">
                     <div className="flex items-center mb-4">
-                      <div className="bg-purple-100 p-3 rounded-full group-hover:scale-110 transition-transform">
-                        <FaCogs className="h-8 w-8 text-purple-600" />
+                      <div className="bg-primary-100 p-3 rounded-full group-hover:scale-110 transition-transform">
+                        <FaBuilding className="h-8 w-8 text-primary-600" />
                       </div>
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">LMS Integration with UMIS & iCampus</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">Establishment of the Directorate</h3>
                     <p className="text-gray-600 leading-relaxed mb-4">
-                      Successfully integrated Learning Management System with University Management Information System (UMIS) 
-                      and iCampus, streamlining course registration and enrollment processes for seamless student experience.
+                      The ODeL Directorate was officially established, marking the beginning of UEAB's 
+                      comprehensive online learning transformation and strategic direction.
                     </p>
-                    <div className="inline-flex items-center bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
-                      Ongoing
+                    <div className="inline-flex items-center bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm font-semibold">
+                      2021
                     </div>
                   </div>
                 </div>

@@ -390,7 +390,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="h-6 w-6 text-primary-600" />
-                  <span className="text-gray-700 font-medium">Seventh-day Adventist Accrediting Association</span>
+                  <span className="text-gray-700 font-medium">AAA Accrediting Association</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaCheckCircle className="h-6 w-6 text-primary-600" />
