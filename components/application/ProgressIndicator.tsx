@@ -1,13 +1,32 @@
 'use client'
 
 import { FaCheckCircle } from 'react-icons/fa'
+import { ApplicationType } from '@/lib/application-config'
 
 interface ProgressIndicatorProps {
   currentStep: number
+  applicationType: ApplicationType
 }
 
-export default function ProgressIndicator({ currentStep }: ProgressIndicatorProps) {
-  const steps = [
+export default function ProgressIndicator({ currentStep, applicationType }: ProgressIndicatorProps) {
+  // Determine if this is an undergraduate-type application
+  const isUndergraduateType = ['undergraduate', 'diploma', 'certificate'].includes(applicationType)
+  
+  // Undergraduate forms have different steps
+  const undergraduateSteps = [
+    { number: 1, label: 'Personal' },
+    { number: 2, label: 'Program' },
+    { number: 3, label: 'RPL & Needs' },
+    { number: 4, label: 'Family' },
+    { number: 5, label: 'Consent' },
+    { number: 6, label: 'Education' },
+    { number: 7, label: 'Payment' },
+    { number: 8, label: 'Documents' },
+    { number: 9, label: 'Review' },
+  ]
+  
+  // Graduate/PhD forms use original steps
+  const graduateSteps = [
     { number: 1, label: 'Personal' },
     { number: 2, label: 'Program' },
     { number: 3, label: 'Study Info' },
@@ -18,6 +37,8 @@ export default function ProgressIndicator({ currentStep }: ProgressIndicatorProp
     { number: 8, label: 'Documents' },
     { number: 9, label: 'Review' },
   ]
+  
+  const steps = isUndergraduateType ? undergraduateSteps : graduateSteps
 
   return (
     <section className="bg-white border-b py-6">

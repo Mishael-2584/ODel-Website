@@ -1,4 +1,4 @@
-export type ApplicationType = 'graduate' | 'phd' | 'pgda' | 'undergraduate' | 'diploma' | 'certificate'
+export type ApplicationType = 'graduate' | 'phd' | 'pgda' | 'pgde' | 'undergraduate' | 'diploma' | 'certificate'
 
 export interface ApplicationRequirements {
   fee: string
@@ -45,6 +45,22 @@ export const APPLICATION_CONFIG: Record<ApplicationType, ApplicationRequirements
     requiresKNQA: true,
   },
   pgda: {
+    fee: '2500',
+    documents: [
+      'Degree Certificate',
+      'Academic Transcripts',
+      'CV/Resume',
+      'Passport Photo',
+      'ID Card Copy',
+      'Birth Certificate',
+      'KNQA Certificate (if foreign)',
+    ],
+    requiresCV: true,
+    requires3Referees: true,
+    requiresKCSE: false,
+    requiresKNQA: true,
+  },
+  pgde: {
     fee: '2500',
     documents: [
       'Degree Certificate',
@@ -123,6 +139,7 @@ export const getProgramsForType = (type: ApplicationType): string[] => {
       ]
     case 'graduate':
     case 'pgda':
+    case 'pgde':
       return [
         'Master of Business Administration (MBA)',
         'Master of Science in Computer Science',
