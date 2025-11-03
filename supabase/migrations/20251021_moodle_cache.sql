@@ -4,7 +4,7 @@
 -- ============================================
 
 -- Main cache table for all Moodle data
-CREATE TABLE moodle_cache (
+CREATE TABLE IF NOT EXISTS moodle_cache (
   id BIGSERIAL PRIMARY KEY,
   cache_key TEXT UNIQUE NOT NULL,
   data JSONB NOT NULL,
@@ -18,14 +18,14 @@ CREATE TABLE moodle_cache (
 );
 
 -- Index for cache key lookup (fast retrieval)
-CREATE INDEX idx_moodle_cache_key ON moodle_cache(cache_key);
+CREATE INDEX IF NOT EXISTS idx_moodle_cache_key ON moodle_cache(cache_key);
 -- Index for expiry cleanup
-CREATE INDEX idx_moodle_cache_expires ON moodle_cache(expires_at);
+CREATE INDEX IF NOT EXISTS idx_moodle_cache_expires ON moodle_cache(expires_at);
 -- Index for finding stale data
-CREATE INDEX idx_moodle_cache_stale ON moodle_cache(is_stale, refresh_status);
+CREATE INDEX IF NOT EXISTS idx_moodle_cache_stale ON moodle_cache(is_stale, refresh_status);
 
 -- Background refresh tracking table
-CREATE TABLE moodle_cache_refresh_queue (
+CREATE TABLE IF NOT EXISTS moodle_cache_refresh_queue (
   id BIGSERIAL PRIMARY KEY,
   cache_key TEXT NOT NULL UNIQUE,
   reason TEXT DEFAULT 'ttl_expired',
@@ -38,11 +38,11 @@ CREATE TABLE moodle_cache_refresh_queue (
   FOREIGN KEY (cache_key) REFERENCES moodle_cache(cache_key) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_refresh_queue_status ON moodle_cache_refresh_queue(status);
-CREATE INDEX idx_refresh_queue_queued ON moodle_cache_refresh_queue(queued_at DESC);
+CREATE INDEX IF NOT EXISTS idx_refresh_queue_status ON moodle_cache_refresh_queue(status);
+CREATE INDEX IF NOT EXISTS idx_refresh_queue_queued ON moodle_cache_refresh_queue(queued_at DESC);
 
 -- Cache statistics table for monitoring
-CREATE TABLE moodle_cache_stats (
+CREATE TABLE IF NOT EXISTS moodle_cache_stats (
   id BIGSERIAL PRIMARY KEY,
   date DATE DEFAULT CURRENT_DATE,
   total_hits INTEGER DEFAULT 0,
@@ -55,44 +55,69 @@ CREATE TABLE moodle_cache_stats (
 );
 
 -- Enable RLS (accessible by app for caching, but can be public read for speed)
-ALTER TABLE moodle_cache ENABLE ROW LEVEL SECURITY;
-ALTER TABLE moodle_cache_refresh_queue ENABLE ROW LEVEL SECURITY;
-ALTER TABLE moodle_cache_stats ENABLE ROW LEVEL SECURITY;
+DO $$ 
+BEGIN
+  ALTER TABLE moodle_cache ENABLE ROW LEVEL SECURITY;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$ 
+BEGIN
+  ALTER TABLE moodle_cache_refresh_queue ENABLE ROW LEVEL SECURITY;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+DO $$ 
+BEGIN
+  ALTER TABLE moodle_cache_stats ENABLE ROW LEVEL SECURITY;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
 
 -- Policies: Allow public read for cached data (fast access)
+DROP POLICY IF EXISTS "Anyone can read moodle cache" ON moodle_cache;
 CREATE POLICY "Anyone can read moodle cache" ON moodle_cache
   FOR SELECT USING (true);
 
 -- Allow service role to INSERT/UPDATE/DELETE cache
+DROP POLICY IF EXISTS "Service role manages moodle cache" ON moodle_cache;
 CREATE POLICY "Service role manages moodle cache" ON moodle_cache
   FOR INSERT WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Service role updates moodle cache" ON moodle_cache;
 CREATE POLICY "Service role updates moodle cache" ON moodle_cache
   FOR UPDATE USING (true);
 
+DROP POLICY IF EXISTS "Service role deletes moodle cache" ON moodle_cache;
 CREATE POLICY "Service role deletes moodle cache" ON moodle_cache
   FOR DELETE USING (true);
 
 -- Refresh queue policies - allow service role full access
+DROP POLICY IF EXISTS "Public read refresh queue" ON moodle_cache_refresh_queue;
 CREATE POLICY "Public read refresh queue" ON moodle_cache_refresh_queue
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Service role insert refresh queue" ON moodle_cache_refresh_queue;
 CREATE POLICY "Service role insert refresh queue" ON moodle_cache_refresh_queue
   FOR INSERT WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Service role update refresh queue" ON moodle_cache_refresh_queue;
 CREATE POLICY "Service role update refresh queue" ON moodle_cache_refresh_queue
   FOR UPDATE USING (true);
 
+DROP POLICY IF EXISTS "Service role delete refresh queue" ON moodle_cache_refresh_queue;
 CREATE POLICY "Service role delete refresh queue" ON moodle_cache_refresh_queue
   FOR DELETE USING (true);
 
 -- Stats policies - allow service role to write
+DROP POLICY IF EXISTS "Anyone can view cache stats" ON moodle_cache_stats;
 CREATE POLICY "Anyone can view cache stats" ON moodle_cache_stats
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Service role manage cache stats" ON moodle_cache_stats;
 CREATE POLICY "Service role manage cache stats" ON moodle_cache_stats
   FOR INSERT WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Service role update cache stats" ON moodle_cache_stats;
 CREATE POLICY "Service role update cache stats" ON moodle_cache_stats
   FOR UPDATE USING (true);
 

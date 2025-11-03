@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Newspaper, Calendar, Bell, LogOut, Menu, X } from 'lucide-react';
+import { Newspaper, Calendar, Bell, FileText, LogOut, Menu, X } from 'lucide-react';
 import NewsManager from '@/components/admin/NewsManager';
 import EventsManager from '@/components/admin/EventsManager';
 import AnnouncementsManager from '@/components/admin/AnnouncementsManager';
+import ApplicationsManager from '@/components/admin/ApplicationsManager';
 import { useRouter } from 'next/navigation';
 
 export default function AdminDashboard() {
@@ -77,6 +78,7 @@ export default function AdminDashboard() {
     { id: 'news', label: 'News Management', icon: Newspaper },
     { id: 'events', label: 'Events Calendar', icon: Calendar },
     { id: 'announcements', label: 'Announcements', icon: Bell },
+    { id: 'applications', label: 'Student Applications', icon: FileText },
   ];
 
   return (
@@ -180,6 +182,7 @@ export default function AdminDashboard() {
           {activeTab === 'news' && <NewsManager />}
           {activeTab === 'events' && <EventsManager />}
           {activeTab === 'announcements' && <AnnouncementsManager />}
+          {activeTab === 'applications' && <ApplicationsManager />}
         </div>
       </main>
     </div>
