@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { 
   FaPlayCircle, FaPhone, FaBook, FaHeadset, FaMobileAlt, FaArrowRight,
-  FaBolt, FaCheckCircle
+  FaBolt, FaCheckCircle, FaVideo
 } from 'react-icons/fa'
 import { SiMoodle } from 'react-icons/si'
 
@@ -33,6 +33,7 @@ export default function BlendedLearningSection() {
 
   const features = [
     { icon: FaPhone, title: 'Live Interactive Sessions', desc: 'Real-time Zoom classes with expert instructors' },
+    { icon: FaVideo, title: 'Video Conference Facility', desc: 'State-of-the-art video conferencing at ODeL center' },
     { icon: SiMoodle, title: 'Moodle LMS', desc: 'Comprehensive course management & tracking' },
     { icon: FaBook, title: 'On-Demand Content', desc: 'Access lectures anytime, anywhere' },
     { icon: FaHeadset, title: '24/7 Support', desc: 'Dedicated student support team' }
@@ -83,7 +84,7 @@ export default function BlendedLearningSection() {
 
           {/* Quick Features */}
           <div className="space-y-4">
-            {features.slice(0, 4).map((feature, index) => (
+            {features.map((feature, index) => (
               <div key={index} className="bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-all duration-300 group cursor-pointer">
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 pt-1">

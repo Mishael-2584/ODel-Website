@@ -101,7 +101,7 @@ export default function AboutPage() {
             
             <p className="text-xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
               The Open Distance eLearning Center at University of Eastern Africa, Baraton - 
-              pioneering innovative online education delivery across East Africa and beyond. 
+              pioneering innovative online education delivery across East and Central Africa and beyond. 
               Transforming lives through accessible, flexible, and quality higher education.
             </p>
             
@@ -143,7 +143,7 @@ export default function AboutPage() {
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
                 Our center operates as an integral part of the University of Eastern Africa, Baraton, 
                 leveraging the institution's academic excellence while pioneering new methods of education 
-                delivery. We serve students across East Africa and beyond, breaking down geographical and 
+                delivery. We serve students across East and Central Africa and beyond, breaking down geographical and 
                 temporal barriers to higher education while maintaining the highest standards of academic rigor.
               </p>
               
@@ -344,7 +344,7 @@ export default function AboutPage() {
               </div>
               <p className="text-lg text-gray-700 leading-relaxed">
                 To provide accessible, quality higher education through innovative Open Distance eLearning 
-                that empowers students across East Africa and beyond to achieve their academic and professional 
+                that empowers students across East and Central Africa and beyond to achieve their academic and professional 
                 goals while fostering spiritual growth and service to humanity.
               </p>
             </div>
@@ -357,7 +357,7 @@ export default function AboutPage() {
                 <h3 className="text-2xl font-bold text-gray-900">Our Vision</h3>
               </div>
               <p className="text-lg text-gray-700 leading-relaxed">
-                To be the leading Open Distance eLearning platform in East Africa, recognized for excellence 
+                To be the leading Open Distance eLearning platform in East and Central Africa, recognized for excellence 
                 in education delivery, technological innovation, and the development of well-rounded graduates 
                 who make meaningful contributions to society.
               </p>

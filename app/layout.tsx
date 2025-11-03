@@ -18,8 +18,8 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: 'UEAB ODeL - Open Distance and eLearning | Baraton Online University',
-  description: 'UEAB ODeL (University of Eastern Africa, Baraton) offers accredited online degree programs. Flexible distance learning from Baraton University with 5 academic schools, experienced faculty, and internationally recognized qualifications. Study online from anywhere in Kenya and East Africa.',
-  keywords: 'UEAB ODeL, Baraton ODeL, UEAB online, Baraton online, University of Eastern Africa Baraton, UEAB distance learning, Baraton distance learning, online university Kenya, eLearning Kenya, UEAB courses, Baraton courses, accredited online degrees Kenya, flexible learning Kenya, online education East Africa, UEAB programs, Baraton programs, distance education Kenya, online bachelor degree Kenya, online masters Kenya, UEAB Eldoret, Baraton Eldoret',
+  description: 'UEAB ODeL (University of Eastern Africa, Baraton) offers accredited online degree programs. Flexible distance learning from Baraton University with 5 academic schools, experienced faculty, and internationally recognized qualifications. Study online from anywhere in Kenya and East and Central Africa.',
+  keywords: 'UEAB ODeL, Baraton ODeL, UEAB online, Baraton online, University of Eastern Africa Baraton, UEAB distance learning, Baraton distance learning, online university Kenya, eLearning Kenya, UEAB courses, Baraton courses, accredited online degrees Kenya, flexible learning Kenya, online education East and Central Africa, UEAB programs, Baraton programs, distance education Kenya, online bachelor degree Kenya, online masters Kenya, UEAB Eldoret, Baraton Eldoret',
   authors: [{ name: 'University of Eastern Africa, Baraton' }],
   creator: 'UEAB ODeL Development Team',
   publisher: 'University of Eastern Africa, Baraton',
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://odel.ueab.ac.ke',
     title: 'UEAB ODeL - Baraton Online University | Distance Learning Kenya',
-    description: 'Transform your future with flexible, accredited online learning from UEAB (Baraton University). Join 5,000+ students across East Africa studying online.',
+    description: 'Transform your future with flexible, accredited online learning from UEAB (Baraton University). Join 5,000+ students across East and Central Africa studying online.',
     siteName: 'UEAB ODeL - Baraton Online',
     images: [
       {

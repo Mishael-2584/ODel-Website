@@ -71,7 +71,7 @@ export function generatePageMetadata({
 
 // SEO keywords for different pages
 export const seoKeywords = {
-  home: 'UEAB ODeL, Baraton ODeL, UEAB online, Baraton online, University of Eastern Africa Baraton, UEAB distance learning, Baraton distance learning, online university Kenya, eLearning Kenya, accredited online degrees Kenya, flexible learning Kenya, online education East Africa, distance education Kenya, UEAB Eldoret, Baraton Eldoret',
+  home: 'UEAB ODeL, Baraton ODeL, UEAB online, Baraton online, University of Eastern Africa Baraton, UEAB distance learning, Baraton distance learning, online university Kenya, eLearning Kenya, accredited online degrees Kenya, flexible learning Kenya, online education East and Central Africa, distance education Kenya, UEAB Eldoret, Baraton Eldoret',
   
   courses: 'UEAB courses, Baraton courses, UEAB programs, Baraton programs, online degree programs Kenya, online bachelor degree Kenya, online masters Kenya, MBA online Kenya, education degree online, business degree online, health sciences online, UEAB course catalog, Baraton course catalog',
   

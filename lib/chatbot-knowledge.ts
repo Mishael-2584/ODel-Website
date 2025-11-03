@@ -271,19 +271,19 @@ export class UEABChatbotKnowledge {
 • Email: info@ueab.ac.ke
 
 **Admissions Office:**
-• Phone: +254 714 333 112
+• Phone: +254 714 333 111
 • Email: admissions@ueab.ac.ke
 
 **Academic Office:**
-• Phone: +254 714 333 113
+• Phone: +254 781 333 777
 • Email: academic@ueab.ac.ke
 
 **IT Support:**
-• Phone: +254 714 333 114
+• Phone: +254 714 333 111
 • Email: itsupport@ueab.ac.ke
 
 **Student Services:**
-• Phone: +254 714 333 115
+• Phone: +254 781 333 777
 • Email: studentservices@ueab.ac.ke
 
 **Office Hours:**
@@ -291,7 +291,7 @@ export class UEABChatbotKnowledge {
 • Saturday: 9:00 AM - 1:00 PM
 • Sunday: Closed
 
-**Emergency Contact:** +254 714 333 999`,
+**Emergency Contact:** +254 714 333 111`,
         quickReplies: ['Admissions Contact', 'Academic Contact', 'IT Support', 'Student Services'],
         category: 'contact',
         priority: 1

@@ -24,20 +24,24 @@ export default function Footer() {
               Empowering students with quality education accessible anywhere, anytime.
             </p>
             <div className="flex space-x-4 mt-4">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" 
-                 className="bg-primary-700 hover:bg-gold-500 p-2 rounded-full transition-colors">
+              <a href="https://www.facebook.com/baratonuniversity/" target="_blank" rel="noopener noreferrer" 
+                 className="bg-primary-700 hover:bg-gold-500 p-2 rounded-full transition-colors"
+                 aria-label="Follow us on Facebook">
                 <FaFacebook className="h-5 w-5" />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer"
-                 className="bg-primary-700 hover:bg-gold-500 p-2 rounded-full transition-colors">
+              <a href="https://twitter.com/UEABofficial" target="_blank" rel="noopener noreferrer"
+                 className="bg-primary-700 hover:bg-gold-500 p-2 rounded-full transition-colors"
+                 aria-label="Follow us on Twitter">
                 <FaTwitter className="h-5 w-5" />
               </a>
               <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer"
-                 className="bg-primary-700 hover:bg-gold-500 p-2 rounded-full transition-colors">
+                 className="bg-primary-700 hover:bg-gold-500 p-2 rounded-full transition-colors"
+                 aria-label="Follow us on LinkedIn">
                 <FaLinkedin className="h-5 w-5" />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer"
-                 className="bg-primary-700 hover:bg-gold-500 p-2 rounded-full transition-colors">
+              <a href="https://www.instagram.com/ueabofficial/" target="_blank" rel="noopener noreferrer"
+                 className="bg-primary-700 hover:bg-gold-500 p-2 rounded-full transition-colors"
+                 aria-label="Follow us on Instagram">
                 <FaInstagram className="h-5 w-5" />
               </a>
             </div>

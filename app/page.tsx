@@ -373,14 +373,14 @@ export default function Home() {
               </div>
               
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                Pioneering Open Distance eLearning in East Africa
+                Pioneering Open Distance eLearning in East and Central Africa
               </h2>
               
               <p className="text-lg text-gray-600 mb-8 leading-relaxed">
                 The University of Eastern Africa, Baraton (UEAB) is a leading Seventh-day Adventist institution committed to 
                 providing quality education through innovative Open Distance eLearning (ODeL) programs. Our ODeL platform 
                 combines academic excellence with technological innovation, making higher education accessible to students 
-                across East Africa and beyond, regardless of geographical or time constraints.
+                across East and Central Africa and beyond, regardless of geographical or time constraints.
               </p>
               
               <div className="grid grid-cols-2 gap-6 mb-8">
@@ -642,8 +642,8 @@ export default function Home() {
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaPhone className="h-6 w-6 text-primary-600" />
-                  <a href="tel:+254722000000" className="text-gray-700 font-medium hover:underline">
-                    +254 722 000 000
+                  <a href="tel:+254714333111" className="text-gray-700 font-medium hover:underline">
+                    +254 714 333 111
                   </a>
                 </div>
                 <div className="flex items-center space-x-3">

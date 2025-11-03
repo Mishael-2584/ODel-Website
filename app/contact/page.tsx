@@ -129,31 +129,31 @@ export default function ContactPage() {
     {
       name: 'Academic Affairs',
       email: 'academic@ueab.ac.ke',
-      phone: '+254 714 333 112',
+      phone: '+254 714 333 111',
       description: 'Academic programs, course registration, and academic policies'
     },
     {
       name: 'Student Affairs',
       email: 'studentaffairs@ueab.ac.ke',
-      phone: '+254 714 333 113',
+      phone: '+254 781 333 777',
       description: 'Student services, housing, and campus life'
     },
     {
       name: 'Financial Aid',
       email: 'financialaid@ueab.ac.ke',
-      phone: '+254 714 333 114',
+      phone: '+254 714 333 111',
       description: 'Scholarships, financial assistance, and fee inquiries'
     },
     {
       name: 'ODeL Support',
       email: 'odel@ueab.ac.ke',
-      phone: '+254 714 333 115',
+      phone: '+254 714 333 111',
       description: 'Technical support for online learning platform'
     },
     {
       name: 'Library Services',
       email: 'library@ueab.ac.ke',
-      phone: '+254 714 333 116',
+      phone: '+254 781 333 777',
       description: 'Library resources, research support, and digital access'
     }
   ]
