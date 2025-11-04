@@ -455,7 +455,7 @@ export default function StudentDashboard() {
                     {todays.map((e: any, i: number) => (
                       <div key={i} className="border rounded p-3">
                         <div className="flex items-start justify-between gap-4">
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">{e.eventtype || e.module}</div>
                             <div className="font-semibold text-gray-900 truncate">{e.name || 'Event'}</div>
                             {e.coursename && (
@@ -466,7 +466,20 @@ export default function StudentDashboard() {
                               <div className="text-xs text-gray-500 mt-2 line-clamp-2" dangerouslySetInnerHTML={{ __html: e.description }} />
                             )}
                           </div>
-                          <div className="shrink-0">
+                          <div className="shrink-0 flex items-center gap-2">
+                            {e.isZoom && e.zoomLink && (
+                              <a 
+                                href={e.zoomLink} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded flex items-center gap-1"
+                              >
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                                </svg>
+                                Join Zoom
+                              </a>
+                            )}
                             <button onClick={() => openMoodleUrl(e.url)} className="text-sm bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded">
                               {e.url ? 'Open activity' : 'Open Moodle'}
                             </button>
@@ -632,9 +645,20 @@ export default function StudentDashboard() {
                                     setEventModalItems(dayEvents)
                                     setEventModalOpen(true)
                                   }}
-                                  className="w-full text-left text-[11px] bg-primary-50 hover:bg-primary-100 text-primary-800 rounded px-1 py-0.5 truncate"
+                                  className={`w-full text-left text-[11px] rounded px-1 py-0.5 truncate flex items-center gap-1 ${
+                                    e.isZoom 
+                                      ? 'bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200' 
+                                      : 'bg-primary-50 hover:bg-primary-100 text-primary-800'
+                                  }`}
                                 >
-                                  {e.eventtype ? `${e.eventtype}: ` : ''}{e.name || 'Event'}
+                                  {e.isZoom && (
+                                    <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                      <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                                    </svg>
+                                  )}
+                                  <span className="truncate">
+                                    {e.eventtype ? `${e.eventtype}: ` : ''}{e.name || 'Event'}
+                                  </span>
                                 </button>
                               ))
                             )}
@@ -657,18 +681,31 @@ export default function StudentDashboard() {
                     {eventModalItems.map((e: any, i: number) => (
                       <div key={i} className="border rounded p-3">
                         <div className="flex items-start justify-between">
-                          <div>
+                          <div className="flex-1">
                             <div className="font-semibold">{e.name || 'Event'}</div>
                             <div className="text-xs text-gray-500">{e.eventtype || e.module}</div>
                             {e.coursename && (
                               <div className="text-xs text-gray-500">Course: {e.coursename}</div>
                             )}
                             <div className="text-xs text-gray-600 mt-1">{new Date((e.timestart || e.timesort) * 1000).toLocaleString()}</div>
-                              </div>
-                          <div className="flex items-center gap-2">
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {e.isZoom && e.zoomLink && (
+                              <a 
+                                href={e.zoomLink} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded flex items-center gap-1"
+                              >
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                                </svg>
+                                Join Zoom
+                              </a>
+                            )}
                             <button onClick={() => openMoodleUrl(e.url)} className="text-sm bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded">
                               {e.url ? 'Open activity' : 'Open Moodle'}
-                              </button>
+                            </button>
                           </div>
                         </div>
                       </div>

@@ -1366,7 +1366,51 @@ class MoodleService {
     }
   }
 
-  // Get course content/resources
+  // Extract Zoom join link from calendar event URL
+  async extractZoomLinkFromEvent(event: any): Promise<string | null> {
+    try {
+      // If the event is a Zoom activity, extract the join link
+      if (event.module === 'zoom' || event.modulename === 'zoom') {
+        // If we have a course ID and URL, use it directly or construct Zoom join URL
+        if (event.courseid && event.url) {
+          // Extract module ID from URL if possible
+          const instanceMatch = event.url.match(/id=(\d+)/)
+          if (instanceMatch) {
+            const cmid = instanceMatch[1]
+            
+            // Try to fetch course contents to get the actual Zoom meeting details
+            try {
+              const contents = await this.getCourseContents(event.courseid)
+              for (const section of contents) {
+                if (section.modules) {
+                  for (const module of section.modules) {
+                    if (module.modname === 'zoom' && module.id === parseInt(cmid)) {
+                      // Return the module URL which will redirect to Zoom join page
+                      return module.url || event.url
+                    }
+                  }
+                }
+              }
+            } catch (err) {
+              console.warn('Could not fetch course contents for Zoom link:', err)
+            }
+            
+            // Fallback: return the event URL which will redirect to Moodle Zoom activity
+            return event.url
+          }
+        }
+        
+        // If we have a URL, return it (it will redirect to Zoom join page)
+        return event.url || null
+      }
+      
+      return null
+    } catch (error) {
+      console.error('Error extracting Zoom link:', error)
+      return null
+    }
+  }
+
   async getCourseContents(courseId: number): Promise<any[]> {
     try {
       const params = new URLSearchParams({

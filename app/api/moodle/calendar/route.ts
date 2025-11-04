@@ -142,21 +142,39 @@ export async function GET(request: NextRequest) {
     })
 
     // Merge and normalize simple shape
-    const normalize = (e: any) => ({
-      id: e.id,
-      name: e.name || e.eventname || e.description || 'Event',
-      courseid: e.course?.id || e.courseid || null,
-      module: e.modulename || e.component || null,
-      eventtype: e.eventtype || e.category || null,
-      timesort: e.timesort || e.timestart || e.timeusermidnight || null,
-      timestart: e.timestart || e.timesort || null,
-      url: e.url || e.viewurl || null,
-      coursename: (() => { const cid = e.course?.id || e.courseid; return cid ? (courseMap.get(cid) || e.coursename || null) : (e.coursename || null) })()
-    })
+    const normalize = async (e: any) => {
+      const baseEvent = {
+        id: e.id,
+        name: e.name || e.eventname || e.description || 'Event',
+        courseid: e.course?.id || e.courseid || null,
+        module: e.modulename || e.component || null,
+        eventtype: e.eventtype || e.category || null,
+        timesort: e.timesort || e.timestart || e.timeusermidnight || null,
+        timestart: e.timestart || e.timesort || null,
+        url: e.url || e.viewurl || null,
+        coursename: (() => { const cid = e.course?.id || e.courseid; return cid ? (courseMap.get(cid) || e.coursename || null) : (e.coursename || null) })()
+      }
+      
+      // If this is a Zoom event, extract the Zoom join link
+      if (baseEvent.module === 'zoom') {
+        const zoomLink = await moodleService.extractZoomLinkFromEvent(baseEvent)
+        return {
+          ...baseEvent,
+          zoomLink: zoomLink || null,
+          isZoom: true
+        }
+      }
+      
+      return baseEvent
+    }
 
+    // Normalize events (async for Zoom links)
+    const normalizedActionEvents = await Promise.all(actionEvents.map(normalize))
+    const normalizedCoreEvents = await Promise.all(coreEvents.map(normalize))
+    
     const merged = [
-      ...actionEvents.map(normalize),
-      ...coreEvents.map(normalize),
+      ...normalizedActionEvents,
+      ...normalizedCoreEvents,
       ...assignmentEvents
     ]
 
