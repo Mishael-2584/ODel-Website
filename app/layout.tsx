@@ -18,7 +18,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: {
-    default: 'UEAB - University of Eastern Africa Baraton | ODeL Online Learning Kenya',
+    default: 'UEAB | ODeL Online Learning',
     template: '%s | UEAB ODeL'
   },
   description: 'UEAB (University of Eastern Africa, Baraton) - Premier ODeL platform in Kenya. Accredited online degrees, distance learning programs, flexible education. Study Business, Education, Health Sciences, Science & Technology at UEAB. Open Distance eLearning from a leading Kenyan university.',
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     locale: 'en_KE',
     alternateLocale: ['en_US', 'sw_KE'],
     url: 'https://odel.ueab.ac.ke',
-    title: 'UEAB - University of Eastern Africa Baraton | ODeL Online Learning',
+    title: 'UEAB - UEAB| ODeL Online Learning',
     description: 'UEAB (University of Eastern Africa, Baraton) offers accredited ODeL programs in Kenya. Join 5,000+ students in flexible online learning. Business, Education, Health Sciences, Science & Technology degrees available.',
     siteName: 'UEAB ODeL',
     images: [
@@ -93,6 +93,26 @@ export const metadata: Metadata = {
   },
   verification: {
     google: 'EgW8YBHOPg0SQwiif-r_TqXuj_V9QAxFMUGC-KUAGEg',
+  },
+  icons: {
+    icon: [
+      { url: '/favicon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/favicon/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/favicon/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/favicon/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    shortcut: '/favicon/favicon.ico',
+    other: [
+      {
+        rel: 'mask-icon',
+        url: '/favicon/safari-pinned-tab.svg',
+        color: '#1e3a8a',
+      },
+    ],
   },
 }
 
@@ -311,6 +331,18 @@ export default function RootLayout({
   return (
     <html lang="en-KE" className="scroll-smooth">
       <head>
+        {/* Favicon Links - Comprehensive favicon support */}
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="96x96" href="/favicon/favicon-96x96.png" />
+        <link rel="shortcut icon" href="/favicon/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+        <link rel="manifest" href="/favicon/site.webmanifest" />
+        <link rel="mask-icon" href="/favicon/safari-pinned-tab.svg" color="#1e3a8a" />
+        <meta name="msapplication-TileColor" content="#1e3a8a" />
+        <meta name="msapplication-config" content="/favicon/browserconfig.xml" />
+        <meta name="theme-color" content="#1e3a8a" />
+        
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationData) }}
