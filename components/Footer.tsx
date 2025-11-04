@@ -99,7 +99,10 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-primary-700 mt-8 pt-8 text-center">
           <p className="text-gray-300 text-sm">
-            © {currentYear} University of Eastern Africa, Baraton. All Rights Reserved.
+            © {currentYear} University of Eastern Africa, Baraton (UEAB) ODeL. All Rights Reserved.
+          </p>
+          <p className="text-gray-400 text-xs mt-2">
+            In collaboration with Mishael Gebre
           </p>
           <div className="flex justify-center space-x-6 mt-4 text-sm">
             <Link href="/privacy-policy" className="text-gray-300 hover:text-gold-400 transition-colors">Privacy Policy</Link>
