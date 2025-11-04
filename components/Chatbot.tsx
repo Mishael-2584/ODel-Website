@@ -939,6 +939,16 @@ export default function Chatbot({ onEscalateToHelpdesk }: ChatbotProps) {
                 <FaTicketAlt className="inline h-3 w-3 mr-1" />
                 Support
               </button>
+              {/* Close Chat Button - Always available when there's an active conversation */}
+              {currentTicketId && isPolling && (
+                <button
+                  onClick={() => handleQuickReply('Close Chat')}
+                  className="text-xs bg-red-50 text-red-600 px-3 py-1 rounded-full hover:bg-red-100 transition-colors border border-red-200"
+                >
+                  <FaTimes className="inline h-3 w-3 mr-1" />
+                  Close Chat
+                </button>
+              )}
             </div>
           </div>
         </div>
