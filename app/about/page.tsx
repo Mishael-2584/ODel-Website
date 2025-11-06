@@ -329,28 +329,103 @@ export default function AboutPage() {
               className="relative"
               variants={fadeInRight}
             >
-              {/* Placeholder for UEAB campus images */}
+              {/* UEAB campus images gallery */}
               <div className="grid grid-cols-2 gap-4">
-                {[
-                  { icon: FaUniversity, title: 'Main Campus', desc: 'Beautiful campus images will be displayed here', color: 'from-primary-100 to-gold-100', border: 'border-primary-300', iconColor: 'text-primary-400' },
-                  { icon: FaBuilding, title: 'Academic Buildings', desc: 'Modern facilities and classrooms', color: 'from-gold-100 to-primary-100', border: 'border-gold-300', iconColor: 'text-gold-400' },
-                  { icon: FaUsers, title: 'Student Life', desc: 'Campus activities and events', color: 'from-green-100 to-blue-100', border: 'border-green-300', iconColor: 'text-green-400' },
-                  { icon: FaGraduationCap, title: 'Graduation', desc: 'Commencement ceremonies', color: 'from-purple-100 to-red-100', border: 'border-purple-300', iconColor: 'text-purple-400' }
-                ].map((item, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: idx * 0.1, duration: 0.5 }}
-                    whileHover={{ scale: 1.05, rotate: 2 }}
-                    className={`bg-gradient-to-br ${item.color} rounded-2xl p-6 text-center border-2 border-dashed ${item.border} hover:shadow-xl transition-shadow duration-300`}
-                  >
-                    <item.icon className={`h-16 w-16 ${item.iconColor} mx-auto mb-3`} />
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">{item.title}</h3>
-                    <p className="text-gray-600 text-sm">{item.desc}</p>
-                  </motion.div>
-                ))}
+                {/* Main Campus - Church */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0, duration: 0.5 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="bg-gradient-to-br from-primary-100 to-gold-100 rounded-2xl overflow-hidden border-2 border-dashed border-primary-300 hover:shadow-xl transition-shadow duration-300 group cursor-pointer"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <Image
+                      src="/images/campus/church.jpg"
+                      alt="UEAB Main Campus - Church"
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <h3 className="text-lg font-semibold text-white mb-1">Main Campus</h3>
+                      <p className="text-white/90 text-xs">Beautiful campus images</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Academic Buildings - ODeL Building */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1, duration: 0.5 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="bg-gradient-to-br from-gold-100 to-primary-100 rounded-2xl overflow-hidden border-2 border-dashed border-gold-300 hover:shadow-xl transition-shadow duration-300 group cursor-pointer"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <Image
+                      src="/images/campus/ODeLbuilding.jpg"
+                      alt="UEAB ODeL Academic Building"
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <h3 className="text-lg font-semibold text-white mb-1">Academic Buildings</h3>
+                      <p className="text-white/90 text-xs">Modern facilities and classrooms</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Student Life */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl overflow-hidden border-2 border-dashed border-green-300 hover:shadow-xl transition-shadow duration-300 group cursor-pointer"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <Image
+                      src="/images/students/studentife.jpg"
+                      alt="UEAB Student Life"
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <h3 className="text-lg font-semibold text-white mb-1">Student Life</h3>
+                      <p className="text-white/90 text-xs">Campus activities and events</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Graduation */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="bg-gradient-to-br from-purple-100 to-red-100 rounded-2xl overflow-hidden border-2 border-dashed border-purple-300 hover:shadow-xl transition-shadow duration-300 group cursor-pointer"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <Image
+                      src="/images/events/graduation.jpg"
+                      alt="UEAB Graduation Ceremony"
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <h3 className="text-lg font-semibold text-white mb-1">Graduation</h3>
+                      <p className="text-white/90 text-xs">Commencement ceremonies</p>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
             </motion.div>
           </div>
