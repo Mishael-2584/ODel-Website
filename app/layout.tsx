@@ -96,6 +96,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: '/favicon.ico', sizes: 'any' }, // Root favicon for Google Search
       { url: '/favicon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
       { url: '/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
       { url: '/favicon/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
@@ -105,7 +106,7 @@ export const metadata: Metadata = {
     apple: [
       { url: '/favicon/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
-    shortcut: '/favicon/favicon.ico',
+    shortcut: '/favicon.ico', // Root favicon for Google Search
     other: [
       {
         rel: 'mask-icon',
@@ -347,10 +348,12 @@ export default function RootLayout({
     <html lang="en-KE" className="scroll-smooth">
       <head>
         {/* Favicon Links - Comprehensive favicon support */}
+        {/* Root favicon.ico - REQUIRED for Google Search Results */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="96x96" href="/favicon/favicon-96x96.png" />
-        <link rel="shortcut icon" href="/favicon/favicon.ico" />
+        <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
         <link rel="manifest" href="/favicon/site.webmanifest" />
         <link rel="mask-icon" href="/favicon/safari-pinned-tab.svg" color="#1e3a8a" />

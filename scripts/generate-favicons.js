@@ -73,17 +73,22 @@ async function generateFavicons() {
     }
   }
   
-  // Generate favicon.ico (use 32x32 PNG as ICO - browsers accept this)
+  // Generate favicon.ico (use 48x48 PNG as ICO - Google requires minimum 48x48 for search results)
   try {
     await sharp(logoPath)
-      .resize(32, 32, {
+      .resize(48, 48, {
         fit: 'contain',
         background: { r: 255, g: 255, b: 255, alpha: 0 }
       })
       .png()
       .toFile(path.join(FAVICON_DIR, 'favicon.ico'));
     
-    console.log('✓ Generated favicon.ico (PNG format, compatible with all browsers)');
+    console.log('✓ Generated favicon.ico (48x48 PNG format, Google Search compatible)');
+    
+    // Also copy to root for Google Search Console
+    const rootFavicon = path.join(__dirname, '..', 'public', 'favicon.ico');
+    fs.copyFileSync(path.join(FAVICON_DIR, 'favicon.ico'), rootFavicon);
+    console.log('✓ Copied favicon.ico to root (public/favicon.ico)');
   } catch (error) {
     console.error('✗ Failed to generate favicon.ico:', error.message);
   }
