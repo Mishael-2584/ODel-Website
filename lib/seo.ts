@@ -71,19 +71,19 @@ export function generatePageMetadata({
 
 // SEO keywords for different pages
 export const seoKeywords = {
-  home: 'UEAB ODeL, Baraton ODeL, UEAB online, Baraton online, University of Eastern Africa Baraton, UEAB distance learning, Baraton distance learning, online university Kenya, eLearning Kenya, accredited online degrees Kenya, flexible learning Kenya, online education East and Central Africa, distance education Kenya, UEAB Eldoret, Baraton Eldoret',
+  home: 'ODeL, ODeL Kenya, odel, odel kenya, Open Distance eLearning Kenya, UEAB ODeL, Baraton ODeL, UEAB online, Baraton online, University of Eastern Africa Baraton, UEAB distance learning, Baraton distance learning, online university Kenya, eLearning Kenya, accredited online degrees Kenya, flexible learning Kenya, online education East and Central Africa, distance education Kenya, UEAB Eldoret, Baraton Eldoret, odel platform Kenya, odel university Kenya, best odel Kenya',
   
-  courses: 'UEAB courses, Baraton courses, UEAB programs, Baraton programs, online degree programs Kenya, online bachelor degree Kenya, online masters Kenya, MBA online Kenya, education degree online, business degree online, health sciences online, UEAB course catalog, Baraton course catalog',
+  courses: 'ODeL courses Kenya, odel courses, UEAB courses, Baraton courses, UEAB programs, Baraton programs, online degree programs Kenya, online bachelor degree Kenya, online masters Kenya, MBA online Kenya, education degree online, business degree online, health sciences online, UEAB course catalog, Baraton course catalog',
   
-  resources: 'UEAB library, Baraton library, online library Kenya, e-resources Kenya, academic resources, digital library, MyLOFT, OPAC, e-books Kenya, academic journals Kenya, research resources, student resources UEAB, student resources Baraton',
+  resources: 'ODeL resources Kenya, UEAB library, Baraton library, online library Kenya, e-resources Kenya, academic resources, digital library, MyLOFT, OPAC, e-books Kenya, academic journals Kenya, research resources, student resources UEAB, student resources Baraton',
   
-  about: 'about UEAB, about Baraton, University of Eastern Africa Baraton, UEAB history, Baraton history, accredited university Kenya, CUE accredited, Seventh-day Adventist university, Christian university Kenya, UEAB campus, Baraton campus',
+  about: 'ODeL Kenya, about ODeL, about UEAB, about Baraton, University of Eastern Africa Baraton, UEAB history, Baraton history, accredited university Kenya, CUE accredited, Seventh-day Adventist university, Christian university Kenya, UEAB campus, Baraton campus, odel platform Kenya',
   
-  contact: 'contact UEAB, contact Baraton, UEAB ODeL contact, Baraton ODeL contact, UEAB Eldoret, Baraton Eldoret, university contact Kenya, admissions contact, student support contact',
+  contact: 'ODeL contact Kenya, contact UEAB, contact Baraton, UEAB ODeL contact, Baraton ODeL contact, UEAB Eldoret, Baraton Eldoret, university contact Kenya, admissions contact, student support contact',
   
-  login: 'UEAB student portal, Baraton student portal, UEAB login, Baraton login, student login, eLearning portal, Moodle login, online learning platform',
+  login: 'ODeL login Kenya, UEAB student portal, Baraton student portal, UEAB login, Baraton login, student login, eLearning portal, Moodle login, online learning platform',
   
-  register: 'apply UEAB, apply Baraton, UEAB admissions, Baraton admissions, online university application Kenya, distance learning application, register online university, enroll UEAB, enroll Baraton',
+  register: 'ODeL application Kenya, apply UEAB, apply Baraton, UEAB admissions, Baraton admissions, online university application Kenya, distance learning application, register online university, enroll UEAB, enroll Baraton',
 }
 
 // Structured data generators
@@ -92,10 +92,10 @@ export function generateOrganizationSchema() {
     '@context': 'https://schema.org',
     '@type': 'EducationalOrganization',
     name: 'UEAB ODeL - University of Eastern Africa, Baraton',
-    alternateName: ['Baraton ODeL', 'UEAB Online', 'Baraton Online'],
+    alternateName: ['Baraton ODeL', 'UEAB Online', 'Baraton Online', 'ODeL Kenya', 'ODeL Platform Kenya', 'UEAB ODeL Kenya'],
     url: baseUrl,
     logo: 'https://ueab.ac.ke/wp-content/uploads/2025/03/logo-2.png',
-    description: 'Premier Open Distance and eLearning platform offering accredited online degree programs from University of Eastern Africa, Baraton',
+    description: 'ODeL Kenya - Premier Open Distance and eLearning platform offering accredited online degree programs from University of Eastern Africa, Baraton. Leading ODeL platform in Kenya.',
     address: {
       '@type': 'PostalAddress',
       streetAddress: 'P.O. Box 2500',
@@ -104,18 +104,24 @@ export function generateOrganizationSchema() {
       postalCode: '30100',
       addressCountry: 'KE',
     },
+    areaServed: {
+      '@type': 'Country',
+      name: 'Kenya',
+    },
     contactPoint: {
       '@type': 'ContactPoint',
       telephone: '+254 714 333 111',
       contactType: 'customer service',
       email: 'odel@ueab.ac.ke',
       availableLanguage: ['English'],
+      areaServed: 'KE',
     },
     sameAs: [
       'https://ueab.ac.ke',
       'https://www.facebook.com/UEAB.official',
       'https://twitter.com/UEAB_Kenya',
     ],
+    keywords: 'ODeL, ODeL Kenya, odel, odel kenya, Open Distance eLearning Kenya, online university Kenya, distance learning Kenya',
   }
 }
 

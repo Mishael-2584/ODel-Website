@@ -552,14 +552,14 @@ export default function Home() {
               >
                 Pioneering Open Distance eLearning in East and Central Africa
               </motion.h2>
-              
+
               <motion.p 
                 variants={staggerItem}
                 className="text-lg text-gray-600 mb-8 leading-relaxed"
               >
-                The University of Eastern Africa, Baraton (UEAB) is a leading Seventh-day Adventist institution committed to 
-                providing quality education through innovative Open Distance eLearning (ODeL) programs. Our ODeL platform 
-                combines academic excellence with technological innovation, making higher education accessible to students 
+                The University of Eastern Africa, Baraton (UEAB) is a leading Seventh-day Adventist institution committed to
+                providing quality education through innovative Open Distance eLearning (ODeL) programs. Our ODeL platform
+                combines academic excellence with technological innovation, making higher education accessible to students
                 across East and Central Africa and beyond, regardless of geographical or time constraints.
               </motion.p>
               

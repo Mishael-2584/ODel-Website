@@ -18,28 +18,28 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: {
-    default: 'UEAB | ODeL Online Learning',
+    default: 'UEAB ODeL | Open Distance eLearning',
     template: '%s | UEAB ODeL'
   },
-  description: 'UEAB (University of Eastern Africa, Baraton) - Premier ODeL platform in Kenya. Accredited online degrees, distance learning programs, flexible education. Study Business, Education, Health Sciences, Science & Technology at UEAB. Open Distance eLearning from a leading Kenyan university.',
+  description: 'ODeL Kenya - UEAB (University of Eastern Africa, Baraton) offers premier Open Distance eLearning in Kenya. Accredited online degrees, distance learning programs, flexible education. Study Business, Education, Health Sciences, Science & Technology at UEAB ODeL. Leading ODeL platform in Kenya.',
   keywords: [
-    // Primary branded keywords
-    'UEAB', 'University of Eastern Africa Baraton', 'Baraton University', 'UEAB Kenya',
-    // ODeL specific
-    'ODeL', 'ODeL Kenya', 'Open Distance eLearning', 'UEAB ODeL', 'Baraton ODeL',
+    // Primary ODeL keywords (most important for "odel" and "odel kenya" searches)
+    'ODeL', 'ODeL Kenya', 'odel', 'odel kenya', 'Open Distance eLearning Kenya', 'ODeL platform Kenya', 'ODeL university Kenya',
+    // Branded keywords
+    'UEAB ODeL', 'Baraton ODeL', 'UEAB', 'University of Eastern Africa Baraton', 'Baraton University', 'UEAB Kenya',
     // Generic education keywords
     'online university Kenya', 'distance learning Kenya', 'eLearning Kenya', 'online degree Kenya',
-    'online education Kenya', 'flexible learning Kenya', 'study online Kenya',
+    'online education Kenya', 'flexible learning Kenya', 'study online Kenya', 'best ODeL Kenya', 'top ODeL Kenya',
     // Program specific
     'online bachelor degree Kenya', 'online masters Kenya', 'online MBA Kenya', 'online nursing degree Kenya',
     'online education degree Kenya', 'online business degree Kenya',
     // Location based
-    'university Eldoret', 'UEAB Eldoret', 'online university East Africa', 'distance education Kenya',
+    'university Eldoret', 'UEAB Eldoret', 'online university East Africa', 'distance education Kenya', 'ODeL Eldoret',
     // Accreditation & quality
-    'accredited online university Kenya', 'CUE accredited university', 'recognized online degrees Kenya',
+    'accredited online university Kenya', 'CUE accredited university', 'recognized online degrees Kenya', 'accredited ODeL Kenya',
     // Comparison & alternatives
     'best online university Kenya', 'affordable online university Kenya', 'Kenyan universities online',
-    'distance learning universities Kenya'
+    'distance learning universities Kenya', 'ODeL programs Kenya', 'online learning Kenya'
   ].join(', '),
   authors: [{ name: 'University of Eastern Africa, Baraton' }],
   creator: 'UEAB ODeL Development Team',
@@ -59,8 +59,8 @@ export const metadata: Metadata = {
     locale: 'en_KE',
     alternateLocale: ['en_US', 'sw_KE'],
     url: 'https://odel.ueab.ac.ke',
-    title: 'UEAB - UEAB| ODeL Online Learning',
-    description: 'UEAB (University of Eastern Africa, Baraton) offers accredited ODeL programs in Kenya. Join 5,000+ students in flexible online learning. Business, Education, Health Sciences, Science & Technology degrees available.',
+    title: 'UEAB ODeL | Open Distance eLearning Platform',
+    description: 'ODeL Kenya - UEAB (University of Eastern Africa, Baraton) offers premier Open Distance eLearning in Kenya. Join 5,000+ students in flexible online learning. Accredited ODeL programs in Business, Education, Health Sciences & Technology.',
     siteName: 'UEAB ODeL',
     images: [
       {
@@ -74,8 +74,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'UEAB - University of Eastern Africa Baraton | ODeL Kenya',
-    description: 'UEAB offers accredited ODeL programs in Kenya. Flexible online learning from a leading university. Business, Education, Health Sciences & more.',
+    title: 'UEAB ODeL | University of Eastern Africa Baraton',
+    description: 'ODeL Kenya - UEAB offers accredited Open Distance eLearning programs. Flexible online learning from a leading Kenyan university. Business, Education, Health Sciences & more.',
     images: ['https://odel.ueab.ac.ke/images/campus/ODeLbuilding.jpg'],
     creator: '@UEAB_Kenya',
     site: '@UEAB_Kenya',
@@ -128,10 +128,17 @@ export default function RootLayout({
     "@id": "https://odel.ueab.ac.ke/#organization",
     "name": "UEAB",
     "alternateName": [
+      "ODeL Kenya",
+      "ODeL Platform Kenya",
+      "UEAB ODeL Kenya",
+      "odel kenya",
+      "odel",
       "University of Eastern Africa Baraton",
       "UEAB ODeL",
       "Baraton University",
-      "ODeL UEAB"
+      "ODeL UEAB",
+      "Baraton ODeL",
+      "Open Distance eLearning Kenya"
     ],
     "url": "https://odel.ueab.ac.ke",
     "logo": {
@@ -141,7 +148,7 @@ export default function RootLayout({
       "height": 80
     },
     "image": "https://odel.ueab.ac.ke/images/campus/ODeLbuilding.jpg",
-    "description": "UEAB (University of Eastern Africa, Baraton) is Kenya's premier Open Distance eLearning (ODeL) institution offering accredited online degree programs across Business, Education, Health Sciences, Science & Technology, and Graduate Studies.",
+    "description": "ODeL Kenya - UEAB (University of Eastern Africa, Baraton) is Kenya's premier Open Distance eLearning (ODeL) institution offering accredited online degree programs across Business, Education, Health Sciences, Science & Technology, and Graduate Studies. Leading ODeL platform in Kenya.",
     "foundingDate": "1978",
     "address": {
       "@type": "PostalAddress",
@@ -221,15 +228,23 @@ export default function RootLayout({
     ],
     "knowsAbout": [
       "ODeL",
+      "ODeL Kenya",
+      "odel",
+      "odel kenya",
       "Open Distance eLearning",
+      "Open Distance eLearning Kenya",
       "Online Education",
       "Distance Learning",
+      "Distance Learning Kenya",
       "Online Degrees",
+      "Online Degrees Kenya",
       "Business Administration",
       "Nursing Education",
       "Teacher Education",
       "Health Sciences",
-      "Graduate Studies"
+      "Graduate Studies",
+      "ODeL Platform",
+      "ODeL Platform Kenya"
     ],
     "areaServed": {
       "@type": "Place",
@@ -245,7 +260,7 @@ export default function RootLayout({
     "@id": "https://odel.ueab.ac.ke/#website",
     "url": "https://odel.ueab.ac.ke",
     "name": "UEAB ODeL",
-    "description": "University of Eastern Africa Baraton Open Distance eLearning Platform",
+    "description": "ODeL Kenya - University of Eastern Africa Baraton Open Distance eLearning Platform. Premier ODeL platform in Kenya offering accredited online degrees.",
     "publisher": {
       "@id": "https://odel.ueab.ac.ke/#organization"
     },
