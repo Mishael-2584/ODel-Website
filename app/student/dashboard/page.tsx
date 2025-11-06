@@ -13,7 +13,8 @@ import {
   FaCalendarAlt,
   FaChartBar,
   FaClock,
-  FaBell
+  FaBell,
+  FaLaptop
 } from 'react-icons/fa'
 
 interface StudentData {
@@ -480,8 +481,9 @@ export default function StudentDashboard() {
                                 Join Zoom
                               </a>
                             )}
-                            <button onClick={() => openMoodleUrl(e.url)} className="text-sm bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded">
-                              {e.url ? 'Open activity' : 'Open Moodle'}
+                            <button onClick={() => openMoodleUrl(e.url)} className="text-sm bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded flex items-center gap-1">
+                              <FaLaptop className="w-4 h-4" />
+                              Open eLearning
                             </button>
                           </div>
                         </div>
@@ -703,8 +705,9 @@ export default function StudentDashboard() {
                                 Join Zoom
                               </a>
                             )}
-                            <button onClick={() => openMoodleUrl(e.url)} className="text-sm bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded">
-                              {e.url ? 'Open activity' : 'Open Moodle'}
+                            <button onClick={() => openMoodleUrl(e.url)} className="text-sm bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded flex items-center gap-1">
+                              <FaLaptop className="w-4 h-4" />
+                              Open eLearning
                             </button>
                           </div>
                         </div>
