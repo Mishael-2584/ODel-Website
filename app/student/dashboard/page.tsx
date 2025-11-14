@@ -251,7 +251,7 @@ export default function StudentDashboard() {
               className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 px-6 py-2 rounded-lg transition-colors font-semibold"
               disabled={loadingMoodle}
             >
-              {loadingMoodle ? 'Connecting...' : 'Open →'}
+              {loadingMoodle ? 'Connecting...' : 'Open Elearning'}
             </button>
           </div>
         </div>
@@ -323,7 +323,7 @@ export default function StudentDashboard() {
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <FaGraduationCap className="text-amber-600 text-2xl" />
-                  <h3 className="font-semibold text-gray-900">Moodle</h3>
+                  <h3 className="font-semibold text-gray-900">Elearning</h3>
                 </div>
                 <button
                   onClick={async () => {
@@ -352,7 +352,7 @@ export default function StudentDashboard() {
                   className="inline-block bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={loadingMoodle}
                 >
-                  {loadingMoodle ? 'Connecting...' : 'Open →'}
+                  {loadingMoodle ? 'Connecting...' : 'Open Elearning'}
                 </button>
               </div>
             </div>

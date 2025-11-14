@@ -330,7 +330,7 @@ export default function ResourcesPage() {
     },
     {
       question: 'What are the library opening hours?',
-      answer: 'Sunday-Thursday: 7:00 AM - 5:30 PM and 7:00 PM - 10:30 PM. Friday: 7:00 AM - 2:00 PM. Saturday: 7:30 PM - 10:30 PM. Hours may vary during holidays and when the university is not in session.'
+      answer: 'Monday-Thursday: 7:00 AM - 5:30 PM and 7:00 PM - 10:30 PM. Friday: 7:00 AM - 2:00 PM. Hours may vary during holidays and when the university is not in session.'
     },
     {
       question: 'How do I get help with research and citations?',
@@ -598,9 +598,8 @@ export default function ResourcesPage() {
                   <div>
                     <div className="font-semibold">Opening Hours</div>
                     <div className="text-gray-300 text-sm">
-                      Sun-Thu: 7:00 AM - 5:30 PM, 7:00 PM - 10:30 PM<br />
-                      Friday: 7:00 AM - 2:00 PM<br />
-                      Saturday: 7:30 PM - 10:30 PM
+                      Monday-Thursday: 7:00 AM - 5:30 PM, 7:00 PM - 10:30 PM<br />
+                      Friday: 7:00 AM - 2:00 PM
                     </div>
                   </div>
                 </div>

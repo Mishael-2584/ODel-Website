@@ -197,8 +197,6 @@ export class UEABChatbotKnowledge {
 **Physical Library:**
 • Location: Main Campus, Baraton
 • Hours: Monday-Friday 8:00 AM - 10:00 PM
-• Saturday: 9:00 AM - 5:00 PM
-• Sunday: 2:00 PM - 6:00 PM
 
 **Online Resources:**
 • Moodle course materials
@@ -288,8 +286,7 @@ export class UEABChatbotKnowledge {
 
 **Office Hours:**
 • Monday-Friday: 8:00 AM - 5:00 PM
-• Saturday: 9:00 AM - 1:00 PM
-• Sunday: Closed
+• Saturday & Sunday: Closed
 
 **Emergency Contact:** +254 714 333 111`,
         quickReplies: ['Admissions Contact', 'Academic Contact', 'IT Support', 'Student Services'],

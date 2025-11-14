@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { ChevronRight, Calendar, MapPin, Clock } from 'lucide-react';
 
 interface Event {
@@ -84,13 +85,13 @@ export default function EventsSection() {
             <h2 className="text-4xl font-bold text-white mb-2">Upcoming Events</h2>
             <p className="text-gray-400">Don't miss out on important dates and events</p>
           </div>
-          <a
-            href="#events"
+          <Link
+            href="/events"
             className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 transition"
           >
             View All
             <ChevronRight size={20} />
-          </a>
+          </Link>
         </div>
 
         {/* Events Grid */}
