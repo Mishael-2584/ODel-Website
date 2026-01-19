@@ -33,3 +33,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# moodle local test instance (moved to separate directory)
+moodle-local-test/
+docker-compose.moodle.yml
+moodle-custom-css.css
+

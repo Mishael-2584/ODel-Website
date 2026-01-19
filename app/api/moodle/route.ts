@@ -253,20 +253,53 @@ export async function GET(request: NextRequest) {
 
       case 'root-categories': {
         const cacheKey = 'root_categories'
+        const forceRefresh = searchParams.get('forceRefresh') === 'true'
         
-        // Check Supabase cache first
-        const cached = await getSupabaseCache(cacheKey)
-        if (cached?.data && !cached.is_stale) {
-          console.log('✅ Cache HIT - Returning from Supabase')
-          return NextResponse.json(
-            { success: true, data: cached.data, cached: true, source: 'supabase' },
-            { headers: CACHE_HEADERS }
-          )
+        // Check Supabase cache first (unless forcing refresh)
+        if (!forceRefresh) {
+          const cached = await getSupabaseCache(cacheKey)
+          if (cached?.data && !cached.is_stale) {
+            console.log('✅ Cache HIT - Returning from Supabase')
+            // Even if cached, ensure it's sorted properly
+            const sorted = [...cached.data].sort((a: any, b: any) => {
+              const nameA = a.name || ''
+              const nameB = b.name || ''
+              const extractSemester = (name: string) => {
+                const match = name.match(/(\d{4})\/(\d{4})\.(\d+)/)
+                if (match) {
+                  const [, startYear, endYear, semester] = match
+                  return {
+                    startYear: parseInt(startYear),
+                    endYear: parseInt(endYear),
+                    semester: parseInt(semester)
+                  }
+                }
+                return { startYear: 0, endYear: 0, semester: 0 }
+              }
+              const semA = extractSemester(nameA)
+              const semB = extractSemester(nameB)
+              if (semB.endYear !== semA.endYear) return semB.endYear - semA.endYear
+              if (semB.semester !== semA.semester) return semB.semester - semA.semester
+              return nameB.localeCompare(nameA)
+            })
+            return NextResponse.json(
+              { success: true, data: sorted, cached: true, source: 'supabase' },
+              { headers: CACHE_HEADERS }
+            )
+          }
+        } else {
+          console.log('🔄 Force refresh requested - bypassing cache')
         }
 
-        // Cache miss - fetch from Moodle
+        // Cache miss or force refresh - fetch from Moodle
         console.log('📡 Cache MISS - Fetching from Moodle API')
+        // Clear in-memory cache if forcing refresh
+        if (forceRefresh) {
+          moodleService.clearCache()
+        }
         const categories = await moodleService.getRootCategories()
+        
+        console.log(`📋 Found ${categories.length} root categories:`, categories.map((c: any) => c.name))
         
         // Save to Supabase for ALL users
         if (supabase && categories.length > 0) {

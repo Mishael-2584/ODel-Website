@@ -158,6 +158,10 @@ const loaderStyles = `
   }
 }
 
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
 @keyframes glow-fade {
   0%, 100% { 
     opacity: 0.3;
@@ -299,6 +303,9 @@ export default function CategoryHierarchy() {
   ])
   const [loading, setLoading] = useState(true)
   const [nextLevelLoading, setNextLevelLoading] = useState(false)
+  const [loadingProgress, setLoadingProgress] = useState(0)
+  const [nextLevelProgress, setNextLevelProgress] = useState(0)
+  const [loadingMessage, setLoadingMessage] = useState('Loading...')
   const [error, setError] = useState<string | null>(null)
 
   // Load initial root categories
@@ -306,16 +313,32 @@ export default function CategoryHierarchy() {
     // Wait for preload to complete before initializing
     const initializeHierarchy = async () => {
       try {
+        setLoading(true)
+        setLoadingProgress(10)
+        
         // Wait for moodle service to finish preloading
         console.log('⏳ Waiting for Moodle data preload...')
         // Give preload a bit of time to complete
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await new Promise(resolve => setTimeout(resolve, 300))
+        setLoadingProgress(30)
         
-        setLoading(true)
+        // Simulate progress while fetching
+        const progressInterval = setInterval(() => {
+          setLoadingProgress(prev => {
+            if (prev < 80) return prev + 5
+            return prev
+          })
+        }, 100)
+        
         const categories = await fetch('/api/moodle?action=root-categories')
           .then(r => r.json())
         
+        clearInterval(progressInterval)
+        setLoadingProgress(90)
+        
         if (categories.success) {
+          setLoadingProgress(100)
+          await new Promise(resolve => setTimeout(resolve, 200))
           setNavigationStack([{
             levelName: 'Academic Year',
             categories: categories.data,
@@ -329,6 +352,7 @@ export default function CategoryHierarchy() {
         console.error('Error initializing hierarchy:', err)
         setError('Failed to load academic years')
       } finally {
+        setLoadingProgress(0)
         setLoading(false)
       }
     }
@@ -337,8 +361,11 @@ export default function CategoryHierarchy() {
   }, [])
 
   const handleSelectCategory = async (category: Category, levelIndex: number) => {
+    let progressInterval: NodeJS.Timeout | null = null
     try {
       setNextLevelLoading(true)
+      setNextLevelProgress(10)
+      setLoadingMessage('Loading...')
 
       // Determine level names for hierarchy
       const levelNames = ['Academic Year', 'Schools', 'Departments', 'Program Types', 'Courses']
@@ -348,6 +375,14 @@ export default function CategoryHierarchy() {
       // Determine if next level should show stats
       const showStatsAtNextLevel = nextLevelIndex === 3 || nextLevelIndex === 4 // Program Types and Courses
 
+      // Progress simulation
+      progressInterval = setInterval(() => {
+        setNextLevelProgress(prev => {
+          if (prev < 80) return prev + 5
+          return prev
+        })
+      }, 100)
+
       // Check cache first
       const cacheKey = getCacheKey('category-children', { categoryId: category.id })
       const cached = getFromCache(cacheKey)
@@ -355,16 +390,23 @@ export default function CategoryHierarchy() {
       let childrenData = cached
 
       if (!cached) {
+        setLoadingMessage(`Loading ${nextLevelName.toLowerCase()}...`)
+        setNextLevelProgress(30)
         // Fetch children of selected category
         console.log(`✗ Fetching children for category ${category.id}`)
         const response = await fetch(`/api/moodle?action=category-children&categoryId=${category.id}`)
         const data = await response.json()
+
+        if (progressInterval) clearInterval(progressInterval)
+        setNextLevelProgress(90)
 
         if (data.success && data.data.length > 0) {
           childrenData = data.data
           setInCache(cacheKey, childrenData)
         }
       } else {
+        if (progressInterval) clearInterval(progressInterval)
+        setNextLevelProgress(100)
         console.log(`✓ Loading children for category ${category.id} from cache`)
       }
 
@@ -403,10 +445,14 @@ export default function CategoryHierarchy() {
           let coursesData = getCategoryCoursesFromBrowser(category.id)
 
           if (!coursesData) {
+            setLoadingMessage('Loading courses...')
+            setNextLevelProgress(30)
             console.log(`✗ Fetching courses with details for category ${category.id}`)
             // Use the new courses-with-details endpoint to get student count and instructor names
             const coursesResponse = await fetch(`/api/moodle?action=courses-with-details&categoryId=${category.id}`)
             const coursesResponseData = await coursesResponse.json()
+
+            setNextLevelProgress(90)
 
             if (coursesResponseData.success) {
               coursesData = coursesResponseData.data
@@ -414,6 +460,7 @@ export default function CategoryHierarchy() {
               setCategoryCoursesInBrowser(category.id, coursesData)
             }
           } else {
+            setNextLevelProgress(100)
             console.log(`✓ Loading courses with details for category ${category.id} from browser cache`)
           }
 
@@ -445,8 +492,11 @@ export default function CategoryHierarchy() {
     } catch (err) {
       console.error('Error navigating to category:', err)
       setError('Failed to load subcategories')
+      if (progressInterval) clearInterval(progressInterval)
     } finally {
+      setNextLevelProgress(0)
       setNextLevelLoading(false)
+      setLoadingMessage('Loading...')
     }
   }
 
@@ -500,60 +550,56 @@ export default function CategoryHierarchy() {
             )}
           </div>
           <p className="text-gray-600">
-            {currentLevel.categories.length} {currentLevel.levelName.toLowerCase()} available
+            {loading ? 'Loading...' : `${currentLevel.categories.length} ${currentLevel.levelName.toLowerCase()} available`}
           </p>
         </div>
 
-        {/* Loading State */}
-        {nextLevelLoading && (
-          <>
-            <style>{loaderStyles}</style>
-            <div className="flex flex-col items-center justify-center py-24">
-              {/* Premium Animated Loader */}
-              <div className="relative mb-12">
-                {/* Accent line */}
-                <div className="accent-line"></div>
-
-                {/* Main Loader Container */}
-                <div className="loader-container">
-                  {/* Gradient Pulsing Ring */}
-                  <div className="gradient-ring rounded-full"></div>
-
-                  {/* Orbiting Dot */}
-                  <div className="orbiting-dot"></div>
-
-                  {/* Inner Glow Core */}
-                  <div className="loader-core"></div>
-                </div>
-
-                {/* Floating Particles */}
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <div
-                    key={`particle-${i}`}
-                    className="particle"
-                    style={{
-                      left: '50%',
-                      top: '50%',
-                      transform: `rotate(${(i * 72)}deg) translateY(-60px)`,
-                      animation: `float-particle ${1.5 + i * 0.2}s ease-out ${i * 0.15}s forwards`,
-                    }}
-                  >
-                    <div className="particle-dot"></div>
-                  </div>
-                ))}
+        {/* Initial Loading State with Progress Bar */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="w-full max-w-md mb-8">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Loading academic years...</span>
+                <span className="text-sm font-medium text-blue-600">{loadingProgress}%</span>
               </div>
-
-              {/* Loading Text with Gradient */}
-              <p className="loading-text mb-4">Loading next page...</p>
-
-              {/* Animated Pulse Dots */}
-              <div className="flex items-center justify-center">
-                <span className="pulse-dot"></span>
-                <span className="pulse-dot"></span>
-                <span className="pulse-dot"></span>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full transition-all duration-300 ease-out relative overflow-hidden"
+                  style={{ width: `${loadingProgress}%` }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+                </div>
               </div>
             </div>
-          </>
+            <div className="flex items-center gap-2 text-gray-600">
+              <FaSpinner className="animate-spin" size={20} />
+              <span className="text-sm">Fetching data from Moodle...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Loading State with Progress Bar */}
+        {nextLevelLoading && (
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="w-full max-w-md mb-8">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">{loadingMessage}</span>
+                <span className="text-sm font-medium text-blue-600">{nextLevelProgress}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full transition-all duration-300 ease-out relative overflow-hidden"
+                  style={{ width: `${nextLevelProgress}%` }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-gray-600">
+              <FaSpinner className="animate-spin" size={20} />
+              <span className="text-sm">Fetching data...</span>
+            </div>
+          </div>
         )}
 
         {/* Error State */}
@@ -567,8 +613,8 @@ export default function CategoryHierarchy() {
         {!nextLevelLoading && currentLevel.categories.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {currentLevel.categories.map((category, index) => {
-              // Check if this is the first category in Academic Year level (latest/current)
-              const isCurrentYear = currentLevel.levelName === 'Academic Year' && index === 0
+              // Check if this is the first category in Academic Year level (most recent)
+              const isMostRecent = currentLevel.levelName === 'Academic Year' && index === 0
               
               return (
                 <button
@@ -577,23 +623,23 @@ export default function CategoryHierarchy() {
                   className="text-left group"
                 >
                   <div className={`rounded-xl shadow-md hover:shadow-xl transition-all hover:scale-105 overflow-hidden h-full flex flex-col ${
-                    isCurrentYear 
+                    isMostRecent 
                       ? 'bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-500 ring-2 ring-blue-200 relative' 
                       : 'bg-white relative'
                   }`}>
-                    {/* Current Badge */}
-                    {isCurrentYear && (
+                    {/* Most Recent Badge */}
+                    {isMostRecent && (
                       <div className="absolute top-4 right-4 z-10">
                         <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
                           <span className="inline-block w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                          Current
+                          Most Recent
                         </div>
                       </div>
                     )}
 
                     {/* Card Header */}
                     <div className={`h-2 bg-gradient-to-r ${
-                      isCurrentYear
+                      isMostRecent
                         ? 'from-blue-600 via-purple-600 to-pink-500 group-hover:from-blue-700 group-hover:via-purple-700 group-hover:to-pink-600'
                         : 'from-blue-500 to-purple-500 group-hover:from-blue-600 group-hover:to-purple-600'
                     } transition-all`}></div>
@@ -601,7 +647,7 @@ export default function CategoryHierarchy() {
                     {/* Card Content */}
                     <div className="p-6 flex flex-col flex-grow relative">
                       <h3 className={`text-lg font-bold mb-2 break-words transition-colors ${
-                        isCurrentYear
+                        isMostRecent
                           ? 'text-blue-700 group-hover:text-blue-800'
                           : 'text-gray-900 group-hover:text-blue-600'
                       }`}>
@@ -650,10 +696,10 @@ export default function CategoryHierarchy() {
                       {/* Arrow Indicator */}
                       <div className="mt-4 flex items-center justify-between">
                         <span className={`text-xs font-medium uppercase tracking-wide ${
-                          isCurrentYear ? 'text-blue-600' : 'text-gray-500'
+                          isMostRecent ? 'text-blue-600' : 'text-gray-500'
                         }`}>Explore</span>
                         <FaChevronRight className={`group-hover:translate-x-1 transition-transform ${
-                          isCurrentYear ? 'text-blue-600' : 'text-blue-600'
+                          isMostRecent ? 'text-blue-600' : 'text-blue-600'
                         }`} />
                       </div>
                     </div>

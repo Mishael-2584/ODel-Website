@@ -790,7 +790,50 @@ class MoodleService {
 
     console.log('✗ Fetching root categories')
     const allCategories = await this.getCategories()
-    const root = allCategories.filter((cat: any) => cat.parent === 0)
+    let root = allCategories.filter((cat: any) => cat.parent === 0)
+    
+    // Filter out 2025/2026.3 as it has no content
+    root = root.filter((cat: any) => {
+      const name = cat.name || ''
+      // Exclude 2025/2026.3
+      return !name.includes('2025/2026.3')
+    })
+    
+    // Sort categories to ensure latest semester appears first
+    // Sort by name descending (e.g., "2025/2026.2" comes before "2025/2026.1")
+    root.sort((a: any, b: any) => {
+      const nameA = a.name || ''
+      const nameB = b.name || ''
+      // Extract year and semester number for proper sorting
+      const extractSemester = (name: string) => {
+        // Match patterns like "2025/2026.2" or "2025/2026.1"
+        const match = name.match(/(\d{4})\/(\d{4})\.(\d+)/)
+        if (match) {
+          const [, startYear, endYear, semester] = match
+          return {
+            startYear: parseInt(startYear),
+            endYear: parseInt(endYear),
+            semester: parseInt(semester),
+            full: `${startYear}/${endYear}.${semester}`
+          }
+        }
+        return { startYear: 0, endYear: 0, semester: 0, full: name }
+      }
+      
+      const semA = extractSemester(nameA)
+      const semB = extractSemester(nameB)
+      
+      // Sort by end year first, then by semester number (descending)
+      if (semB.endYear !== semA.endYear) {
+        return semB.endYear - semA.endYear
+      }
+      if (semB.semester !== semA.semester) {
+        return semB.semester - semA.semester
+      }
+      // Fallback to string comparison
+      return nameB.localeCompare(nameA)
+    })
+    
     this.setCache(cacheKey, root)
     return root
   }
