@@ -64,6 +64,7 @@ export default function Navbar() {
       submenu: [
         { href: '/events', label: 'Events Calendar' },
         { href: '/announcements', label: 'Announcements' },
+        { href: '/spiritual-corner', label: 'Spiritual Corner' },
         { href: '/about', label: 'About ODeL' },
         { href: '/news', label: 'News' },
       ]
