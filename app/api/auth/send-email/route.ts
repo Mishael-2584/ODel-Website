@@ -266,6 +266,100 @@ const getEmailTemplate = (template: string, data: any): { subject: string; html:
           </html>
         `
       }
+    case 'counseling_reschedule':
+      const oldDate = new Date(`${data.old_appointment_date}T${data.old_appointment_time}`)
+      const newDate = new Date(`${data.new_appointment_date}T${data.new_appointment_time}`)
+      const oldFormattedDate = oldDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+      const newFormattedDate = newDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+      return {
+        subject: 'Appointment Rescheduled - Counseling Session',
+        html: `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9; }
+                .header { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                .header h1 { margin: 0; font-size: 28px; }
+                .content { background: white; padding: 40px 30px; border-radius: 0 0 10px 10px; }
+                .info-box { background: #fff4e6; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 5px solid #f39c12; }
+                .info-box h3 { margin-top: 0; color: #f39c12; }
+                .info-box p { margin: 10px 0; }
+                .old-date { background: #ffeaea; padding: 15px; border-radius: 8px; margin: 15px 0; }
+                .new-date { background: #e8f4f8; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #3b82f6; }
+                .button { display: inline-block; padding: 14px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }
+                .contact-info { background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; }
+                .footer { text-align: center; font-size: 12px; color: #999; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>📅 Appointment Rescheduled</h1>
+                  <p style="margin: 10px 0 0 0; opacity: 0.9;">Your appointment has been moved</p>
+                </div>
+                <div class="content">
+                  <p>Dear <strong>${data.student_name}</strong>,</p>
+                  <p>Your counseling appointment has been rescheduled. Please see the new details below.</p>
+                  
+                  <div class="info-box">
+                    <h3>📅 Appointment Change Details</h3>
+                    <div class="old-date">
+                      <p><strong>Previous Date & Time:</strong></p>
+                      <p>${oldFormattedDate}</p>
+                    </div>
+                    <div class="new-date">
+                      <p><strong>New Date & Time:</strong></p>
+                      <p style="font-size: 18px; font-weight: bold; color: #3b82f6;">${newFormattedDate}</p>
+                    </div>
+                    ${data.reschedule_reason ? `
+                      <p><strong>Reason:</strong> ${data.reschedule_reason}</p>
+                    ` : ''}
+                    <p><strong>Counselor:</strong> ${data.counselor_name || 'TBA'}</p>
+                  </div>
+
+                  <p style="background: #e8f4f8; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                    <strong>⚠️ Important:</strong> Your appointment status has been reset to pending. 
+                    Your counselor will confirm the new appointment time shortly. You will receive another confirmation email once it's confirmed.
+                  </p>
+
+                  <div class="contact-info">
+                    <h3 style="margin-top: 0;">📞 Need to Discuss the Change?</h3>
+                    <p>If you have any questions or concerns about this reschedule, please contact us:</p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                      <li><strong>Email:</strong> Counselling@ueab.ac.ke</li>
+                      <li><strong>Counselor Loice:</strong> 0705571104</li>
+                      <li><strong>Counselor Pr. Zachary:</strong> 0727416106</li>
+                    </ul>
+                  </div>
+
+                  <p>We apologize for any inconvenience and look forward to meeting with you at the new time.</p>
+                  <p>Best regards,<br><strong>UEAB Counseling Department</strong></p>
+                </div>
+                <div class="footer">
+                  <p>© 2025 University of Eastern Africa, Baraton - Counseling & Psychological Services</p>
+                  <p style="font-size: 11px; color: #999; margin-top: 5px;">This is an automated email. Please do not reply directly to this message.</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `
+      }
     default:
       // If template is not found but html is provided, use it directly
       if (data.html && data.subject) {

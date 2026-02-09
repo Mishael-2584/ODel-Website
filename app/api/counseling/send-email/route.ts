@@ -38,7 +38,7 @@ async function sendCounselingEmail(to: string, template: string, data: any) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { appointmentId, type } = await request.json()
+    const { appointmentId, type, reason, newDate, newTime } = await request.json()
 
     if (!appointmentId || !type) {
       return NextResponse.json(
@@ -92,9 +92,20 @@ export async function POST(request: NextRequest) {
         appointment_time: appointment.appointment_time,
         cancelled_reason: appointment.cancelled_reason || 'Not specified',
       }
+    } else if (type === 'reschedule') {
+      template = 'counseling_reschedule'
+      emailData = {
+        student_name: appointment.student_name,
+        old_appointment_date: appointment.appointment_date,
+        old_appointment_time: appointment.appointment_time,
+        new_appointment_date: newDate || appointment.appointment_date,
+        new_appointment_time: newTime || appointment.appointment_time,
+        reschedule_reason: reason || 'Appointment rescheduled by counselor',
+        counselor_name: counselor?.name || 'TBA',
+      }
     } else {
       return NextResponse.json(
-        { success: false, error: 'Invalid email type. Use "confirmation" or "cancellation"' },
+        { success: false, error: 'Invalid email type. Use "confirmation", "cancellation", or "reschedule"' },
         { status: 400 }
       )
     }
