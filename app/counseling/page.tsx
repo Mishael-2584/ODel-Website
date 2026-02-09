@@ -62,6 +62,7 @@ export default function CounselingPage() {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [emailError, setEmailError] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState('')
 
   useEffect(() => {
@@ -96,7 +97,9 @@ export default function CounselingPage() {
       )
       const data = await response.json()
       if (data.success) {
-        setAvailableSlots(data.slots || [])
+        // Filter to only show available slots
+        const availableOnly = (data.slots || []).filter((slot: TimeSlot) => slot.available)
+        setAvailableSlots(availableOnly)
       }
     } catch (err) {
       console.error('Error fetching available slots:', err)
@@ -128,9 +131,29 @@ export default function CounselingPage() {
     setAvailableSlots([])
   }
 
+  const validateEmail = (email: string): boolean => {
+    if (!email) {
+      setEmailError('Email is required')
+      return false
+    }
+    if (!email.toLowerCase().endsWith('@ueab.ac.ke')) {
+      setEmailError('Please use your UEAB email address (@ueab.ac.ke)')
+      return false
+    }
+    setEmailError(null)
+    return true
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setEmailError(null)
+
+    // Validate email before submitting
+    if (!validateEmail(formData.studentEmail)) {
+      return
+    }
+
     setSubmitting(true)
 
     try {
@@ -370,7 +393,7 @@ export default function CounselingPage() {
               <h2 className="text-4xl font-bold text-gray-900 mb-4">Schedule Your Session</h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
                 Fill out the form below to book a confidential counseling session. 
-                We'll confirm your appointment via email.
+                We'll confirm your appointment via your UEAB email address (@ueab.ac.ke).
               </p>
             </div>
 
@@ -384,7 +407,7 @@ export default function CounselingPage() {
                     <p className="font-bold text-green-900 text-lg mb-2">Appointment Request Submitted! 🎉</p>
                     <p className="text-green-800">
                       Your appointment request has been sent successfully. You will receive a confirmation email 
-                      once a counselor confirms your booking. Check your email for updates.
+                      at your UEAB email address (@ueab.ac.ke) once a counselor confirms your booking. Please check your email for updates.
                     </p>
                   </div>
                 </div>
@@ -436,10 +459,37 @@ export default function CounselingPage() {
                       type="email"
                       required
                       value={formData.studentEmail}
-                      onChange={(e) => setFormData({ ...formData, studentEmail: e.target.value })}
-                      className="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:border-primary-600 focus:ring-4 focus:ring-primary-100 outline-none transition-all bg-white text-gray-900 font-medium"
-                      placeholder="your.email@example.com"
+                      onChange={(e) => {
+                        setFormData({ ...formData, studentEmail: e.target.value })
+                        // Clear error when user starts typing
+                        if (emailError) {
+                          setEmailError(null)
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Validate on blur
+                        if (e.target.value) {
+                          validateEmail(e.target.value)
+                        }
+                      }}
+                      className={`w-full px-5 py-4 border-2 rounded-xl focus:ring-4 focus:ring-primary-100 outline-none transition-all bg-white text-gray-900 font-medium ${
+                        emailError 
+                          ? 'border-red-500 focus:border-red-600' 
+                          : 'border-gray-200 focus:border-primary-600'
+                      }`}
+                      placeholder="your.name@ueab.ac.ke"
                     />
+                    {emailError ? (
+                      <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
+                        <FaTimes className="text-xs" />
+                        {emailError}
+                      </p>
+                    ) : (
+                      <p className="mt-2 text-sm text-blue-600 flex items-center gap-2">
+                        <FaEnvelope className="text-xs" />
+                        Please use your UEAB email address (@ueab.ac.ke) to receive appointment confirmations
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -572,14 +622,11 @@ export default function CounselingPage() {
                               <button
                                 key={slot.time}
                                 type="button"
-                                disabled={!slot.available}
                                 onClick={() => setFormData({ ...formData, appointmentTime: slot.time })}
                                 className={`px-4 py-3 rounded-xl font-bold transition-all transform ${
                                   formData.appointmentTime === slot.time
                                     ? 'bg-gradient-to-r from-primary-600 to-purple-600 text-white shadow-lg scale-105 ring-4 ring-primary-200'
-                                    : slot.available
-                                    ? 'bg-white text-gray-700 hover:bg-primary-50 hover:text-primary-700 border-2 border-gray-200 hover:border-primary-300 hover:scale-105'
-                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed border-2 border-gray-200'
+                                    : 'bg-white text-gray-700 hover:bg-primary-50 hover:text-primary-700 border-2 border-gray-200 hover:border-primary-300 hover:scale-105'
                                 }`}
                               >
                                 {slot.time}
