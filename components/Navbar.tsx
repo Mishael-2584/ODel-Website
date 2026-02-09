@@ -65,6 +65,7 @@ export default function Navbar() {
         { href: '/events', label: 'Events Calendar' },
         { href: '/announcements', label: 'Announcements' },
         { href: '/spiritual-corner', label: 'Spiritual Corner' },
+        { href: '/counseling', label: 'Counseling Services' },
         { href: '/about', label: 'About ODeL' },
         { href: '/news', label: 'News' },
       ]

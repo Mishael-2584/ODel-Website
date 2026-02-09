@@ -104,7 +104,166 @@ const getEmailTemplate = (template: string, data: any): { subject: string; html:
           </html>
         `
       }
+    case 'counseling_confirmation':
+      const appointmentDate = new Date(`${data.appointment_date}T${data.appointment_time}`)
+      const formattedDate = appointmentDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+      return {
+        subject: 'Appointment Confirmed - Counseling Session',
+        html: `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9; }
+                .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                .header h1 { margin: 0; font-size: 28px; }
+                .content { background: white; padding: 40px 30px; border-radius: 0 0 10px 10px; }
+                .info-box { background: #f0f4ff; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 5px solid #667eea; }
+                .info-box h3 { margin-top: 0; color: #667eea; }
+                .info-box p { margin: 10px 0; }
+                .button { display: inline-block; padding: 14px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }
+                .contact-info { background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; }
+                .footer { text-align: center; font-size: 12px; color: #999; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>✓ Appointment Confirmed</h1>
+                  <p style="margin: 10px 0 0 0; opacity: 0.9;">Your counseling session is scheduled</p>
+                </div>
+                <div class="content">
+                  <p>Dear <strong>${data.student_name}</strong>,</p>
+                  <p>Great news! Your counseling appointment has been confirmed by your counselor.</p>
+                  
+                  <div class="info-box">
+                    <h3>📅 Appointment Details</h3>
+                    <p><strong>Date & Time:</strong> ${formattedDate}</p>
+                    <p><strong>Counselor:</strong> ${data.counselor_name || 'TBA'}</p>
+                    <p><strong>Service Type:</strong> ${data.appointment_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+                    ${data.zoom_meeting_url ? `
+                      <p><strong>Meeting Link:</strong> <a href="${data.zoom_meeting_url}" style="color: #667eea;">Join Zoom Meeting</a></p>
+                    ` : ''}
+                  </div>
+
+                  ${data.zoom_meeting_url ? `
+                    <p style="background: #e8f4f8; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                      <strong>💻 Online Session:</strong> You can join the session using the Zoom link above. 
+                      Please join a few minutes before your scheduled time to ensure everything is working properly.
+                    </p>
+                  ` : `
+                    <p style="background: #fff4e6; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                      <strong>📍 In-Person Session:</strong> Please arrive on time for your appointment at the counseling office. 
+                      If you need directions or have any questions, feel free to contact us.
+                    </p>
+                  `}
+
+                  <div class="contact-info">
+                    <h3 style="margin-top: 0;">📞 Need to Reschedule or Cancel?</h3>
+                    <p>If you need to reschedule or cancel your appointment, please contact us as soon as possible:</p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                      <li><strong>Email:</strong> Counselling@ueab.ac.ke</li>
+                      <li><strong>Counselor Loice:</strong> 0705571104</li>
+                      <li><strong>Counselor Pr. Zachary:</strong> 0727416106</li>
+                    </ul>
+                  </div>
+
+                  <p>We look forward to supporting you on your journey to wellness.</p>
+                  <p>Best regards,<br><strong>UEAB Counseling Department</strong></p>
+                </div>
+                <div class="footer">
+                  <p>© 2025 University of Eastern Africa, Baraton - Counseling & Psychological Services</p>
+                  <p style="font-size: 11px; color: #999; margin-top: 5px;">This is an automated email. Please do not reply directly to this message.</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `
+      }
+    case 'counseling_cancellation':
+      const cancelDate = new Date(`${data.appointment_date}T${data.appointment_time}`)
+      const cancelFormattedDate = cancelDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+      return {
+        subject: 'Appointment Cancelled - Counseling Session',
+        html: `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9; }
+                .header { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                .header h1 { margin: 0; font-size: 28px; }
+                .content { background: white; padding: 40px 30px; border-radius: 0 0 10px 10px; }
+                .info-box { background: #ffeaea; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 5px solid #e74c3c; }
+                .info-box h3 { margin-top: 0; color: #e74c3c; }
+                .info-box p { margin: 10px 0; }
+                .button { display: inline-block; padding: 14px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }
+                .contact-info { background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; }
+                .footer { text-align: center; font-size: 12px; color: #999; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>Appointment Cancelled</h1>
+                  <p style="margin: 10px 0 0 0; opacity: 0.9;">We're sorry to inform you</p>
+                </div>
+                <div class="content">
+                  <p>Dear <strong>${data.student_name}</strong>,</p>
+                  <p>We regret to inform you that your counseling appointment has been cancelled.</p>
+                  
+                  <div class="info-box">
+                    <h3>📅 Cancelled Appointment Details</h3>
+                    <p><strong>Date & Time:</strong> ${cancelFormattedDate}</p>
+                    <p><strong>Reason:</strong> ${data.cancelled_reason || 'Not specified'}</p>
+                  </div>
+
+                  <p>If you would like to reschedule, please visit our booking page or contact us directly.</p>
+
+                  <div class="contact-info">
+                    <h3 style="margin-top: 0;">📞 Contact Us to Reschedule</h3>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                      <li><strong>Email:</strong> Counselling@ueab.ac.ke</li>
+                      <li><strong>Counselor Loice:</strong> 0705571104</li>
+                      <li><strong>Counselor Pr. Zachary:</strong> 0727416106</li>
+                    </ul>
+                    <p style="margin-top: 15px;">
+                      <a href="https://odel.ueab.ac.ke/counseling" class="button">Book New Appointment</a>
+                    </p>
+                  </div>
+
+                  <p>We apologize for any inconvenience and hope to serve you in the future.</p>
+                  <p>Best regards,<br><strong>UEAB Counseling Department</strong></p>
+                </div>
+                <div class="footer">
+                  <p>© 2025 University of Eastern Africa, Baraton - Counseling & Psychological Services</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `
+      }
     default:
+      // If template is not found but html is provided, use it directly
+      if (data.html && data.subject) {
+        return { subject: data.subject, html: data.html }
+      }
       return { subject: 'ODeL Notification', html: '<p>Notification</p>' }
   }
 }
@@ -113,15 +272,29 @@ export async function POST(request: NextRequest) {
   try {
     const { to, subject, template, data } = await request.json()
 
-    if (!to || !template) {
+    if (!to) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields' },
+        { success: false, error: 'Missing required field: to (recipient email)' },
         { status: 400 }
       )
     }
 
-    // Get email template
-    const emailContent = getEmailTemplate(template, { ...data, email: to })
+    // If subject and html are provided directly (for custom emails), use them
+    // Otherwise, use template system
+    let emailContent: { subject: string; html: string }
+    
+    if (subject && data?.html) {
+      // Direct HTML email
+      emailContent = { subject, html: data.html }
+    } else if (template) {
+      // Template-based email
+      emailContent = getEmailTemplate(template, { ...data, email: to })
+    } else {
+      return NextResponse.json(
+        { success: false, error: 'Missing required field: either template or subject+html' },
+        { status: 400 }
+      )
+    }
 
     // Create email transporter
     const transporter = createTransporter()
