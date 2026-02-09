@@ -298,15 +298,16 @@ export default function CounselingManager() {
                     </>
                   )}
 
-                  {appointment.status === 'confirmed' && appointment.zoom_meeting_url && (
+                  {appointment.status === 'confirmed' && appointment.zoom_start_url && (
                     <a
-                      href={appointment.zoom_meeting_url}
+                      href={appointment.zoom_start_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                      title="Start Zoom meeting as host"
                     >
                       <FaVideo />
-                      Join Zoom
+                      Start Meeting
                     </a>
                   )}
                 </div>
@@ -372,17 +373,25 @@ export default function CounselingManager() {
                   {selectedAppointment.status}
                 </span>
               </div>
-              {selectedAppointment.zoom_meeting_url && (
+              {selectedAppointment.zoom_start_url && (
                 <div>
                   <strong className="text-primary-600">Zoom Meeting:</strong>
-                  <a
-                    href={selectedAppointment.zoom_meeting_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-2 text-blue-400 hover:text-blue-300 underline"
-                  >
-                    Join Meeting
-                  </a>
+                  <div className="mt-2 space-y-2">
+                    <a
+                      href={selectedAppointment.zoom_start_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <FaVideo className="inline mr-2" />
+                      Start Meeting (Host)
+                    </a>
+                    {selectedAppointment.zoom_meeting_url && (
+                      <p className="text-sm text-gray-400 mt-2">
+                        Student join link: <a href={selectedAppointment.zoom_meeting_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{selectedAppointment.zoom_meeting_url}</a>
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

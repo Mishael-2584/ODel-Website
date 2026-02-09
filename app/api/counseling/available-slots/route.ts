@@ -14,17 +14,63 @@ const WORKING_HOURS: { [key: string]: { start: string; end: string } } = {
   'Friday': { start: '08:00', end: '12:00' },
 }
 
-function generateTimeSlots(start: string, end: string): string[] {
+function generateTimeSlots(start: string, end: string, date: string): string[] {
   const slots: string[] = []
   const [startHour, startMin] = start.split(':').map(Number)
   const [endHour, endMin] = end.split(':').map(Number)
+  
+  // Lunch break: 12:30 PM - 2:00 PM (12:30 - 14:00)
+  const lunchStart = 12 * 60 + 30 // 12:30 in minutes
+  const lunchEnd = 14 * 60 // 14:00 in minutes
+  
+  // Get current time for filtering past slots
+  const now = new Date()
+  const selectedDate = new Date(date + 'T00:00:00') // Set to start of day to avoid timezone issues
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const selectedDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())
+  const isToday = today.getTime() === selectedDay.getTime()
+  const currentMinutes = isToday ? now.getHours() * 60 + now.getMinutes() : -1
   
   let currentHour = startHour
   let currentMin = startMin
   
   while (currentHour < endHour || (currentHour === endHour && currentMin < endMin)) {
+    const slotMinutes = currentHour * 60 + currentMin
+    
+    // Skip lunch break (12:30 PM - 2:00 PM)
+    if (slotMinutes >= lunchStart && slotMinutes < lunchEnd) {
+      // Skip to after lunch (2:00 PM)
+      currentHour = 14
+      currentMin = 0
+      continue
+    }
+    
+    // Skip past time slots (only for today)
+    // Add 5 minute buffer to account for current time
+    if (isToday && slotMinutes <= currentMinutes + 5) {
+      // Move to next hour
+      currentMin += 60
+      if (currentMin >= 60) {
+        currentMin = 0
+        currentHour += 1
+      }
+      continue
+    }
+    
+    // Check if this slot would overlap with lunch break
+    // (slot starts before lunch ends and ends after lunch starts)
+    const slotEndMinutes = slotMinutes + 60 // 1 hour duration
+    if (slotMinutes < lunchEnd && slotEndMinutes > lunchStart) {
+      // This slot overlaps with lunch, skip to after lunch
+      currentHour = 14
+      currentMin = 0
+      continue
+    }
+    
     slots.push(`${String(currentHour).padStart(2, '0')}:${String(currentMin).padStart(2, '0')}`)
-    currentMin += 30
+    
+    // Increment by 1 hour (60 minutes) instead of 30 minutes
+    currentMin += 60
     if (currentMin >= 60) {
       currentMin = 0
       currentHour += 1
@@ -60,7 +106,7 @@ export async function GET(request: NextRequest) {
     }
 
     const workingHours = WORKING_HOURS[dayName]
-    const allSlots = generateTimeSlots(workingHours.start, workingHours.end)
+    const allSlots = generateTimeSlots(workingHours.start, workingHours.end, date)
 
     // Get booked appointments for this date
     const { data: bookedAppointments, error: appointmentsError } = await supabase

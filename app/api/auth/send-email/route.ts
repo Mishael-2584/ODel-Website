@@ -150,14 +150,21 @@ const getEmailTemplate = (template: string, data: any): { subject: string; html:
                     <p><strong>Counselor:</strong> ${data.counselor_name || 'TBA'}</p>
                     <p><strong>Service Type:</strong> ${data.appointment_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
                     ${data.zoom_meeting_url ? `
-                      <p><strong>Meeting Link:</strong> <a href="${data.zoom_meeting_url}" style="color: #667eea;">Join Zoom Meeting</a></p>
+                      <p><strong>Meeting Link:</strong> <a href="${data.zoom_meeting_url}" style="color: #667eea; font-weight: bold; text-decoration: underline;">Join Zoom Meeting</a></p>
+                      <p style="font-size: 13px; color: #666; margin-top: 5px;">
+                        <strong>Note:</strong> Your counselor will start the meeting as the host. Please wait for them to begin the session.
+                      </p>
                     ` : ''}
                   </div>
 
                   ${data.zoom_meeting_url ? `
                     <p style="background: #e8f4f8; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
-                      <strong>💻 Online Session:</strong> You can join the session using the Zoom link above. 
-                      Please join a few minutes before your scheduled time to ensure everything is working properly.
+                      <strong>💻 Online Session via Zoom:</strong><br><br>
+                      <strong>How it works:</strong><br>
+                      • Your counselor will start the Zoom meeting as the host<br>
+                      • You can join using the link above a few minutes before your scheduled time<br>
+                      • The counselor will begin the session when they're ready<br>
+                      • Please be patient if you join before the counselor - they will start shortly
                     </p>
                   ` : `
                     <p style="background: #fff4e6; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">

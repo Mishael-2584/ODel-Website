@@ -12,7 +12,8 @@ import { useRouter } from 'next/navigation';
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('news');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [adminInfo, setAdminInfo] = useState<{ name?: string; email?: string; role?: string } | null>(null);
+  const [adminInfo, setAdminInfo] = useState<{ name?: string; email?: string; role?: string; id?: string } | null>(null);
+  const [isCounselor, setIsCounselor] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -39,6 +40,23 @@ export default function AdminDashboard() {
         }
 
         setAdminInfo(admin);
+
+        // Check if this admin user is a counselor
+        try {
+          const counselorResponse = await fetch(`/api/counseling/my-counselor-id?adminId=${admin.id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          const counselorData = await counselorResponse.json();
+          if (counselorData.success && counselorData.counselorId) {
+            setIsCounselor(true);
+            setActiveTab('counseling'); // Set default tab to counseling for counselors
+          }
+        } catch (err) {
+          console.error('Error checking counselor status:', err);
+          // Not a counselor, continue with normal admin access
+        }
       } catch (error) {
         console.error('Auth error:', error);
         localStorage.removeItem('admin_token');
@@ -51,6 +69,13 @@ export default function AdminDashboard() {
 
     checkAuth();
   }, [router]);
+
+  // Ensure counselors can only access the counseling tab
+  useEffect(() => {
+    if (isCounselor && activeTab !== 'counseling') {
+      setActiveTab('counseling');
+    }
+  }, [isCounselor, activeTab]);
 
   const handleLogout = async () => {
     try {
@@ -75,13 +100,21 @@ export default function AdminDashboard() {
     );
   }
 
-  const tabs = [
+  // Define all tabs
+  const allTabs = [
     { id: 'news', label: 'News Management', icon: Newspaper },
     { id: 'events', label: 'Events Calendar', icon: Calendar },
     { id: 'announcements', label: 'Announcements', icon: Bell },
     { id: 'counselors', label: 'Counselors', icon: Users },
     { id: 'counseling', label: 'Counseling', icon: Heart },
   ];
+
+  // Filter tabs based on user role
+  // Counselors only see the Counseling tab
+  // Regular admins see all tabs
+  const tabs = isCounselor 
+    ? allTabs.filter(tab => tab.id === 'counseling')
+    : allTabs;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -98,9 +131,9 @@ export default function AdminDashboard() {
               {sidebarOpen && (
                 <div>
                   <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                    ODeL
+                    {isCounselor ? 'Counseling' : 'ODeL'}
                   </h1>
-                  <p className="text-xs text-gray-400">Admin Panel</p>
+                  <p className="text-xs text-gray-400">{isCounselor ? 'Counselor Portal' : 'Admin Panel'}</p>
                 </div>
               )}
               <button
@@ -164,7 +197,9 @@ export default function AdminDashboard() {
               <h2 className="text-2xl font-bold text-white">
                 {tabs.find((t) => t.id === activeTab)?.label}
               </h2>
-              <p className="text-sm text-gray-400">Manage your ODeL website content</p>
+              <p className="text-sm text-gray-400">
+                {isCounselor ? 'Manage your counseling appointments' : 'Manage your ODeL website content'}
+              </p>
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-400">
@@ -181,10 +216,10 @@ export default function AdminDashboard() {
 
         {/* Content Area */}
         <div className="p-6">
-          {activeTab === 'news' && <NewsManager />}
-          {activeTab === 'events' && <EventsManager />}
-          {activeTab === 'announcements' && <AnnouncementsManager />}
-          {activeTab === 'counselors' && <CounselorManager />}
+          {activeTab === 'news' && !isCounselor && <NewsManager />}
+          {activeTab === 'events' && !isCounselor && <EventsManager />}
+          {activeTab === 'announcements' && !isCounselor && <AnnouncementsManager />}
+          {activeTab === 'counselors' && !isCounselor && <CounselorManager />}
           {activeTab === 'counseling' && <CounselingManager />}
         </div>
       </main>
