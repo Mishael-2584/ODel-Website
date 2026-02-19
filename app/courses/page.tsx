@@ -31,14 +31,14 @@ const sampleCourses = [
   {
     id: '2',
     title: 'Bachelor of Science in Nursing',
-    school: 'School of Health Sciences & Nursing',
+    school: 'School of Nursing & Health Sciences',
     level: 'Undergraduate',
     duration: '4 years',
     students: 380,
     rating: 4.9,
     credits: 120,
     description: 'Prepare for a rewarding career in nursing with comprehensive clinical training.',
-    category: 'Health Sciences',
+    category: 'Nursing & Health Sciences',
     language: 'English',
     certificate: true,
     badge: 'High Demand'

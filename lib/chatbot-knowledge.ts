@@ -64,7 +64,7 @@ export class UEABChatbotKnowledge {
 • Bachelor of Arts in Journalism
 • Bachelor of Arts in Theology
 
-**School of Health Sciences:**
+**School of Nursing & Health Sciences:**
 • Bachelor of Science in Nursing
 • Master of Public Health (MPH)
 • Bachelor of Science in Public Health
@@ -394,7 +394,7 @@ I'm your virtual assistant, here to help you with:
 
   // Get all categories
   getCategories(): string[] {
-    return [...new Set(this.knowledgeBase.map(entry => entry.category))]
+    return Array.from(new Set(this.knowledgeBase.map(entry => entry.category)))
   }
 
   // Get entries by category
