@@ -17,8 +17,407 @@ import {
   FaUserGraduate, FaChalkboardTeacher, FaVideo, FaTrophy, FaFire,
   FaCheckCircle, FaRocket, FaMedal, FaLightbulb, FaCalendarAlt, FaBolt,
   FaBookOpen, FaUserPlus, FaUniversity, FaBuilding, FaMicroscope, FaStethoscope,
-  FaMapMarkerAlt, FaPhone, FaEnvelope
+  FaMapMarkerAlt, FaPhone, FaEnvelope, FaYoutube, FaBroadcastTower, FaHeart,
+  FaHandsHelping, FaShieldAlt, FaComments, FaSpinner
 } from 'react-icons/fa'
+
+// Animation variants (shared across components)
+const fadeInUp = {
+  hidden: { opacity: 0, y: 60 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" }
+  }
+}
+
+const fadeInLeft = {
+  hidden: { opacity: 0, x: -60 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { duration: 0.6, ease: "easeOut" }
+  }
+}
+
+const fadeInRight = {
+  hidden: { opacity: 0, x: 60 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { duration: 0.6, ease: "easeOut" }
+  }
+}
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: { 
+    opacity: 1, 
+    scale: 1,
+    transition: { duration: 0.5, ease: "easeOut" }
+  }
+}
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+}
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.5 }
+  }
+}
+
+// Spiritual Corner Promotional Component
+function SpiritualCornerPromo() {
+  const [latestVideo, setLatestVideo] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchLatestVideo()
+  }, [])
+
+  const fetchLatestVideo = async () => {
+    try {
+      const response = await fetch('/api/youtube?maxResults=1')
+      const data = await response.json()
+      if (data.success && data.videos && data.videos.length > 0) {
+        setLatestVideo(data.videos[0])
+      }
+    } catch (err) {
+      console.error('Error fetching latest video:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <motion.section 
+      className="py-20 bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 relative overflow-hidden"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={staggerContainer}
+    >
+      {/* Background decoration */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-400 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-400 rounded-full blur-3xl"></div>
+      </div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* TV Design with Latest Video */}
+          <motion.div 
+            variants={fadeInLeft}
+            className="relative"
+          >
+            <Link href="/spiritual-corner" className="block group">
+              <motion.div 
+                className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 shadow-2xl"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+              >
+                {/* TV Frame */}
+                <div className="relative bg-black rounded-2xl overflow-hidden border-8 border-gray-700 shadow-inner">
+                  {/* TV Screen Glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  
+                  {/* Video Thumbnail */}
+                  {loading ? (
+                    <div className="aspect-video bg-gray-800 flex items-center justify-center">
+                      <FaSpinner className="text-white text-4xl animate-spin" />
+                    </div>
+                  ) : latestVideo ? (
+                    <div className="relative aspect-video">
+                      <Image
+                        src={latestVideo.thumbnail}
+                        alt={latestVideo.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      {/* Play Overlay */}
+                      <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <motion.div
+                          className="bg-white/90 rounded-full p-6 group-hover:bg-white transition-colors"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <FaPlay className="text-purple-600 text-3xl ml-1" />
+                        </motion.div>
+                      </div>
+                      {/* Live Badge if applicable */}
+                      {latestVideo.isLive && (
+                        <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full flex items-center gap-2 text-sm font-bold animate-pulse">
+                          <motion.div
+                            className="w-2 h-2 bg-white rounded-full"
+                            animate={{ opacity: [1, 0.5, 1] }}
+                            transition={{ duration: 1, repeat: Infinity }}
+                          />
+                          LIVE
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="aspect-video bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center">
+                      <FaYoutube className="text-white text-6xl" />
+                    </div>
+                  )}
+                </div>
+                
+                {/* TV Stand */}
+                <div className="mt-4 flex justify-center">
+                  <div className="w-32 h-8 bg-gray-700 rounded-b-lg"></div>
+                </div>
+                
+                {/* TV Base */}
+                <div className="mt-2 flex justify-center">
+                  <div className="w-48 h-4 bg-gray-600 rounded-full"></div>
+                </div>
+              </motion.div>
+            </Link>
+          </motion.div>
+
+          {/* Content */}
+          <motion.div variants={fadeInRight}>
+            <motion.div 
+              variants={staggerItem}
+              className="inline-flex items-center bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-semibold mb-6 hover:scale-105 transition-transform duration-300"
+            >
+              <FaBroadcastTower className="mr-2" />
+              Spiritual Corner
+            </motion.div>
+            
+            <motion.h2 
+              variants={staggerItem}
+              className="text-4xl font-bold text-gray-900 mb-6"
+            >
+              Nourish Your <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Spiritual Journey</span>
+            </motion.h2>
+            
+            <motion.p 
+              variants={staggerItem}
+              className="text-lg text-gray-600 mb-6 leading-relaxed"
+            >
+              Join Hope Channel Baraton for inspiring messages, live worship services, and spiritual content 
+              that uplifts and strengthens your faith. Watch live streams, catch up on sermons, and connect 
+              with our spiritual community.
+            </motion.p>
+
+            {latestVideo && (
+              <motion.div 
+                variants={staggerItem}
+                className="mb-6 p-4 bg-white/50 backdrop-blur-sm rounded-xl border border-purple-200"
+              >
+                <p className="text-sm text-gray-600 mb-1">Latest Video:</p>
+                <p className="font-semibold text-gray-900 line-clamp-2">{latestVideo.title}</p>
+              </motion.div>
+            )}
+            
+            <motion.div 
+              variants={staggerItem}
+              className="flex flex-wrap gap-4 mb-8"
+            >
+              {[
+                { icon: FaBroadcastTower, text: 'Live Streams' },
+                { icon: FaVideo, text: 'Video Library' },
+                { icon: FaCalendarAlt, text: 'Scheduled Services' }
+              ].map((feature, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="flex items-center gap-2 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full border border-purple-200"
+                >
+                  <feature.icon className="text-purple-600" />
+                  <span className="text-sm font-medium text-gray-700">{feature.text}</span>
+                </motion.div>
+              ))}
+            </motion.div>
+            
+            <motion.div variants={staggerItem}>
+              <Link href="/spiritual-corner" className="btn-primary inline-flex items-center group hover:scale-105 transition-transform duration-300 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
+                <FaYoutube className="mr-2 group-hover:scale-110 transition-transform" />
+                Watch Now
+                <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
+          </motion.div>
+        </div>
+      </div>
+    </motion.section>
+  )
+}
+
+// Counseling Services Promotional Component
+function CounselingPromo() {
+  return (
+    <motion.section 
+      className="py-20 bg-gradient-to-br from-pink-50 via-rose-50 to-orange-50 relative overflow-hidden"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={staggerContainer}
+    >
+      {/* Background decoration */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-pink-400 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-400 rounded-full blur-3xl"></div>
+      </div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Content */}
+          <motion.div variants={fadeInLeft}>
+            <motion.div 
+              variants={staggerItem}
+              className="inline-flex items-center bg-pink-100 text-pink-800 px-4 py-2 rounded-full text-sm font-semibold mb-6 hover:scale-105 transition-transform duration-300"
+            >
+              <FaHeart className="mr-2 animate-pulse" />
+              Counseling & Psychological Services
+            </motion.div>
+            
+            <motion.h2 
+              variants={staggerItem}
+              className="text-4xl font-bold text-gray-900 mb-6"
+            >
+              Your Mental Health <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">Matters</span>
+            </motion.h2>
+            
+            <motion.p 
+              variants={staggerItem}
+              className="text-lg text-gray-600 mb-6 leading-relaxed"
+            >
+              Our professional counselors are here to support you through life's challenges. 
+              Book a confidential session, get personalized guidance, and access mental health 
+              resources designed to help you thrive academically and personally.
+            </motion.p>
+            
+            <motion.div 
+              variants={staggerItem}
+              className="grid grid-cols-2 gap-4 mb-8"
+            >
+              {[
+                { icon: FaHandsHelping, text: 'Individual Counseling', color: 'text-pink-600' },
+                { icon: FaUsers, text: 'Group Therapy', color: 'text-rose-600' },
+                { icon: FaShieldAlt, text: 'Confidential & Safe', color: 'text-orange-600' },
+                { icon: FaComments, text: 'Crisis Support', color: 'text-pink-600' }
+              ].map((service, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-pink-200 hover:border-pink-300 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                >
+                  <service.icon className={`text-2xl ${service.color} mb-2`} />
+                  <p className="font-semibold text-gray-900 text-sm">{service.text}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+            
+            <motion.div 
+              variants={staggerItem}
+              className="flex items-center gap-6 mb-8 p-4 bg-white/50 backdrop-blur-sm rounded-xl border border-pink-200"
+            >
+              <div className="flex-shrink-0">
+                <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
+                  <FaCalendarAlt className="text-white text-2xl" />
+                </div>
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 mb-1">Available Hours</p>
+                <p className="text-sm text-gray-600">Mon-Thu: 8AM-5PM | Fri: 8AM-12PM</p>
+              </div>
+            </motion.div>
+            
+            <motion.div variants={staggerItem}>
+              <Link href="/counseling" className="btn-primary inline-flex items-center group hover:scale-105 transition-transform duration-300 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700">
+                <FaHeart className="mr-2 group-hover:scale-110 transition-transform" />
+                Book an Appointment
+                <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
+          </motion.div>
+
+          {/* Visual Element */}
+          <motion.div 
+            variants={fadeInRight}
+            className="relative"
+          >
+            <Link href="/counseling" className="block group">
+              <motion.div 
+                className="relative bg-gradient-to-br from-pink-500 via-rose-500 to-orange-500 rounded-3xl p-12 shadow-2xl overflow-hidden"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+              >
+                {/* Animated Background */}
+                <div className="absolute inset-0 opacity-20">
+                  <motion.div
+                    className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full"
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      opacity: [0.3, 0.5, 0.3]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  />
+                  <motion.div
+                    className="absolute bottom-10 right-10 w-40 h-40 bg-white rounded-full"
+                    animate={{
+                      scale: [1, 1.3, 1],
+                      opacity: [0.2, 0.4, 0.2]
+                    }}
+                    transition={{ duration: 4, repeat: Infinity, delay: 0.5 }}
+                  />
+                </div>
+                
+                {/* Content */}
+                <div className="relative z-10 text-center text-white">
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.1, 1],
+                      rotate: [0, 5, -5, 0]
+                    }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="mb-6"
+                  >
+                    <FaHeart className="text-8xl mx-auto drop-shadow-lg" />
+                  </motion.div>
+                  
+                  <h3 className="text-3xl font-bold mb-4">We're Here for You</h3>
+                  <p className="text-lg opacity-90 mb-6">
+                    Professional, confidential, and compassionate support when you need it most
+                  </p>
+                  
+                  <motion.div
+                    className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full border border-white/30 group-hover:bg-white/30 transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <span className="font-semibold">Schedule Your Session</span>
+                    <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
+                  </motion.div>
+                </div>
+              </motion.div>
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    </motion.section>
+  )
+}
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
@@ -33,62 +432,6 @@ export default function Home() {
 
     return () => clearTimeout(timer)
   }, [])
-
-  // Animation variants
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 60 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
-  }
-
-  const fadeInLeft = {
-    hidden: { opacity: 0, x: -60 },
-    visible: { 
-      opacity: 1, 
-      x: 0,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
-  }
-
-  const fadeInRight = {
-    hidden: { opacity: 0, x: 60 },
-    visible: { 
-      opacity: 1, 
-      x: 0,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
-  }
-
-  const scaleIn = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: { 
-      opacity: 1, 
-      scale: 1,
-      transition: { duration: 0.5, ease: "easeOut" }
-    }
-  }
-
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  }
-
-  const staggerItem = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.5 }
-    }
-  }
 
   if (isLoading) {
     return (
@@ -941,6 +1284,12 @@ export default function Home() {
           </div>
         </div>
       </motion.section>
+
+      {/* Spiritual Corner Promotional Section */}
+      <SpiritualCornerPromo />
+
+      {/* Counseling Services Promotional Section */}
+      <CounselingPromo />
 
       {/* News Section */}
       <NewsSection />
