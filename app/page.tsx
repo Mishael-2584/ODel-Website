@@ -498,7 +498,7 @@ export default function Home() {
     },
     {
       icon: FaChalkboardTeacher,
-      title: 'Expirienced Faculty',
+      title: 'Experienced Faculty',
       description: 'Learn from PhD holders and industry professionals with years of teaching and research experience.',
       color: 'from-primary-500 to-primary-700',
       iconBg: 'bg-primary-500'
@@ -697,7 +697,7 @@ export default function Home() {
                 { icon: FaTrophy, title: 'Accredited Programs', desc: 'Internationally Recognized' },
                 { icon: FaUniversity, title: 'Five Academic Schools', desc: 'Comprehensive Programs' },
                 { icon: FaGraduationCap, title: 'Bachelor\'s to PhD', desc: 'Complete Academic Journey' },
-                { icon: FaChalkboardTeacher, title: 'Expirienced Faculty', desc: 'PhD Holders & Professionals' }
+                { icon: FaChalkboardTeacher, title: 'Experienced Faculty', desc: 'PhD Holders & Professionals' }
               ].map((badge, idx) => (
                 <motion.div
                   key={idx}
@@ -867,6 +867,96 @@ export default function Home() {
                 />
               </motion.div>
             ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Director's Message Section */}
+      <motion.section 
+        className="py-20 bg-gradient-to-br from-white via-gray-50 to-white relative overflow-hidden"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={staggerContainer}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div 
+              className="relative"
+              variants={fadeInLeft}
+            >
+              {/* Director's Image */}
+              <motion.div 
+                className="relative rounded-2xl overflow-hidden shadow-xl"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+              >
+                <img
+                  src="/images/directors/director.jpg"
+                  alt="Dr. Meshack Misoi - Director of UEAB ODeL"
+                  className="w-full h-96 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div className="absolute bottom-6 left-6 text-white">
+                  <h3 className="text-2xl font-bold mb-2">Dr. Meshack Misoi</h3>
+                  <p className="text-lg opacity-90">Director of ODeL</p>
+                </div>
+              </motion.div>
+            </motion.div>
+            
+            <motion.div variants={fadeInRight}>
+              <motion.div 
+                variants={staggerItem}
+                className="inline-flex items-center bg-gold-100 text-gold-800 px-4 py-2 rounded-full text-sm font-semibold mb-6 hover:scale-105 transition-transform duration-300"
+              >
+                Message from the Director
+              </motion.div>
+              
+              <motion.h2 
+                variants={staggerItem}
+                className="text-4xl font-bold text-gray-900 mb-6"
+              >
+                Welcome to UEAB <span className="bg-gradient-to-r from-primary-600 to-gold-500 bg-clip-text text-transparent">ODeL</span>
+              </motion.h2>
+              
+              <motion.blockquote 
+                variants={staggerItem}
+                className="text-lg text-gray-600 mb-8 leading-relaxed italic border-l-4 border-gold-500 pl-6 relative"
+              >
+                <motion.span
+                  className="absolute -top-2 -left-2 text-4xl text-gold-400 opacity-50"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 0.5 }}
+                  viewport={{ once: true }}
+                >
+                  "
+                </motion.span>
+                Welcome to the University of Eastern Africa, Baraton's Open Distance eLearning platform. 
+                Our ODeL initiative represents our commitment to making quality higher education accessible to all, 
+                breaking down geographical and temporal barriers. Through innovative technology and our Seventh-day Adventist 
+                values of excellence, service, and integrity, we empower learners to achieve their academic and professional 
+                aspirations while maintaining the highest standards of education.
+                <motion.span
+                  className="absolute -bottom-4 -right-2 text-4xl text-gold-400 opacity-50"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 0.5 }}
+                  viewport={{ once: true }}
+                >
+                  "
+                </motion.span>
+              </motion.blockquote>
+              
+              <motion.div 
+                variants={staggerItem}
+                className="flex items-center space-x-4"
+              >
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900">Dr. Meshack Misoi</h4>
+                  <p className="text-gray-600">Director of Open Distance eLearning</p>
+                  <p className="text-gray-600">University of Eastern Africa, Baraton</p>
+                </div>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
       </motion.section>
@@ -1066,96 +1156,6 @@ export default function Home() {
                 </div>
               </motion.div>
             ))}
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Director's Message Section */}
-      <motion.section 
-        className="py-20 bg-gradient-to-br from-white via-gray-50 to-white relative overflow-hidden"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={staggerContainer}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div 
-              className="relative"
-              variants={fadeInLeft}
-            >
-              {/* Director's Image */}
-              <motion.div 
-                className="relative rounded-2xl overflow-hidden shadow-xl"
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.3 }}
-              >
-                <img
-                  src="/images/directors/director.jpg"
-                  alt="Dr. Meshack Misoi - Director of UEAB ODeL"
-                  className="w-full h-96 object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                <div className="absolute bottom-6 left-6 text-white">
-                  <h3 className="text-2xl font-bold mb-2">Dr. Meshack Misoi</h3>
-                  <p className="text-lg opacity-90">Director of ODeL</p>
-                </div>
-              </motion.div>
-            </motion.div>
-            
-            <motion.div variants={fadeInRight}>
-              <motion.div 
-                variants={staggerItem}
-                className="inline-flex items-center bg-gold-100 text-gold-800 px-4 py-2 rounded-full text-sm font-semibold mb-6 hover:scale-105 transition-transform duration-300"
-              >
-                Message from the Director
-              </motion.div>
-              
-              <motion.h2 
-                variants={staggerItem}
-                className="text-4xl font-bold text-gray-900 mb-6"
-              >
-                Welcome to UEAB <span className="bg-gradient-to-r from-primary-600 to-gold-500 bg-clip-text text-transparent">ODeL</span>
-              </motion.h2>
-              
-              <motion.blockquote 
-                variants={staggerItem}
-                className="text-lg text-gray-600 mb-8 leading-relaxed italic border-l-4 border-gold-500 pl-6 relative"
-              >
-                <motion.span
-                  className="absolute -top-2 -left-2 text-4xl text-gold-400 opacity-50"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 0.5 }}
-                  viewport={{ once: true }}
-                >
-                  "
-                </motion.span>
-                Welcome to the University of Eastern Africa, Baraton's Open Distance eLearning platform. 
-                Our ODeL initiative represents our commitment to making quality higher education accessible to all, 
-                breaking down geographical and temporal barriers. Through innovative technology and our Seventh-day Adventist 
-                values of excellence, service, and integrity, we empower learners to achieve their academic and professional 
-                aspirations while maintaining the highest standards of education.
-                <motion.span
-                  className="absolute -bottom-4 -right-2 text-4xl text-gold-400 opacity-50"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 0.5 }}
-                  viewport={{ once: true }}
-                >
-                  "
-                </motion.span>
-              </motion.blockquote>
-              
-              <motion.div 
-                variants={staggerItem}
-                className="flex items-center space-x-4"
-              >
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">Dr. Meshack Misoi</h4>
-                  <p className="text-gray-600">Director of Open Distance eLearning</p>
-                  <p className="text-gray-600">University of Eastern Africa, Baraton</p>
-                </div>
-              </motion.div>
-            </motion.div>
           </div>
         </div>
       </motion.section>
@@ -1439,7 +1439,7 @@ export default function Home() {
             className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto"
           >
             Join UEAB ODeL today and gain access to world-class education. 
-            Flexible learning, expirienced faculty, and internationally recognized programs await you.
+            Flexible learning, experienced faculty, and internationally recognized programs await you.
           </motion.p>
           
           <motion.div 
