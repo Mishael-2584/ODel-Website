@@ -194,7 +194,7 @@ export default function LoginPage() {
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign In with Your Email</h2>
-                      <p className="text-gray-600">Enter your UEAB email to receive a magic code</p>
+                      <p className="text-gray-600">Enter your UEAB email to receive a one-time code</p>
                     </div>
 
                     {error && (
@@ -207,7 +207,7 @@ export default function LoginPage() {
                       <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center gap-3">
                         <FaCheckCircle className="text-emerald-600 text-xl" />
                         <div>
-                          <p className="text-emerald-900 font-semibold">✓ Verified email — sending magic code</p>
+                          <p className="text-emerald-900 font-semibold">✓ Verified email — sending one-time code</p>
                           <p className="text-emerald-700 text-sm">Check your inbox (or spam) for a 6‑digit code. It expires in 10 minutes.</p>
                         </div>
                       </div>
@@ -241,7 +241,7 @@ export default function LoginPage() {
                           </>
                         ) : (
                           <>
-                            Send Magic Code
+                            Send One-Time Code
                             <FaArrowRight />
                           </>
                         )}
@@ -280,7 +280,7 @@ export default function LoginPage() {
                           value={code}
                           onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                           placeholder="000000"
-                          maxLength="6"
+                          maxLength={6}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition text-center text-2xl tracking-widest font-bold"
                           required
                         />
