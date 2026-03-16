@@ -27,6 +27,11 @@ interface StudentData {
 
 type TabType = 'dashboard' | 'courses' | 'calendar' | 'grades' | 'assignments'
 
+// Temporarily disable e-learning access for students (e.g. during exams). Instructors keep access.
+const ELEARNING_DISABLED_FOR_STUDENTS = true
+const ELEARNING_DISABLED_MESSAGE = 'E-learning access is temporarily disabled on ODel. Please use iCampus for now. Thank you.'
+const ICAMPUS_URL = 'https://icampus.ueab.ac.ke/Default'
+
 export default function StudentDashboard() {
   const [studentData, setStudentData] = useState<StudentData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -45,6 +50,7 @@ export default function StudentDashboard() {
   const [eventModalItems, setEventModalItems] = useState<any[]>([])
   const [teachingCourses, setTeachingCourses] = useState<any[]>([])
   const [moodleAnnouncements, setMoodleAnnouncements] = useState<any[]>([])
+  const [elearningDisabledNoticeOpen, setElearningDisabledNoticeOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -175,9 +181,36 @@ export default function StudentDashboard() {
   }, [calendarEvents, assignments.length])
 
   const openMoodleUrl = async (url?: string) => {
+    if (ELEARNING_DISABLED_FOR_STUDENTS && !roles.includes('instructor')) {
+      setElearningDisabledNoticeOpen(true)
+      return
+    }
     const target = url || (process.env.NEXT_PUBLIC_MOODLE_URL as string)
     // Single navigation via our server endpoint avoids popup blockers and attaches wantsurl
     window.location.href = `/api/moodle/sso-launch?userId=${studentData!.moodleUserId}&username=${encodeURIComponent(studentData!.moodleUsername)}&target=${encodeURIComponent(target)}`
+  }
+
+  const openElearningViaSso = async () => {
+    if (ELEARNING_DISABLED_FOR_STUDENTS && !roles.includes('instructor')) {
+      setElearningDisabledNoticeOpen(true)
+      return
+    }
+    setLoadingMoodle(true)
+    try {
+      const ssoResponse = await fetch(`/api/moodle?action=sso-login&userId=${studentData!.moodleUserId}&username=${encodeURIComponent(studentData!.moodleUsername)}`)
+      const ssoData = await ssoResponse.json()
+      if (ssoData.success && ssoData.data) {
+        window.open(ssoData.data, '_blank')
+        setSsoLoginUrl(ssoData.data)
+      } else {
+        setError('Failed to generate Moodle access link')
+      }
+    } catch (err) {
+      console.error('Error generating Moodle access:', err)
+      setError('Failed to generate Moodle access link')
+    } finally {
+      setLoadingMoodle(false)
+    }
   }
 
   const handleLogout = async () => {
@@ -225,29 +258,7 @@ export default function StudentDashboard() {
               <p className="text-gray-300">Your ODeL Portal</p>
             </div>
             <button
-              onClick={async () => {
-                setLoadingMoodle(true)
-                try {
-                  console.log('🔐 Generating fresh SSO URL for Moodle access...')
-                  const ssoResponse = await fetch(`/api/moodle?action=sso-login&userId=${studentData!.moodleUserId}&username=${encodeURIComponent(studentData!.moodleUsername)}`)
-                  const ssoData = await ssoResponse.json()
-                  console.log('🔐 Fresh SSO response:', ssoData)
-                  
-                  if (ssoData.success && ssoData.data) {
-                    // Open the URL immediately in a new window
-                    window.open(ssoData.data, '_blank')
-                    setSsoLoginUrl(ssoData.data)
-                  } else {
-                    setError('Failed to generate Moodle access link')
-                    console.error('SSO failed:', ssoData)
-                  }
-                } catch (err) {
-                  console.error('Error generating Moodle access:', err)
-                  setError('Failed to generate Moodle access link')
-                } finally {
-                  setLoadingMoodle(false)
-                }
-              }}
+              onClick={openElearningViaSso}
               className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 px-6 py-2 rounded-lg transition-colors font-semibold"
               disabled={loadingMoodle}
             >
@@ -326,29 +337,7 @@ export default function StudentDashboard() {
                   <h3 className="font-semibold text-gray-900">Elearning</h3>
                 </div>
                 <button
-                  onClick={async () => {
-                    setLoadingMoodle(true)
-                    try {
-                      console.log('🔐 Generating fresh SSO URL for Moodle access...')
-                      const ssoResponse = await fetch(`/api/moodle?action=sso-login&userId=${studentData!.moodleUserId}&username=${encodeURIComponent(studentData!.moodleUsername)}`)
-                      const ssoData = await ssoResponse.json()
-                      console.log('🔐 Fresh SSO response:', ssoData)
-                      
-                      if (ssoData.success && ssoData.data) {
-                        // Open the URL immediately in a new window
-                        window.open(ssoData.data, '_blank')
-                        setSsoLoginUrl(ssoData.data)
-                      } else {
-                        setError('Failed to generate Moodle access link')
-                        console.error('SSO failed:', ssoData)
-                      }
-                    } catch (err) {
-                      console.error('Error generating Moodle access:', err)
-                      setError('Failed to generate Moodle access link')
-                    } finally {
-                      setLoadingMoodle(false)
-                    }
-                  }}
+                  onClick={openElearningViaSso}
                   className="inline-block bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={loadingMoodle}
                 >
@@ -509,14 +498,12 @@ export default function StudentDashboard() {
                 <FaBook className="mx-auto text-5xl text-gray-400 mb-4" />
                 <p className="text-gray-600 text-lg mb-6">No courses enrolled yet</p>
                 <p className="text-gray-500 mb-8">Enroll in courses through the Moodle platform to see them here</p>
-                <a
-                  href={process.env.NEXT_PUBLIC_MOODLE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => openMoodleUrl()}
                   className="inline-block bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg transition-colors font-semibold"
                 >
                   Go to Moodle →
-                    </a>
+                </button>
                   </div>
                 ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -799,6 +786,35 @@ export default function StudentDashboard() {
           </div>
         )}
       </div>
+
+      {/* E-learning temporarily disabled notice (students only) */}
+      {elearningDisabledNoticeOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-center">
+            <div className="mx-auto w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-4">
+              <FaLaptop className="text-amber-600 text-xl" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">E-learning access temporarily disabled</h3>
+            <p className="text-gray-600 mb-6">{ELEARNING_DISABLED_MESSAGE}</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <a
+                href={ICAMPUS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
+              >
+                Go to iCampus
+              </a>
+              <button
+                onClick={() => setElearningDisabledNoticeOpen(false)}
+                className="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 px-5 py-2.5 rounded-lg font-medium transition-colors"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
