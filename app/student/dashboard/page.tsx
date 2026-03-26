@@ -28,7 +28,7 @@ interface StudentData {
 type TabType = 'dashboard' | 'courses' | 'calendar' | 'grades' | 'assignments'
 
 // Temporarily disable e-learning access for students (e.g. during exams). Instructors keep access.
-const ELEARNING_DISABLED_FOR_STUDENTS = true
+const ELEARNING_DISABLED_FOR_STUDENTS = false
 const ELEARNING_DISABLED_MESSAGE = 'E-learning access is temporarily disabled on ODel. Please use iCampus for now. Thank you.'
 const ICAMPUS_URL = 'https://icampus.ueab.ac.ke/Default'
 
