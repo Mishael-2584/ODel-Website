@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { moodleService } from '@/lib/moodle'
 import { moodleAuthService } from '@/lib/moodle-auth'
 import { createClient } from '@supabase/supabase-js'
+import { requireOdelSession } from '@/lib/server/odel-session'
 
 // Initialize Supabase with proper error handling
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -84,6 +85,31 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit')
     const offset = searchParams.get('offset')
     const email = searchParams.get('email')
+    const personalActions = new Set([
+      'course-enrollments',
+      'user-courses',
+      'calendar-events',
+      'assignments',
+      'user-grades',
+      'user-roles',
+      'teaching-courses',
+      'sso-login',
+      'sso-course',
+    ])
+    const session = action && personalActions.has(action)
+      ? await requireOdelSession(request)
+      : null
+    if (action && personalActions.has(action) && !session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+    const requestedUserId = searchParams.get('userId')
+    if (
+      session &&
+      requestedUserId &&
+      Number(requestedUserId) !== session.moodleUserId
+    ) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     switch (action) {
       case 'user-by-email': {
@@ -715,7 +741,6 @@ export async function GET(request: NextRequest) {
 
       case 'sso-login': {
         const userId = searchParams.get('userId')
-        const username = searchParams.get('username')
         if (!userId) {
           return NextResponse.json(
             { error: 'userId is required' },
@@ -726,7 +751,7 @@ export async function GET(request: NextRequest) {
         try {
           const loginUrl = await moodleService.generateMoodleLoginUrl(
             parseInt(userId),
-            username || ''
+            session?.moodleUsername || ''
           )
           return NextResponse.json(
             { 
@@ -746,7 +771,6 @@ export async function GET(request: NextRequest) {
 
       case 'sso-course': {
         const userId = searchParams.get('userId')
-        const username = searchParams.get('username')
         const courseId = searchParams.get('courseId')
         
         if (!userId || !courseId) {
@@ -759,7 +783,7 @@ export async function GET(request: NextRequest) {
         try {
           const loginUrl = await moodleService.generateMoodleLoginUrl(
             parseInt(userId),
-            username || ''
+            session?.moodleUsername || ''
           )
           
           const courseUrl = `${process.env.NEXT_PUBLIC_MOODLE_URL}/course/view.php?id=${courseId}`

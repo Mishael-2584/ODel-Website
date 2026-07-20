@@ -36,46 +36,6 @@ class MoodleAuthService {
     this.config = config
   }
 
-  // Authenticate user with Moodle credentials
-  async authenticateUser(username: string, password: string): Promise<{
-    success: boolean
-    user?: MoodleUser
-    error?: string
-  }> {
-    try {
-      // First, verify credentials by getting user info
-      const userInfo = await this.getUserByUsername(username)
-      
-      if (!userInfo) {
-        return { success: false, error: 'Invalid username or password' }
-      }
-
-      // Get user's enrolled courses
-      const enrolledCourses = await this.getUserEnrolledCourses(userInfo.id)
-      
-      const user: MoodleUser = {
-        id: userInfo.id,
-        username: userInfo.username,
-        firstname: userInfo.firstname,
-        lastname: userInfo.lastname,
-        fullname: userInfo.fullname,
-        email: userInfo.email,
-        department: userInfo.department || '',
-        profileimageurl: userInfo.profileimageurl || '',
-        roles: userInfo.roles || [],
-        enrolledCourses: enrolledCourses
-      }
-
-      return { success: true, user }
-    } catch (error) {
-      console.error('Moodle authentication error:', error)
-      return { 
-        success: false, 
-        error: 'Authentication failed. Please try again.' 
-      }
-    }
-  }
-
   // Get user by username
   private async getUserByUsername(username: string): Promise<any> {
     try {

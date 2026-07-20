@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireOdelSession } from '@/lib/server/odel-session'
 
 function toJson(res: Response) { return res.json().catch(() => ({})) }
 
-async function fetchJson(url: string) {
-  try { const r = await fetch(url, { cache: 'no-store' }); return await toJson(r) } catch { return {} }
+async function fetchJson(url: string, cookie?: string) {
+  try {
+    const r = await fetch(url, {
+      cache: 'no-store',
+      headers: cookie ? { cookie } : undefined,
+    })
+    return await toJson(r)
+  } catch { return {} }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, user, emailOnly } = await req.json()
+    const { message, emailOnly } = await req.json()
     const lower = (message || '').toLowerCase()
     const origin = new URL(req.url).origin
 
@@ -21,8 +28,10 @@ export async function POST(req: NextRequest) {
     const isGrades = /grade|report/.test(lower)
     const isContact = /contact|phone|email|map|location/.test(lower)
 
-    // Logged-in personalization supplied by caller (session)
-    const moodleUserId = user?.moodleUserId
+    // Never trust a caller-supplied Moodle ID for personalised data.
+    const session = await requireOdelSession(req)
+    const moodleUserId = session?.moodleUserId
+    const sessionCookie = req.headers.get('cookie') || undefined
 
     if (isAdmissions) {
       return NextResponse.json({
@@ -62,12 +71,12 @@ export async function POST(req: NextRequest) {
     }
 
     if (isDeadlines && moodleUserId) {
-      const deadlines = await fetchJson(`${origin}/api/moodle?action=assignments&userId=${moodleUserId}`)
+      const deadlines = await fetchJson(`${origin}/api/moodle?action=assignments&userId=${moodleUserId}`, sessionCookie)
       return NextResponse.json({ type: 'personal', data: { title: 'Your Upcoming Deadlines', items: deadlines?.data || [] } })
     }
 
     if (isGrades && moodleUserId) {
-      const grades = await fetchJson(`${origin}/api/moodle?action=user-grades&userId=${moodleUserId}`)
+      const grades = await fetchJson(`${origin}/api/moodle?action=user-grades&userId=${moodleUserId}`, sessionCookie)
       return NextResponse.json({ type: 'personal', data: { title: 'Your Grades', items: grades?.data || [] } })
     }
 

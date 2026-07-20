@@ -23,9 +23,11 @@ export async function POST(request: NextRequest) {
 
     // Create student session
     const userAgent = request.headers.get('user-agent') || ''
-    const ipAddress = request.headers.get('x-forwarded-for') || 
-                      request.headers.get('x-real-ip') || 
-                      'unknown'
+    const forwardedFor = request.headers.get('x-forwarded-for')
+    const ipAddress =
+      forwardedFor?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      undefined
 
     const sessionResult = await createStudentSession(
       email,

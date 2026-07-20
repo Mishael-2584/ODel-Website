@@ -224,7 +224,7 @@ export async function createStudentSession(
         student_name: `${userResponse.firstname || ''} ${userResponse.lastname || ''}`.trim(),
         jwt_token: jwtToken,
         expires_at: expiresAt,
-        ip_address: ipAddress,
+        ip_address: ipAddress || null,
         user_agent: userAgent
       })
       .select()

@@ -397,6 +397,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (process.env.EMAIL_TRANSPORT === 'console') {
+      const developmentCode = template === 'magic_code' ? data?.code : undefined
+      console.log('[Development email]', {
+        to,
+        subject: emailContent.subject,
+        code: developmentCode || 'not-applicable',
+      })
+      return NextResponse.json({
+        success: true,
+        messageId: 'development-console',
+        message: 'Email written to the development server log',
+      })
+    }
+
     // Create email transporter
     const transporter = createTransporter()
 
