@@ -17,6 +17,12 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json().catch(() => null) as Record<string, unknown> | null
   const requestedPlan = String(body?.requestedPlan || '')
+  const billingPeriod =
+    requestedPlan === 'institution'
+      ? 'annual'
+      : body?.billingPeriod === 'monthly'
+        ? 'monthly'
+        : 'annual'
   const phone = String(body?.phone || '').trim().slice(0, 40)
   const notes = String(body?.notes || '').trim().slice(0, 1000)
   const source = String(body?.source || 'web').trim().slice(0, 40)
@@ -49,6 +55,7 @@ export async function POST(request: NextRequest) {
       phone,
       notes,
       source,
+      billing_period: billingPeriod,
     })
     .select('id, status')
     .single()
@@ -62,7 +69,7 @@ export async function POST(request: NextRequest) {
     moodleInstance,
     resourceType: 'upgrade_request',
     resourceId: String(data.id),
-    details: { requestedPlan, source },
+    details: { requestedPlan, billingPeriod, source },
     ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
   })
   return NextResponse.json({ requestId: data.id, status: data.status }, { status: 201 })

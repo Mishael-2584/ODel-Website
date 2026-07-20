@@ -12,8 +12,8 @@ This local plugin exposes the courses a lecturer can manage and, when separately
 6. Create a token for that user and service. Store it only as `FACULTY_ASSISTANT_MOODLE_TOKEN` on the ODeL Ubuntu server. Keep the website's existing `MOODLE_API_TOKEN` separate.
 7. Test `local_facultyassistant_get_teaching_courses` from Moodle's web-service test client before enabling desktop licences.
 8. For Professional direct publishing, add `local/facultyassistant:publishquestions` only to the dedicated Faculty Assistant service role. Do not add it to Authenticated user, Teacher, Manager, or the general web-service role.
-9. Test `local_facultyassistant_get_question_categories` before granting any desktop entitlement the `questions:write` feature.
+9. Test `local_facultyassistant_get_question_categories` and `local_facultyassistant_create_question_category` before granting any desktop entitlement the `questions:write` feature.
 
-The import function checks both the dedicated service capability and the target lecturer's own `moodle/question:add` capability in the requested course. It accepts at most 1 MB of UTF-8 GIFT, targets an existing course category, and returns the created question IDs for audit.
+The category function checks the lecturer's `moodle/question:add` and `moodle/question:managecategory` permissions, creates categories only inside the requested course, and reuses an existing same-name category. The import function checks the lecturer's `moodle/question:add` permission, accepts at most 1 MB of UTF-8 GIFT, targets an existing course category, and returns the created question IDs for audit.
 
-The service starts disabled intentionally. Version `0.2.0` keeps course discovery read-only and adds a separately controlled question-bank write operation.
+The service starts disabled intentionally. Version `0.3.0` adds separately controlled course-category creation to the existing question-bank publishing operation.

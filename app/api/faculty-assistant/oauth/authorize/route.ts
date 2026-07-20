@@ -6,11 +6,13 @@ import {
   facultyAssistantPublicOrigin,
   facultyAssistantRedirectUri,
   getActiveEntitlement,
+  provisionInstitutionEntitlement,
   hashToken,
   randomToken,
   requestedScopes,
   writeFacultyAssistantAudit,
 } from '@/lib/server/faculty-assistant-auth'
+import { getFacultyAssistantTeachingCourses } from '@/lib/server/faculty-assistant-moodle'
 import { requireOdelSession } from '@/lib/server/odel-session'
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
 
@@ -55,7 +57,21 @@ export async function GET(request: NextRequest) {
   }
 
   const moodleInstance = facultyAssistantMoodleInstance()
-  const entitlement = await getActiveEntitlement(session.moodleUserId, moodleInstance)
+  let entitlement = await getActiveEntitlement(session.moodleUserId, moodleInstance)
+  if (!entitlement) {
+    try {
+      const courses = await getFacultyAssistantTeachingCourses(session.moodleUserId)
+      if (courses.length > 0) {
+        entitlement = await provisionInstitutionEntitlement({
+          moodleUserId: session.moodleUserId,
+          moodleInstance,
+          email: session.email,
+        })
+      }
+    } catch (error) {
+      console.error('Faculty Assistant institution seat check failed:', error)
+    }
+  }
   const scopes = requestedScopes(params.get('scope'))
   const entitledFeatures = entitlement?.features?.map(String) || []
   if (!entitlement || scopes.some((scope) => !entitledFeatures.includes(scope))) {

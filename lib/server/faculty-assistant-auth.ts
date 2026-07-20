@@ -89,6 +89,40 @@ export async function getActiveEntitlement(
   return data
 }
 
+export async function provisionInstitutionEntitlement(options: {
+  moodleUserId: number
+  moodleInstance: string
+  email: string
+}) {
+  const supabase = getSupabaseAdmin()
+  const now = new Date().toISOString()
+  const { data: agreement, error: agreementError } = await supabase
+    .from('faculty_assistant_institution_licences')
+    .select('id, features, expires_at')
+    .eq('moodle_instance', options.moodleInstance)
+    .eq('is_active', true)
+    .maybeSingle()
+  if (agreementError || !agreement || agreement.expires_at <= now) return null
+
+  const { data, error } = await supabase
+    .from('faculty_assistant_entitlements')
+    .upsert({
+      moodle_user_id: options.moodleUserId,
+      moodle_instance: options.moodleInstance,
+      email: options.email,
+      plan: 'institution',
+      features: agreement.features,
+      is_active: true,
+      expires_at: agreement.expires_at,
+      billing_period: 'annual',
+      institution_licence_id: agreement.id,
+      updated_at: now,
+    }, { onConflict: 'moodle_instance,moodle_user_id' })
+    .select('id, plan, features, expires_at, is_active')
+    .single()
+  return error ? null : data
+}
+
 export function issueAccessToken(identity: FacultyAssistantIdentity) {
   const secret = facultyAssistantJwtSecret()
   return jwt.sign(

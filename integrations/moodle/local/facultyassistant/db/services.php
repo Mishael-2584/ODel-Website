@@ -18,6 +18,13 @@ $functions = [
         'ajax' => false,
         'capabilities' => 'local/facultyassistant:useservice',
     ],
+    'local_facultyassistant_create_question_category' => [
+        'classname' => 'local_facultyassistant\external\create_question_category',
+        'description' => 'Creates or reuses a lecturer question-bank category in one course.',
+        'type' => 'write',
+        'ajax' => false,
+        'capabilities' => 'local/facultyassistant:publishquestions',
+    ],
     'local_facultyassistant_import_gift_questions' => [
         'classname' => 'local_facultyassistant\external\import_gift_questions',
         'description' => 'Imports reviewed GIFT questions into an existing lecturer course category.',
@@ -32,6 +39,7 @@ $services = [
         'functions' => [
             'local_facultyassistant_get_teaching_courses',
             'local_facultyassistant_get_question_categories',
+            'local_facultyassistant_create_question_category',
             'local_facultyassistant_import_gift_questions',
         ],
         'restrictedusers' => 1,

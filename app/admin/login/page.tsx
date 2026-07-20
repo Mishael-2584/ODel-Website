@@ -38,8 +38,12 @@ export default function AdminLogin() {
         localStorage.setItem('admin_token', data.token);
         localStorage.setItem('admin_user', JSON.stringify(data.user));
         
-        // Redirect to admin dashboard
-        router.push('/admin/dashboard');
+        const requestedReturnTo = new URLSearchParams(window.location.search).get('returnTo');
+        const returnTo =
+          requestedReturnTo?.startsWith('/') && !requestedReturnTo.startsWith('//')
+            ? requestedReturnTo
+            : '/admin/dashboard';
+        router.push(returnTo);
       }
     } catch (err) {
       setError('An error occurred. Please try again.');

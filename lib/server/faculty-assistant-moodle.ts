@@ -23,6 +23,27 @@ export async function getFacultyAssistantQuestionCategories(
   return Array.isArray(result) ? result : []
 }
 
+export async function createFacultyAssistantQuestionCategory(options: {
+  userId: number
+  courseId: number
+  name: string
+}) {
+  const result = await callMoodleConnector('local_facultyassistant_create_question_category', {
+    userid: String(options.userId),
+    courseid: String(options.courseId),
+    name: options.name,
+  })
+  if (!result || typeof result !== 'object') {
+    throw new Error('Moodle returned an invalid question category')
+  }
+  return result as {
+    id: number
+    name: string
+    questioncount: number
+    created: boolean
+  }
+}
+
 export async function importFacultyAssistantGiftQuestions(options: {
   userId: number
   courseId: number
