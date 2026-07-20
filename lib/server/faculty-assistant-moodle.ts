@@ -12,6 +12,31 @@ export async function getFacultyAssistantTeachingCourses(userId: number) {
   return Array.isArray(result) ? result : []
 }
 
+export async function getFacultyAssistantQuestionCategories(
+  userId: number,
+  courseId: number,
+) {
+  const result = await callMoodleConnector(
+    'local_facultyassistant_get_question_categories',
+    { userid: String(userId), courseid: String(courseId) },
+  )
+  return Array.isArray(result) ? result : []
+}
+
+export async function importFacultyAssistantGiftQuestions(options: {
+  userId: number
+  courseId: number
+  categoryId: number
+  gift: string
+}) {
+  return callMoodleConnector('local_facultyassistant_import_gift_questions', {
+    userid: String(options.userId),
+    courseid: String(options.courseId),
+    categoryid: String(options.categoryId),
+    gift: options.gift,
+  })
+}
+
 async function callMoodleConnector(
   wsfunction: string,
   values: Record<string, string>,

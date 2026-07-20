@@ -10,6 +10,7 @@ export const allowedFacultyAssistantScopes = [
   'profile:read',
   'courses:read',
   'grades:read',
+  'questions:write',
 ] as const
 
 export interface FacultyAssistantIdentity {
