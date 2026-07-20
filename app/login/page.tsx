@@ -30,18 +30,26 @@ export default function LoginPage() {
   const [timerActive, setTimerActive] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [userLoggedIn, setUserLoggedIn] = useState(false)
+  const [returnTo, setReturnTo] = useState('/student/dashboard')
 
   // Check if user is already logged in
   useEffect(() => {
+    const requestedReturnTo = new URLSearchParams(window.location.search).get('returnTo')
+    const safeReturnTo =
+      requestedReturnTo?.startsWith('/api/faculty-assistant/oauth/authorize?')
+        ? requestedReturnTo
+        : '/student/dashboard'
+    setReturnTo(safeReturnTo)
+
     const checkAuthStatus = async () => {
       try {
         const response = await fetch('/api/auth/verify')
         const data = await response.json()
         
         if (data.authenticated && data.user) {
-          // User is logged in, redirect to dashboard
+          // Continue a trusted desktop authorization request after login.
           setUserLoggedIn(true)
-          router.push('/student/dashboard')
+          window.location.assign(safeReturnTo)
         } else {
           setCheckingAuth(false)
         }
@@ -138,7 +146,7 @@ export default function LoginPage() {
         
         // Redirect after a brief moment (loader will show)
         setTimeout(() => {
-          router.push('/student/dashboard')
+          window.location.assign(returnTo)
         }, 2500)
       } else {
         setError(data.error || 'Invalid code')
@@ -333,7 +341,7 @@ export default function LoginPage() {
                 {step === 'redirecting' && (
                   <div className="text-center space-y-4">
                     <div className="w-16 h-16 border-4 border-primary-500 border-t-primary-300 rounded-full animate-spin mx-auto"></div>
-                    <p className="text-gray-900 font-semibold">Redirecting to dashboard...</p>
+                    <p className="text-gray-900 font-semibold">Completing secure sign-in...</p>
                   </div>
                 )}
               </div>

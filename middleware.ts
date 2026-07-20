@@ -76,8 +76,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next()
     } catch (error) {
       console.error('Middleware auth verification error:', error)
-      // On error, allow access to be safe, but could also redirect
-      return NextResponse.next()
+      // Protected pages fail closed when session verification is unavailable.
+      return NextResponse.redirect(new URL('/login', request.url))
     }
   }
 

@@ -997,15 +997,37 @@ class MoodleService {
         body: params
       })
 
-      const result = await response.json()
+      let result = await response.json()
 
       if (this.isErrorResponse(result)) {
-        console.error('Error fetching user by email:', result)
-        return null
+        const fallbackParams = new URLSearchParams({
+          wstoken: this.config.apiToken,
+          wsfunction: 'core_user_get_users',
+          moodlewsrestformat: 'json',
+          'criteria[0][key]': 'email',
+          'criteria[0][value]': email,
+        })
+        const fallbackResponse = await fetch(
+          `${this.config.baseUrl}/webservice/rest/server.php`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: fallbackParams,
+          },
+        )
+        result = await fallbackResponse.json()
+        if (this.isErrorResponse(result)) {
+          console.error('Error fetching user by email:', result)
+          return null
+        }
       }
 
       if (Array.isArray(result) && result.length > 0) {
         return result[0]
+      }
+
+      if (Array.isArray(result?.users) && result.users.length > 0) {
+        return result.users[0]
       }
 
       return null
