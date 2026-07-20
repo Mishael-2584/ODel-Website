@@ -4,7 +4,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_facultyassistant';
-$plugin->version = 2026072001;
+$plugin->version = 2026072003;
 $plugin->requires = 2024042200; // Moodle 4.4.
 $plugin->maturity = MATURITY_BETA;
-$plugin->release = '0.1.2';
+$plugin->release = '0.2.0';

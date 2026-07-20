@@ -12,4 +12,10 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
+    'local/facultyassistant:publishquestions' => [
+        'riskbitmask' => RISK_CONFIG | RISK_DATALOSS | RISK_XSS,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [],
+    ],
 ];
