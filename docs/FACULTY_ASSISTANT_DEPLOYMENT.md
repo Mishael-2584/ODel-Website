@@ -63,12 +63,15 @@ Add these server-only values to the environment used by PM2. Do not prefix eithe
 FACULTY_ASSISTANT_JWT_SECRET=<new-random-secret-of-at-least-32-bytes>
 FACULTY_ASSISTANT_MOODLE_TOKEN=<dedicated-faculty-assistant-service-token>
 FACULTY_ASSISTANT_MOODLE_INSTANCE=ueab-production
+FACULTY_ASSISTANT_PUBLIC_ORIGIN=https://odel.ueab.ac.ke
 MOODLE_API_TOKEN=<existing-odel-website-service-token>
 NEXT_PUBLIC_APP_URL=https://odel.ueab.ac.ke
 NEXT_PUBLIC_MOODLE_URL=https://ielearning.ueab.ac.ke
 ```
 
 Keep the existing `SUPABASE_SERVICE_ROLE_KEY` and `MOODLE_API_TOKEN` available to the server. The new connector token is intentionally separate so its restricted service does not gain the website token's existing functions. Generate the new JWT secret with a cryptographically secure utility such as `openssl rand -base64 48`.
+
+`FACULTY_ASSISTANT_PUBLIC_ORIGIN` is the server-only trusted OAuth redirect origin and JWT issuer. The connector falls back to `NEXT_PUBLIC_APP_URL`, but production rejects loopback origins so a reverse proxy or stale build cannot redirect desktop sign-in to `localhost`.
 
 ### 5. Deploy ODeL
 

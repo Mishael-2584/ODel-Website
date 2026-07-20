@@ -44,6 +44,31 @@ export function facultyAssistantMoodleInstance() {
   return process.env.FACULTY_ASSISTANT_MOODLE_INSTANCE || 'ueab-production'
 }
 
+export function facultyAssistantPublicOrigin() {
+  const configured =
+    process.env.FACULTY_ASSISTANT_PUBLIC_ORIGIN ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL
+  const fallback =
+    process.env.NODE_ENV === 'development'
+      ? 'http://localhost:3000'
+      : 'https://odel.ueab.ac.ke'
+
+  try {
+    const url = new URL(configured || fallback)
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return fallback
+    if (
+      process.env.NODE_ENV === 'production' &&
+      (url.hostname === 'localhost' || url.hostname === '127.0.0.1')
+    ) {
+      return fallback
+    }
+    return url.origin
+  } catch {
+    return fallback
+  }
+}
+
 export async function getActiveEntitlement(
   moodleUserId: number,
   moodleInstance = facultyAssistantMoodleInstance(),
@@ -78,7 +103,7 @@ export function issueAccessToken(identity: FacultyAssistantIdentity) {
     secret,
     {
       subject: String(identity.moodleUserId),
-      issuer: process.env.NEXT_PUBLIC_APP_URL || 'https://odel.ueab.ac.ke',
+      issuer: facultyAssistantPublicOrigin(),
       audience: facultyAssistantClientId,
       expiresIn: '15m',
       jwtid: crypto.randomUUID(),
@@ -95,7 +120,7 @@ export function verifyFacultyAssistantRequest(
   try {
     const decoded = jwt.verify(token, facultyAssistantJwtSecret(), {
       audience: facultyAssistantClientId,
-      issuer: process.env.NEXT_PUBLIC_APP_URL || 'https://odel.ueab.ac.ke',
+      issuer: facultyAssistantPublicOrigin(),
     }) as jwt.JwtPayload
     const scopes = Array.isArray(decoded.scopes) ? decoded.scopes.map(String) : []
     if (
