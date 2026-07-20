@@ -6,7 +6,7 @@ This rollout is additive. It does not alter existing Supabase tables or policies
 
 1. Faculty Assistant opens the system browser at ODeL using OAuth-style Authorization Code with PKCE.
 2. The lecturer signs in with the existing ODeL email-code flow.
-3. ODeL verifies the lecturer's active Faculty Assistant entitlement and returns a two-minute, single-use code to `facultyassistant://auth/callback`.
+3. ODeL verifies the lecturer's active Faculty Assistant entitlement and opens a branded completion page. That page removes the result from browser history, launches `facultyassistant://auth/callback`, and remains as a clear return-to-app fallback.
 4. The desktop app exchanges that code for a 15-minute access token and rotating 30-day refresh token.
 5. ODeL calls Moodle server-to-server with a restricted Moodle service token. That token is never sent to the desktop app.
 6. Windows encrypts the refresh token through Electron `safeStorage`; ODeL stores only SHA-256 token hashes.

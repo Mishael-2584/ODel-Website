@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       details: { reason: 'inactive_or_insufficient_entitlement', requestedScopes: scopes },
       ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
     })
-    return redirectWithError(redirectUri, state, 'access_denied', 'An active Faculty Assistant licence is required.')
+    return redirectWithError(state, 'access_denied', 'An active Faculty Assistant licence is required.')
   }
 
   const code = randomToken(32)
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
       moodleInstance,
       details: { reason: 'code_persistence_failed' },
     })
-    return redirectWithError(redirectUri, state, 'server_error', 'Could not complete authorization.')
+    return redirectWithError(state, 'server_error', 'Could not complete authorization.')
   }
 
   await writeFacultyAssistantAudit('oauth.authorize', 'success', {
@@ -100,21 +100,22 @@ export async function GET(request: NextRequest) {
     moodleInstance,
     details: { scopes },
   })
-  const callback = new URL(redirectUri)
-  callback.searchParams.set('code', code)
-  callback.searchParams.set('state', state)
-  return NextResponse.redirect(callback)
+  return redirectToDesktop({ code, state })
 }
 
 function redirectWithError(
-  redirectUri: string,
   state: string,
   error: string,
   description: string,
 ) {
-  const callback = new URL(redirectUri)
-  callback.searchParams.set('error', error)
-  callback.searchParams.set('error_description', description)
-  callback.searchParams.set('state', state)
-  return NextResponse.redirect(callback)
+  return redirectToDesktop({ error, error_description: description, state })
+}
+
+function redirectToDesktop(values: Record<string, string>) {
+  const completion = new URL(
+    '/faculty-assistant/complete',
+    facultyAssistantPublicOrigin(),
+  )
+  completion.hash = new URLSearchParams(values).toString()
+  return NextResponse.redirect(completion)
 }
