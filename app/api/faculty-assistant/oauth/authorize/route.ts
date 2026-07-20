@@ -3,6 +3,7 @@ import {
   allowedFacultyAssistantScopes,
   facultyAssistantClientId,
   facultyAssistantMoodleInstance,
+  facultyAssistantPublicOrigin,
   facultyAssistantRedirectUri,
   getActiveEntitlement,
   hashToken,
@@ -47,7 +48,8 @@ export async function GET(request: NextRequest) {
   const session = await requireOdelSession(request)
   if (!session) {
     const returnTo = `${request.nextUrl.pathname}${request.nextUrl.search}`
-    const login = new URL('/login', request.url)
+    // Reverse proxies may expose the internal Next.js origin as localhost.
+    const login = new URL('/login', facultyAssistantPublicOrigin())
     login.searchParams.set('returnTo', returnTo)
     return NextResponse.redirect(login)
   }
