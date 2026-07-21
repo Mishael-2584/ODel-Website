@@ -15,20 +15,20 @@ const plans = [
     secondaryPrice: 'No card required',
     note: 'Start useful, stay in control',
     icon: FaLaptop,
-    features: ['Local Grade Studio projects', 'Visual assessment authoring', 'GIFT and review exports', 'One institution template', 'No Moodle connection or managed AI'],
+    features: ['Local Grade Studio projects', 'Moodle report to calculated grade workbook', 'Flexible grading policies', 'Visual assessment authoring', 'GIFT and review exports', 'No Moodle connection or managed AI'],
   },
   {
     name: 'Professional',
-    price: 'KES 1,200 / month',
-    secondaryPrice: 'KES 9,000 / year - save KES 5,400',
+    price: 'KES 1,000 / month',
+    secondaryPrice: 'KES 9,000 / year - save KES 3,000',
     note: 'The connected lecturer workspace',
     icon: FaGraduationCap,
     featured: true,
-    features: ['Everything in Essential', 'Secure Moodle course sync', 'Direct reviewed question-bank publishing', 'Word, PDF and scanned exam recovery', 'Unlimited UEAB/institution templates', 'Advanced analytics and included AI credits'],
+    features: ['Everything in Essential', 'Secure Moodle course workspace sync', 'Direct reviewed question-bank publishing', 'Word, PDF and scanned exam recovery', 'Unlimited institution templates', 'Advanced analytics and included AI credits'],
   },
   {
     name: 'Institution',
-    price: 'KES 200,000 / year',
+    price: 'KES 150,000 / year',
     secondaryPrice: 'Unlimited faculty seats',
     note: 'One agreement for the whole institution',
     icon: FaBuilding,
@@ -45,7 +45,7 @@ export default function FacultyAssistantPlansPage({
     <main className="min-h-screen bg-[radial-gradient(circle_at_18%_0%,rgba(212,155,36,0.2),transparent_28rem),linear-gradient(180deg,#f7f3e8,#eef2ee)] px-5 py-12 text-slate-900">
       <div className="mx-auto max-w-6xl">
         <header className="max-w-3xl">
-          <Link href="/" className="text-sm font-bold text-[#0b3866]">UEAB ODeL</Link>
+          <Link href="/faculty-assistant/plans" className="text-sm font-bold text-[#0b3866]">Faculty Assistant</Link>
           <p className="mt-10 text-xs font-bold uppercase tracking-[0.24em] text-amber-700">Faculty Assistant licensing</p>
           <h1 className="mt-4 text-4xl font-bold leading-tight text-[#09264a] md:text-6xl">Give every lecturer the useful tools. Charge for the hours automation gives back.</h1>
           <p className="mt-5 text-lg leading-8 text-slate-600">Essential stays genuinely useful for free. Professional removes the repetitive Moodle, assessment and grading work. Institution covers every faculty member under one supported agreement.</p>
@@ -85,7 +85,7 @@ export default function FacultyAssistantPlansPage({
           <UpgradeRequestForm defaultPlan={searchParams.plan || 'professional'} />
         </section>
 
-        <section id="download" className="mt-8 rounded-[1.5rem] border border-slate-200 bg-white/75 p-6"><p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Essential download</p><h2 className="mt-2 text-2xl font-bold text-[#09264a]">Start locally, upgrade when connection saves more time.</h2><p className="mt-2 text-slate-600">The approved public Windows installer will be linked here after code signing. Internal UEAB pilot users receive the current installer through ODeL.</p></section>
+        <section id="download" className="mt-8 rounded-[1.5rem] border border-slate-200 bg-white/75 p-6"><p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Essential download</p><h2 className="mt-2 text-2xl font-bold text-[#09264a]">Start locally, upgrade when connection saves more time.</h2><p className="mt-2 text-slate-600">The approved public Windows installer will be linked here after code signing. Pilot users receive the current installer from their implementation administrator.</p></section>
       </div>
     </main>
   )

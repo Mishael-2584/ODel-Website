@@ -24,19 +24,19 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
     const result = await response.json().catch(() => ({}))
     if (response.status === 401) {
       setState('signin')
-      setMessage('Sign in with your ODeL account so the request is linked to the correct lecturer licence.')
+      setMessage('Sign in securely so the request is linked to the correct Faculty Assistant licence.')
       return
     }
     if (!response.ok) {
       setState('error')
-      setMessage('We could not record the request. Please try again or contact the ODeL office.')
+      setMessage('We could not record the request. Please try again or contact Faculty Assistant support.')
       return
     }
     setState('success')
     setMessage(
       result.existing
-        ? 'Your upgrade request is already in our queue. The ODeL team will contact you.'
-        : 'Your request has been recorded. The ODeL team will confirm payment and activate your licence.',
+        ? 'Your upgrade request is already in our queue. The Faculty Assistant team will contact you.'
+        : 'Your request has been recorded. The Faculty Assistant team will confirm payment and activate your licence.',
     )
   }
 
@@ -67,7 +67,7 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
         Billing
         <select value={plan === 'institution' ? 'annual' : billingPeriod} disabled={plan === 'institution'} onChange={(event) => setBillingPeriod(event.target.value as 'monthly' | 'annual')} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-medium outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-100 disabled:bg-slate-100">
           <option value="annual">Annual - best value</option>
-          <option value="monthly">Monthly - KES 1,200</option>
+          <option value="monthly">Monthly - KES 1,000</option>
         </select>
       </label>
       <label className="mt-4 block text-sm font-bold text-slate-700">
@@ -93,7 +93,7 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
       <button disabled={state === 'busy'} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#d49b24] px-5 py-3 font-bold text-[#09264a] hover:bg-[#e0ad43] disabled:opacity-60">
         {state === 'busy' ? 'Submitting...' : 'Request activation'} <FaArrowRight />
       </button>
-      <p className="mt-4 flex items-center gap-2 text-xs text-slate-500"><FaLock /> Your request is tied to your secure ODeL identity.</p>
+      <p className="mt-4 flex items-center gap-2 text-xs text-slate-500"><FaLock /> Your request is tied to your verified Faculty Assistant identity.</p>
     </form>
   )
 }
