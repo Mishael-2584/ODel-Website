@@ -11,25 +11,28 @@ export const metadata: Metadata = {
 const plans = [
   {
     name: 'Essential',
-    price: 'KES 3,000 / year',
-    note: 'Offline lecturer toolkit',
+    price: 'Free forever',
+    secondaryPrice: 'No card required',
+    note: 'Start useful, stay in control',
     icon: FaLaptop,
-    features: ['Grade conversion and iCampus export', 'Visual assessment authoring and GIFT export', 'Local course projects', 'Course outline designer'],
+    features: ['Local Grade Studio projects', 'Visual assessment authoring', 'GIFT and review exports', 'One institution template', 'No Moodle connection or managed AI'],
   },
   {
     name: 'Professional',
-    price: 'KES 9,000 / year',
-    note: 'For connected power users',
+    price: 'KES 1,200 / month',
+    secondaryPrice: 'KES 9,000 / year - save KES 5,400',
+    note: 'The connected lecturer workspace',
     icon: FaGraduationCap,
     featured: true,
-    features: ['Everything in Essential', 'Secure Moodle course sync', 'Direct reviewed question-bank publishing', 'Word and PDF recovery', 'Advanced analytics and future AI credits'],
+    features: ['Everything in Essential', 'Secure Moodle course sync', 'Direct reviewed question-bank publishing', 'Word, PDF and scanned exam recovery', 'Unlimited UEAB/institution templates', 'Advanced analytics and included AI credits'],
   },
   {
     name: 'Institution',
-    price: 'From KES 150,000 / year',
-    note: 'For universities and departments',
+    price: 'KES 200,000 / year',
+    secondaryPrice: 'Unlimited faculty seats',
+    note: 'One agreement for the whole institution',
     icon: FaBuilding,
-    features: ['Everything in Professional', 'Central seats and licence controls', 'Shared approved templates', 'Custom SIS and Moodle connectors', 'Audit, deployment and priority support'],
+    features: ['Everything in Professional', 'Unlimited lecturer seats under one institution', 'Central licence and policy controls', 'Shared approved templates and branding', 'Custom SIS and Moodle connectors', 'Audit, deployment, onboarding and priority support'],
   },
 ]
 
@@ -44,8 +47,8 @@ export default function FacultyAssistantPlansPage({
         <header className="max-w-3xl">
           <Link href="/" className="text-sm font-bold text-[#0b3866]">UEAB ODeL</Link>
           <p className="mt-10 text-xs font-bold uppercase tracking-[0.24em] text-amber-700">Faculty Assistant licensing</p>
-          <h1 className="mt-4 text-4xl font-bold leading-tight text-[#09264a] md:text-6xl">Local work stays yours. Premium automation saves the hours.</h1>
-          <p className="mt-5 text-lg leading-8 text-slate-600">Start with the lecturer tools you need, then add secure Moodle automation or institution-wide controls when the value is clear.</p>
+          <h1 className="mt-4 text-4xl font-bold leading-tight text-[#09264a] md:text-6xl">Give every lecturer the useful tools. Charge for the hours automation gives back.</h1>
+          <p className="mt-5 text-lg leading-8 text-slate-600">Essential stays genuinely useful for free. Professional removes the repetitive Moodle, assessment and grading work. Institution covers every faculty member under one supported agreement.</p>
         </header>
 
         <section className="mt-10 grid gap-5 lg:grid-cols-3">
@@ -58,22 +61,31 @@ export default function FacultyAssistantPlansPage({
                 <h2 className="mt-5 text-2xl font-bold">{plan.name}</h2>
                 <p className={`mt-1 text-sm ${plan.featured ? 'text-blue-100' : 'text-slate-500'}`}>{plan.note}</p>
                 <p className="mt-5 text-xl font-bold">{plan.price}</p>
+                <p className={`mt-1 text-sm font-semibold ${plan.featured ? 'text-amber-200' : 'text-amber-800'}`}>{plan.secondaryPrice}</p>
                 <div className="mt-5 space-y-3">
                   {plan.features.map((feature) => <p key={feature} className="flex gap-3 text-sm leading-6"><FaCheck className="mt-1 flex-none text-emerald-500" /> {feature}</p>)}
                 </div>
+                <a href={plan.name === 'Essential' ? '#download' : `#activate`} className={`mt-6 block rounded-xl px-4 py-3 text-center text-sm font-bold ${plan.featured ? 'bg-amber-400 text-[#09264a]' : 'bg-[#0b294f] text-white'}`}>{plan.name === 'Essential' ? 'Start with Essential' : plan.name === 'Professional' ? 'Choose Professional' : 'Request institution coverage'}</a>
               </article>
             )
           })}
         </section>
 
-        <section className="mt-10 grid gap-7 rounded-[2rem] bg-white/70 p-6 backdrop-blur md:grid-cols-[1fr_420px] md:p-9">
+        <section className="mt-8 rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5 text-emerald-950 md:flex md:items-center md:justify-between">
+          <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">Covered by your institution?</p><h2 className="mt-1 text-2xl font-bold">Your seat is already paid for.</h2><p className="mt-2 text-sm leading-6 text-emerald-800">If your university or department has an Institution licence, sign in with the approved institutional account. You should not pay personally; your administrator assigns the covered seat.</p></div>
+          <Link href="/login?returnTo=%2Ffaculty-assistant%2Fplans" className="mt-4 inline-block whitespace-nowrap rounded-xl bg-emerald-800 px-5 py-3 text-sm font-bold text-white md:ml-6 md:mt-0">Check institution access</Link>
+        </section>
+
+        <section id="activate" className="mt-10 grid gap-7 rounded-[2rem] bg-white/70 p-6 backdrop-blur md:grid-cols-[1fr_420px] md:p-9">
           <div className="py-3">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-700">Simple activation for the MVP</p>
             <h2 className="mt-3 text-3xl font-bold text-[#09264a]">Request, confirm, activate.</h2>
-            <p className="mt-4 max-w-xl leading-7 text-slate-600">Your request is recorded against your Moodle identity. The ODeL team confirms payment and turns on the entitlement. Later, M-Pesa and card checkout can automate the same activation record without changing the desktop app.</p>
+            <p className="mt-4 max-w-xl leading-7 text-slate-600">Your request is recorded against your verified Moodle identity. The Faculty Assistant Licence Desk confirms payment or institution coverage, activates the entitlement, and keeps an audit trail. The desktop app picks it up through Refresh licence.</p>
           </div>
           <UpgradeRequestForm defaultPlan={searchParams.plan || 'professional'} />
         </section>
+
+        <section id="download" className="mt-8 rounded-[1.5rem] border border-slate-200 bg-white/75 p-6"><p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Essential download</p><h2 className="mt-2 text-2xl font-bold text-[#09264a]">Start locally, upgrade when connection saves more time.</h2><p className="mt-2 text-slate-600">The approved public Windows installer will be linked here after code signing. Internal UEAB pilot users receive the current installer through ODeL.</p></section>
       </div>
     </main>
   )
