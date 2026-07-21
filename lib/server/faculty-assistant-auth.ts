@@ -75,7 +75,6 @@ export async function getActiveEntitlement(
   moodleInstance = facultyAssistantMoodleInstance(),
 ) {
   const supabase = getSupabaseAdmin()
-  const now = new Date().toISOString()
   const { data, error } = await supabase
     .from('faculty_assistant_entitlements')
     .select('id, plan, features, expires_at, is_active')
@@ -85,7 +84,7 @@ export async function getActiveEntitlement(
     .maybeSingle()
 
   if (error || !data) return null
-  if (data.expires_at && data.expires_at <= now) return null
+  if (hasExpired(data.expires_at)) return null
   return data
 }
 
@@ -95,14 +94,14 @@ export async function provisionInstitutionEntitlement(options: {
   email: string
 }) {
   const supabase = getSupabaseAdmin()
-  const now = new Date().toISOString()
+  const updatedAt = new Date().toISOString()
   const { data: agreement, error: agreementError } = await supabase
     .from('faculty_assistant_institution_licences')
     .select('id, features, expires_at')
     .eq('moodle_instance', options.moodleInstance)
     .eq('is_active', true)
     .maybeSingle()
-  if (agreementError || !agreement || agreement.expires_at <= now) return null
+  if (agreementError || !agreement || isInvalidOrExpired(agreement.expires_at)) return null
 
   const { data, error } = await supabase
     .from('faculty_assistant_entitlements')
@@ -116,11 +115,22 @@ export async function provisionInstitutionEntitlement(options: {
       expires_at: agreement.expires_at,
       billing_period: 'annual',
       institution_licence_id: agreement.id,
-      updated_at: now,
+      updated_at: updatedAt,
     }, { onConflict: 'moodle_instance,moodle_user_id' })
     .select('id, plan, features, expires_at, is_active')
     .single()
   return error ? null : data
+}
+
+function hasExpired(value: string | null | undefined) {
+  if (!value) return false
+  const expiresAt = new Date(value).getTime()
+  return !Number.isFinite(expiresAt) || expiresAt <= Date.now()
+}
+
+function isInvalidOrExpired(value: string | null | undefined) {
+  if (!value) return true
+  return hasExpired(value)
 }
 
 export function issueAccessToken(identity: FacultyAssistantIdentity) {

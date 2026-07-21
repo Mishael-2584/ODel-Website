@@ -10,45 +10,61 @@ export async function PATCH(
   if (!admin) return NextResponse.json({ error: 'admin_unauthorized' }, { status: 401 })
   const body = (await request.json().catch(() => null)) as { action?: unknown } | null
   const action = String(body?.action || '')
+  if (!['revoke', 'restore', 'extend'].includes(action)) {
+    return NextResponse.json({ error: 'invalid_institution_action' }, { status: 400 })
+  }
   const supabase = getSupabaseAdmin()
-  const { data: current } = await supabase
+  const { data: current, error: readError } = await supabase
     .from('faculty_assistant_institution_licences')
     .select('id, moodle_instance, institution_name, expires_at')
     .eq('id', params.institutionId)
     .maybeSingle()
+  if (readError) return NextResponse.json({ error: 'institution_lookup_failed' }, { status: 500 })
   if (!current) return NextResponse.json({ error: 'institution_licence_not_found' }, { status: 404 })
 
-  let patch: Record<string, unknown>
-  if (action === 'revoke') patch = { is_active: false }
-  else if (action === 'restore') patch = { is_active: true }
-  else if (action === 'extend') {
-    const expiry = new Date(current.expires_at || Date.now())
-    const from = expiry.getTime() > Date.now() ? expiry : new Date()
+  let expiresAt: string | null = null
+  if (action === 'extend') {
+    const currentExpiry = new Date(current.expires_at).getTime()
+    const from = Number.isFinite(currentExpiry) && currentExpiry > Date.now()
+      ? new Date(currentExpiry)
+      : new Date()
     from.setUTCFullYear(from.getUTCFullYear() + 1)
-    patch = { is_active: true, expires_at: from.toISOString() }
-  } else return NextResponse.json({ error: 'invalid_institution_action' }, { status: 400 })
-  patch.updated_at = new Date().toISOString()
-
-  const { data, error } = await supabase
-    .from('faculty_assistant_institution_licences')
-    .update(patch)
-    .eq('id', current.id)
-    .select('id, is_active, expires_at')
-    .single()
-  if (error || !data) return NextResponse.json({ error: 'institution_update_failed' }, { status: 500 })
-
-  if (action === 'revoke') {
-    await supabase.from('faculty_assistant_entitlements').update({ is_active: false }).eq('institution_licence_id', current.id)
-  } else if (action === 'extend') {
-    await supabase.from('faculty_assistant_entitlements').update({ is_active: true, expires_at: data.expires_at }).eq('institution_licence_id', current.id)
+    expiresAt = from.toISOString()
   }
-  await supabase.from('faculty_assistant_audit_log').insert({
-    moodle_instance: current.moodle_instance,
+
+  const { data, error } = await supabase.rpc('faculty_assistant_admin_update_institution', {
+    p_institution_id: current.id,
+    p_action: action,
+    p_expires_at: expiresAt,
+    p_admin_id: admin.id,
+    p_admin_email: admin.email,
+  })
+  if (error || !data) {
+    await writeFailedAudit(supabase, current, admin, action, error?.message || 'No result returned')
+    return NextResponse.json({ error: 'institution_update_failed' }, { status: 500 })
+  }
+  return NextResponse.json({ institution: data })
+}
+
+async function writeFailedAudit(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  institution: { id: string; moodle_instance: string; institution_name: string },
+  admin: { id: string; email: string },
+  action: string,
+  failure: string,
+) {
+  const { error } = await supabase.from('faculty_assistant_audit_log').insert({
+    moodle_instance: institution.moodle_instance,
     action: `institution.${action}`,
     resource_type: 'institution_licence',
-    resource_id: current.id,
-    outcome: 'success',
-    details: { adminId: admin.id, adminEmail: admin.email, institutionName: current.institution_name },
+    resource_id: institution.id,
+    outcome: 'failed',
+    details: {
+      adminId: admin.id,
+      adminEmail: admin.email,
+      institutionName: institution.institution_name,
+      error: failure.slice(0, 500),
+    },
   })
-  return NextResponse.json({ institution: data })
+  if (error) console.error('Faculty Assistant failed institution audit write failed:', error)
 }
