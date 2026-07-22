@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
     })
     return redirectWithError(
       state,
-      'access_denied',
+      'upgrade_required',
       activeEntitlement
         ? 'Your Faculty Assistant licence does not include the requested feature.'
         : 'An active Faculty Assistant licence is required.',

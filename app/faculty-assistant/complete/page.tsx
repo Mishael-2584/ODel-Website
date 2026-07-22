@@ -16,6 +16,7 @@ export default function FacultyAssistantCompletePage() {
   const [status, setStatus] = useState<CompletionState>('opening')
   const [message, setMessage] = useState('Opening Faculty Assistant securely...')
   const [callbackUrl, setCallbackUrl] = useState('')
+  const [errorCode, setErrorCode] = useState('')
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.hash.slice(1))
@@ -23,6 +24,7 @@ export default function FacultyAssistantCompletePage() {
     const state = params.get('state') || ''
     const error = params.get('error') || ''
     const errorDescription = params.get('error_description') || ''
+    setErrorCode(error)
 
     // Authorization results are removed before they can remain in browser history.
     window.history.replaceState({}, '', window.location.pathname)
@@ -56,6 +58,7 @@ export default function FacultyAssistantCompletePage() {
 
   const isApproved = status === 'approved'
   const isFailure = status === 'error' || status === 'invalid'
+  const needsUpgrade = errorCode === 'upgrade_required'
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_20%_10%,rgba(212,155,36,0.2),transparent_24rem),linear-gradient(145deg,#081d3d,#123461_62%,#0b2548)] px-5 py-12 text-white">
@@ -85,17 +88,38 @@ export default function FacultyAssistantCompletePage() {
               {status === 'opening' ? 'Completing connection' : isApproved ? 'Connected securely' : 'Action required'}
             </p>
             <h2 className="mt-3 text-3xl font-bold text-[#09264a]">
-              {status === 'opening' ? 'Opening the Windows app...' : isApproved ? 'You are signed in.' : 'We could not finish sign-in.'}
+              {status === 'opening'
+                ? 'Opening Faculty Assistant...'
+                : isApproved
+                  ? 'You are signed in.'
+                  : needsUpgrade
+                    ? 'Choose your Faculty Assistant access.'
+                    : 'We could not finish sign-in.'}
             </h2>
             <p className="mt-4 text-lg leading-7 text-slate-600">{message}</p>
 
+            {needsUpgrade && (
+              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+                <strong className="block text-[#09264a]">Your UEAB account was verified.</strong>
+                Essential offline tools remain available. Professional unlocks personal Moodle synchronization and reviewed publishing; institution-covered users activate through their approved UEAB account.
+              </div>
+            )}
+
             <div className="mt-8 flex flex-wrap gap-3">
+              {needsUpgrade && (
+                <Link
+                  href="/faculty-assistant/plans?plan=professional&source=licence-required"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#d49b24] px-5 py-3 font-bold text-[#09264a] shadow-sm hover:bg-[#e0ad43]"
+                >
+                  View plans and request access <FaExternalLinkAlt />
+                </Link>
+              )}
               {callbackUrl && (
                 <button
                   onClick={() => window.location.assign(callbackUrl)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#d49b24] px-5 py-3 font-bold text-[#09264a] shadow-sm hover:bg-[#e0ad43]"
+                  className={`inline-flex items-center gap-2 rounded-xl px-5 py-3 font-bold shadow-sm ${needsUpgrade ? 'border border-slate-300 text-slate-700 hover:bg-slate-50' : 'bg-[#d49b24] text-[#09264a] hover:bg-[#e0ad43]'}`}
                 >
-                  <FaExternalLinkAlt /> Open Faculty Assistant
+                  <FaExternalLinkAlt /> {needsUpgrade ? 'Return to Faculty Assistant' : 'Open Faculty Assistant'}
                 </button>
               )}
               <Link
