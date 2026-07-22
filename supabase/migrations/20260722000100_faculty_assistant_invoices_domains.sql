@@ -7,12 +7,30 @@ ALTER TABLE faculty_assistant_upgrade_requests
 ALTER TABLE faculty_assistant_institution_licences
   ADD COLUMN IF NOT EXISTS email_domains TEXT[] NOT NULL DEFAULT '{}';
 
-UPDATE faculty_assistant_institution_licences AS licence
-   SET email_domains = ARRAY[LOWER(SPLIT_PART(request.email, '@', 2))]
+WITH request_domains AS (
+  SELECT
+    request.id,
+    LOWER(BTRIM(SPLIT_PART(request.email, '@', 2))) AS domain
   FROM faculty_assistant_upgrade_requests AS request
+)
+UPDATE faculty_assistant_institution_licences AS licence
+   SET email_domains = ARRAY[request.domain]
+  FROM request_domains AS request
  WHERE request.id = licence.source_request_id
    AND CARDINALITY(licence.email_domains) = 0
-   AND SPLIT_PART(request.email, '@', 2) <> '';
+   AND request.domain ~ '^[a-z0-9][a-z0-9.-]*[a-z0-9]$'
+   AND request.domain NOT LIKE '%..%'
+   AND POSITION('.' IN request.domain) > 0;
+
+UPDATE faculty_assistant_institution_licences AS licence
+   SET email_domains = '{}'
+ WHERE EXISTS (
+   SELECT 1
+     FROM UNNEST(licence.email_domains) AS domain
+    WHERE domain !~ '^[a-z0-9][a-z0-9.-]*[a-z0-9]$'
+       OR domain LIKE '%..%'
+       OR POSITION('.' IN domain) = 0
+ );
 
 DROP FUNCTION IF EXISTS faculty_assistant_admin_activate_request(
   UUID, TEXT, TEXT, TEXT[], TIMESTAMPTZ, TEXT, TEXT, TEXT, UUID, TEXT

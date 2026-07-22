@@ -37,7 +37,11 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
     setMessage(
       result.existing
         ? 'Your upgrade request is already in our queue. Check the institutional email used for your request or wait for the Faculty Assistant team to contact you.'
-        : result.invoiceStatus === 'failed'
+        : result.invoicePersistence === 'failed'
+          ? result.invoiceStatus === 'sent'
+            ? 'Your request is safely recorded and the email was sent, but its Licence Desk tracking record needs attention. The team has been notified; please do not submit a duplicate request.'
+            : 'Your request is safely recorded, but email delivery and its Licence Desk tracking record need attention. The team can contact you without creating another request.'
+          : result.invoiceStatus === 'failed'
           ? 'Your request is safely recorded, but the invoice email could not be delivered. The Licence Desk can resend or contact you without creating another request.'
           : plan === 'institution'
             ? 'Your request is recorded. An acknowledgement was sent to your institutional email, and the Faculty Assistant team will contact you about the agreement and approved domains.'
