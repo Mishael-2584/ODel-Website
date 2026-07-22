@@ -73,14 +73,20 @@ export function facultyAssistantPublicOrigin() {
 export async function getActiveEntitlement(
   moodleUserId: number,
   moodleInstance = facultyAssistantMoodleInstance(),
+  requiredFeatures: readonly string[] = [],
 ) {
   const supabase = getSupabaseAdmin()
-  const { data, error } = await supabase
+  const baseQuery = supabase
     .from('faculty_assistant_entitlements')
     .select('id, plan, features, expires_at, is_active')
     .eq('moodle_user_id', moodleUserId)
     .eq('moodle_instance', moodleInstance)
     .eq('is_active', true)
+  const features = Array.from(new Set(requiredFeatures.map(String)))
+  const query = features.length
+    ? baseQuery.contains('features', features)
+    : baseQuery
+  const { data, error } = await query
     .maybeSingle()
 
   if (error || !data) return null

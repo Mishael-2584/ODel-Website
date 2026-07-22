@@ -57,31 +57,56 @@ export async function GET(request: NextRequest) {
   }
 
   const moodleInstance = facultyAssistantMoodleInstance()
-  let entitlement = await getActiveEntitlement(session.moodleUserId, moodleInstance)
+  const scopes = requestedScopes(params.get('scope'))
+  let entitlement = await getActiveEntitlement(
+    session.moodleUserId,
+    moodleInstance,
+    scopes,
+  )
+  let activeEntitlement = entitlement
   if (!entitlement) {
-    try {
-      const courses = await getFacultyAssistantTeachingCourses(session.moodleUserId)
-      if (courses.length > 0) {
-        entitlement = await provisionInstitutionEntitlement({
-          moodleUserId: session.moodleUserId,
-          moodleInstance,
-          email: session.email,
-        })
+    activeEntitlement = await getActiveEntitlement(session.moodleUserId, moodleInstance)
+    if (!activeEntitlement) {
+      try {
+        const courses = await getFacultyAssistantTeachingCourses(session.moodleUserId)
+        if (courses.length > 0) {
+          await provisionInstitutionEntitlement({
+            moodleUserId: session.moodleUserId,
+            moodleInstance,
+            email: session.email,
+          })
+          entitlement = await getActiveEntitlement(
+            session.moodleUserId,
+            moodleInstance,
+            scopes,
+          )
+          activeEntitlement = entitlement || await getActiveEntitlement(
+            session.moodleUserId,
+            moodleInstance,
+          )
+        }
+      } catch (error) {
+        console.error('Faculty Assistant institution seat check failed:', error)
       }
-    } catch (error) {
-      console.error('Faculty Assistant institution seat check failed:', error)
     }
   }
-  const scopes = requestedScopes(params.get('scope'))
-  const entitledFeatures = entitlement?.features?.map(String) || []
-  if (!entitlement || scopes.some((scope) => !entitledFeatures.includes(scope))) {
+  if (!entitlement) {
+    const reason = activeEntitlement
+      ? 'insufficient_entitlement_features'
+      : 'inactive_entitlement'
     await writeFacultyAssistantAudit('oauth.authorize', 'denied', {
       moodleUserId: session.moodleUserId,
       moodleInstance,
-      details: { reason: 'inactive_or_insufficient_entitlement', requestedScopes: scopes },
+      details: { reason, requestedScopes: scopes },
       ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
     })
-    return redirectWithError(state, 'access_denied', 'An active Faculty Assistant licence is required.')
+    return redirectWithError(
+      state,
+      'access_denied',
+      activeEntitlement
+        ? 'Your Faculty Assistant licence does not include the requested feature.'
+        : 'An active Faculty Assistant licence is required.',
+    )
   }
 
   const code = randomToken(32)
