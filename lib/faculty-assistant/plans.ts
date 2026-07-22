@@ -39,7 +39,7 @@ export const facultyAssistantPlanCards = [
     secondaryPrice: `${facultyAssistantPricing.professional.annualPrice} - ${facultyAssistantPricing.professional.annualSavings}`,
     note: 'The connected lecturer workspace',
     featured: true,
-    features: ['Everything in Essential', 'Secure Moodle course workspace sync', 'Direct reviewed question-bank publishing', 'Word, PDF and scanned exam recovery', 'Unlimited institution templates', 'Advanced analytics and included AI credits'],
+    features: ['Everything in Essential', 'Secure Moodle course workspace sync', 'Direct reviewed question-bank publishing', 'Word, PDF and scanned exam recovery', 'Advanced grade analytics', 'Priority beta support and early feature access'],
   },
   {
     id: 'institution',

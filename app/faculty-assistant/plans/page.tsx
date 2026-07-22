@@ -28,6 +28,7 @@ export default function FacultyAssistantPlansPage({
           <p className="mt-10 text-xs font-bold uppercase tracking-[0.24em] text-amber-700">Faculty Assistant licensing</p>
           <h1 className="mt-4 text-4xl font-bold leading-tight text-[#09264a] md:text-6xl">Give every lecturer the useful tools. Charge for the hours automation gives back.</h1>
           <p className="mt-5 text-lg leading-8 text-slate-600">Essential stays genuinely useful for free. Professional removes the repetitive Moodle, assessment and grading work. Institution covers every faculty member under one supported agreement.</p>
+          <div className="mt-6 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-950"><strong>Lecturer beta:</strong> Grade Studio, Assessment Studio, Moodle Connection and licensing are in pilot validation. AI Assistant and Course Outline Designer will follow after the beta.</div>
         </header>
 
         <section className="mt-10 grid gap-5 lg:grid-cols-3">
@@ -64,7 +65,7 @@ export default function FacultyAssistantPlansPage({
           <UpgradeRequestForm defaultPlan={searchParams.plan || 'professional'} />
         </section>
 
-        <section id="download" className="mt-8 rounded-[1.5rem] border border-slate-200 bg-white/75 p-6"><p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Essential download</p><h2 className="mt-2 text-2xl font-bold text-[#09264a]">Start locally, upgrade when connection saves more time.</h2><p className="mt-2 text-slate-600">The approved public Windows installer will be linked here after code signing. Pilot users receive the current installer from their implementation administrator.</p></section>
+        <section id="download" className="mt-8 rounded-[1.5rem] border border-slate-200 bg-white/75 p-6"><p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Windows beta</p><h2 className="mt-2 text-2xl font-bold text-[#09264a]">Faculty Assistant 0.16 beta is for invited pilot lecturers.</h2><p className="mt-2 text-slate-600">Pilot users receive the installer and SHA-256 checksum from their implementation administrator. The public self-service download will appear here after Windows code signing and pilot acceptance.</p><p className="mt-3 text-sm font-semibold text-amber-800">AI Assistant and Course Outline Designer are not included in this beta.</p></section>
       </div>
     </main>
   )
