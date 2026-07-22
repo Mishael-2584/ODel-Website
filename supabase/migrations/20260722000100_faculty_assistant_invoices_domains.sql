@@ -22,21 +22,11 @@ UPDATE faculty_assistant_institution_licences AS licence
    AND request.domain NOT LIKE '%..%'
    AND POSITION('.' IN request.domain) > 0;
 
-UPDATE faculty_assistant_institution_licences AS licence
-   SET email_domains = '{}'
- WHERE EXISTS (
-   SELECT 1
-     FROM UNNEST(licence.email_domains) AS domain
-    WHERE domain !~ '^[a-z0-9][a-z0-9.-]*[a-z0-9]$'
-       OR domain LIKE '%..%'
-       OR POSITION('.' IN domain) = 0
- );
-
-DROP FUNCTION IF EXISTS faculty_assistant_admin_activate_request(
+REVOKE ALL ON FUNCTION faculty_assistant_admin_activate_request(
   UUID, TEXT, TEXT, TEXT[], TIMESTAMPTZ, TEXT, TEXT, TEXT, UUID, TEXT
-);
+) FROM PUBLIC, anon, authenticated, service_role;
 
-CREATE OR REPLACE FUNCTION faculty_assistant_admin_activate_request(
+CREATE OR REPLACE FUNCTION faculty_assistant_admin_activate_request_v2(
   p_request_id UUID,
   p_plan TEXT,
   p_billing_period TEXT,
@@ -166,9 +156,9 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION faculty_assistant_admin_activate_request(
+REVOKE ALL ON FUNCTION faculty_assistant_admin_activate_request_v2(
   UUID, TEXT, TEXT, TEXT[], TIMESTAMPTZ, TEXT, TEXT[], TEXT, TEXT, UUID, TEXT
 ) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION faculty_assistant_admin_activate_request(
+GRANT EXECUTE ON FUNCTION faculty_assistant_admin_activate_request_v2(
   UUID, TEXT, TEXT, TEXT[], TIMESTAMPTZ, TEXT, TEXT[], TEXT, TEXT, UUID, TEXT
 ) TO service_role;

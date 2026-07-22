@@ -126,7 +126,7 @@ export async function PATCH(
       .split(/[\s,;]+/)
       .map((domain) => domain.trim().toLowerCase().replace(/^@/, ''))
       .filter(Boolean)
-    const { data, error } = await supabase.rpc('faculty_assistant_admin_activate_request', {
+    const { data, error } = await supabase.rpc('faculty_assistant_admin_activate_request_v2', {
       p_request_id: upgradeRequest.id,
       p_plan: plan,
       p_billing_period: billingPeriod,
