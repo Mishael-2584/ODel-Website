@@ -6,8 +6,11 @@ import {
   requireFacultyAssistantAdmin,
 } from '@/lib/server/faculty-assistant-admin'
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
+import { sendFacultyAssistantInvoice } from '@/lib/server/faculty-assistant-invoice'
+import { persistInvoiceDeliveryStatus } from '@/lib/server/faculty-assistant-invoice-status'
 
 const allowedStatuses = new Set(['contacted', 'paid', 'declined'])
+const invoiceEligibleStatuses = new Set(['pending', 'contacted', 'paid'])
 
 export async function PATCH(
   request: NextRequest,
@@ -29,6 +32,82 @@ export async function PATCH(
   if (requestError) return NextResponse.json({ error: 'request_lookup_failed' }, { status: 500 })
   if (!upgradeRequest) return NextResponse.json({ error: 'request_not_found' }, { status: 404 })
 
+  if (action === 'resend_invoice') {
+    if (!invoiceEligibleStatuses.has(String(upgradeRequest.status))) {
+      return NextResponse.json(
+        { error: 'resend_not_allowed_for_status', status: upgradeRequest.status },
+        { status: 409 },
+      )
+    }
+    const invoiceEmail = String(upgradeRequest.email || '').trim()
+    if (!isValidEmail(invoiceEmail)) {
+      return NextResponse.json({ error: 'invoice_email_invalid' }, { status: 400 })
+    }
+
+    try {
+      const delivery = await sendFacultyAssistantInvoice({
+        requestId: String(upgradeRequest.id),
+        email: invoiceEmail,
+        displayName: String(upgradeRequest.display_name || ''),
+        requestedPlan: upgradeRequest.requested_plan === 'institution' ? 'institution' : 'professional',
+        billingPeriod: upgradeRequest.billing_period === 'monthly' ? 'monthly' : 'annual',
+      })
+      const persistence = await persistInvoiceDeliveryStatus(
+        supabase,
+        String(upgradeRequest.id),
+        'sent',
+      )
+      if (!persistence.persisted) {
+        await writeFailedAdminAudit(
+          supabase,
+          admin,
+          'licence.invoice.status.persist',
+          upgradeRequest,
+          persistence.error,
+        )
+        return NextResponse.json({
+          error: 'invoice_status_persist_failed',
+          invoiceStatus: 'sent',
+          invoicePersistence: 'failed',
+        }, { status: 500 })
+      }
+      const { error: auditError } = await supabase.from('faculty_assistant_audit_log').insert({
+        moodle_user_id: upgradeRequest.moodle_user_id,
+        moodle_instance: upgradeRequest.moodle_instance,
+        action: 'licence.invoice.resent',
+        resource_type: 'upgrade_request',
+        resource_id: upgradeRequest.id,
+        outcome: 'success',
+        details: { adminId: admin.id, adminEmail: admin.email, messageId: delivery.messageId },
+      })
+      if (auditError) console.error('Faculty Assistant invoice resend audit failed:', auditError)
+      return NextResponse.json({ status: upgradeRequest.status, invoiceStatus: 'sent' })
+    } catch (invoiceError) {
+      const failure = invoiceError instanceof Error ? invoiceError.message : 'Unknown email error'
+      const persistence = await persistInvoiceDeliveryStatus(
+        supabase,
+        String(upgradeRequest.id),
+        'failed',
+        failure,
+      )
+      if (!persistence.persisted) {
+        await writeFailedAdminAudit(
+          supabase,
+          admin,
+          'licence.invoice.status.persist',
+          upgradeRequest,
+          persistence.error,
+        )
+      }
+      await writeFailedAdminAudit(supabase, admin, 'licence.invoice.resent', upgradeRequest, failure)
+      return NextResponse.json({
+        error: 'invoice_send_failed',
+        invoiceStatus: 'failed',
+        invoicePersistence: persistence.persisted ? 'persisted' : 'failed',
+      }, { status: 500 })
+    }
+  }
+
   if (action === 'activate') {
     const plan = upgradeRequest.requested_plan === 'institution' ? 'institution' : 'professional'
     const billingPeriod =
@@ -40,7 +119,13 @@ export async function PATCH(
     const features = plan === 'institution' ? institutionFeatures : professionalFeatures
     const expiresAt = licenceExpiry(billingPeriod)
     const institutionName = String(body?.institutionName || '').trim().slice(0, 160)
-      || upgradeRequest.moodle_instance
+    if (plan === 'institution' && !institutionName) {
+      return NextResponse.json({ error: 'institution_name_required' }, { status: 400 })
+    }
+    const institutionDomains = String(body?.institutionDomains || '')
+      .split(/[\s,;]+/)
+      .map((domain) => domain.trim().toLowerCase().replace(/^@/, ''))
+      .filter(Boolean)
     const { data, error } = await supabase.rpc('faculty_assistant_admin_activate_request', {
       p_request_id: upgradeRequest.id,
       p_plan: plan,
@@ -48,6 +133,7 @@ export async function PATCH(
       p_features: features,
       p_expires_at: expiresAt,
       p_institution_name: institutionName,
+      p_email_domains: plan === 'institution' ? institutionDomains : [],
       p_payment_reference: paymentReference,
       p_admin_notes: adminNotes,
       p_admin_id: admin.id,
@@ -76,6 +162,10 @@ export async function PATCH(
     return NextResponse.json({ error: 'request_update_failed' }, { status: 500 })
   }
   return NextResponse.json({ status: action })
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
 
 async function writeFailedAdminAudit(

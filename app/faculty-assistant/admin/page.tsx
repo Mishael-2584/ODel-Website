@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Activity,
@@ -23,6 +23,7 @@ import {
   UsersRound,
   XCircle,
 } from 'lucide-react'
+import { facultyAssistantPricing } from '@/lib/faculty-assistant/plans'
 
 type DeskTab = 'overview' | 'requests' | 'licences' | 'institutions' | 'activity' | 'audit'
 
@@ -40,6 +41,9 @@ type UpgradeRequest = {
   billing_period?: 'monthly' | 'annual' | null
   payment_reference?: string
   admin_notes?: string
+  invoice_status?: 'not_sent' | 'sent' | 'failed'
+  invoice_sent_at?: string | null
+  invoice_error?: string
   created_at: string
   updated_at: string
 }
@@ -62,6 +66,7 @@ type InstitutionLicence = {
   id: string
   moodle_instance: string
   institution_name: string
+  email_domains: string[]
   features: string[]
   is_active: boolean
   expires_at: string
@@ -119,7 +124,7 @@ export default function FacultyAssistantAdminPage() {
   const [error, setError] = useState('')
   const [workingId, setWorkingId] = useState('')
 
-  async function load() {
+  const load = useCallback(async () => {
     const token = localStorage.getItem('admin_token')
     const storedAdmin = localStorage.getItem('admin_user')
     if (!token || !storedAdmin) {
@@ -144,11 +149,11 @@ export default function FacultyAssistantAdminPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
 
   useEffect(() => {
     void load()
-  }, [])
+  }, [load])
 
   const normalizedQuery = query.trim().toLowerCase()
   const requests = useMemo(
@@ -280,7 +285,7 @@ export default function FacultyAssistantAdminPage() {
               </section>
               <section className="mt-6 grid gap-5 xl:grid-cols-[1.3fr_.7fr]">
                 <div className="rounded-[1.4rem] border border-[#d8d0bd] bg-white p-5"><SectionTitle eyebrow="Needs action" title="Latest upgrade requests" /><div className="mt-4 grid gap-3">{(data?.requests || []).filter((item) => ['pending', 'contacted', 'paid'].includes(item.status)).slice(0, 5).map((item) => <RequestSummary key={item.id} item={item} onOpen={() => setTab('requests')} />)}{pending === 0 && <Empty text="No upgrade requests are waiting." />}</div></div>
-                <div className="rounded-[1.4rem] bg-[#12352d] p-6 text-white"><p className="text-[10px] font-black uppercase tracking-[.2em] text-[#f1ca76]">Current offer</p><h3 className="mt-3 font-serif text-3xl font-bold">Professional is the conversion engine.</h3><p className="mt-3 text-sm leading-6 text-white/70">Essential builds trust for free. Professional sells connected Moodle automation at KES 1,200 monthly or KES 9,000 annually. Institutions get unlimited seats for KES 200,000 annually.</p><button onClick={() => window.open('/faculty-assistant/plans', '_blank')} className="mt-6 flex items-center gap-2 rounded-xl bg-[#e4ad3c] px-4 py-3 text-sm font-black text-[#12352d]">Open public pricing <ArrowUpRight size={16} /></button></div>
+                <div className="rounded-[1.4rem] bg-[#12352d] p-6 text-white"><p className="text-[10px] font-black uppercase tracking-[.2em] text-[#f1ca76]">Current offer</p><h3 className="mt-3 font-serif text-3xl font-bold">Professional is the conversion engine.</h3><p className="mt-3 text-sm leading-6 text-white/70">Essential builds trust for free. Professional sells connected Moodle automation at {facultyAssistantPricing.professional.monthlyPrice} or {facultyAssistantPricing.professional.annualPrice}. Institutions get unlimited approved-domain seats for {facultyAssistantPricing.institution.annualPrice}.</p><button onClick={() => window.open('/faculty-assistant/plans', '_blank')} className="mt-6 flex items-center gap-2 rounded-xl bg-[#e4ad3c] px-4 py-3 text-sm font-black text-[#12352d]">Open public pricing <ArrowUpRight size={16} /></button></div>
               </section>
             </>
           )}
@@ -319,13 +324,29 @@ function RequestCard({ item, busy, onUpdate }: { item: UpgradeRequest; busy: boo
   const [paymentReference, setPaymentReference] = useState(item.payment_reference || '')
   const [adminNotes, setAdminNotes] = useState(item.admin_notes || '')
   const [institutionName, setInstitutionName] = useState('')
+  const [institutionDomains, setInstitutionDomains] = useState('')
+  const isInstitution = item.requested_plan === 'institution'
   const isOpen = ['pending', 'contacted', 'paid'].includes(item.status)
-  return <article className="rounded-[1.4rem] border border-[#d8d0bd] bg-white p-5 shadow-[0_12px_35px_rgba(38,50,44,.05)]"><div className="flex flex-col justify-between gap-4 lg:flex-row"><div><div className="flex flex-wrap items-center gap-2"><Status status={item.status} /><span className="text-xs font-bold uppercase tracking-[.1em] text-[#ad770e]">{humanPlan(item.requested_plan)}</span></div><h3 className="mt-3 font-serif text-2xl font-bold text-[#12352d]">{item.display_name || item.email}</h3><p className="mt-1 text-sm text-[#697269]">{item.email} / Moodle #{item.moodle_user_id} / {item.phone || 'No phone supplied'}</p><p className="mt-3 max-w-3xl text-sm leading-6 text-[#565f57]">{item.notes || 'No lecturer notes.'}</p></div><div className="text-left text-xs text-[#788078] lg:text-right"><strong className="block text-[#39443d]">Requested {new Date(item.created_at).toLocaleDateString()}</strong><span>{item.moodle_instance}</span></div></div>{isOpen && <div className="mt-5 grid gap-3 border-t border-[#ebe5d8] pt-5 lg:grid-cols-[180px_1fr_1.4fr_auto]"><label className="grid gap-1 text-[10px] font-black uppercase tracking-[.08em] text-[#687169]">Billing<select value={billingPeriod} disabled={item.requested_plan === 'institution'} onChange={(event) => setBillingPeriod(event.target.value as 'monthly' | 'annual')} className="rounded-lg border border-[#d8d0bd] bg-white px-3 py-2 text-sm font-bold normal-case tracking-normal"><option value="monthly">Monthly</option><option value="annual">Annual</option></select></label><label className="grid gap-1 text-[10px] font-black uppercase tracking-[.08em] text-[#687169]">Payment reference<input value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} placeholder="M-Pesa, receipt or invoice" className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-sm font-medium normal-case tracking-normal" /></label><label className="grid gap-1 text-[10px] font-black uppercase tracking-[.08em] text-[#687169]">{item.requested_plan === 'institution' ? 'Institution name' : 'Internal note'}<input value={item.requested_plan === 'institution' ? institutionName : adminNotes} onChange={(event) => item.requested_plan === 'institution' ? setInstitutionName(event.target.value) : setAdminNotes(event.target.value)} placeholder={item.requested_plan === 'institution' ? 'University or department' : 'Not visible to lecturer'} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-sm font-medium normal-case tracking-normal" /></label><div className="flex flex-wrap items-end gap-2"><button disabled={busy} onClick={() => void onUpdate(item.id, { action: 'contacted', adminNotes })} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-xs font-bold">Contacted</button><button disabled={busy} onClick={() => void onUpdate(item.id, { action: 'declined', adminNotes })} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-700">Decline</button><button disabled={busy || (item.requested_plan === 'institution' && !institutionName.trim())} onClick={() => { if (window.confirm(`Activate ${humanPlan(item.requested_plan)} for ${item.email}?`)) void onUpdate(item.id, { action: 'activate', billingPeriod, paymentReference, adminNotes, institutionName }) }} className="flex items-center gap-2 rounded-lg bg-[#12352d] px-4 py-2 text-xs font-black text-white">{busy ? <LoaderCircle className="animate-spin" size={14} /> : <CheckCircle2 size={14} />}Activate</button></div></div>}</article>
+  const institutionReady = !isInstitution || (institutionName.trim() && institutionDomains.trim())
+
+  return <article className="rounded-[1.4rem] border border-[#d8d0bd] bg-white p-5 shadow-[0_12px_35px_rgba(38,50,44,.05)]">
+    <div className="flex flex-col justify-between gap-4 lg:flex-row">
+      <div><div className="flex flex-wrap items-center gap-2"><Status status={item.status} /><span className="text-xs font-bold uppercase tracking-[.1em] text-[#ad770e]">{humanPlan(item.requested_plan)}</span><span className={`rounded-full px-2 py-1 text-[9px] font-black uppercase ${item.invoice_status === 'sent' ? 'bg-emerald-100 text-emerald-800' : item.invoice_status === 'failed' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>Invoice {item.invoice_status || 'not sent'}</span></div><h3 className="mt-3 font-serif text-2xl font-bold text-[#12352d]">{item.display_name || item.email}</h3><p className="mt-1 text-sm text-[#697269]">{item.email} / Moodle #{item.moodle_user_id} / {item.phone || 'No phone supplied'}</p><p className="mt-3 max-w-3xl text-sm leading-6 text-[#565f57]">{item.notes || 'No lecturer notes.'}</p>{item.invoice_error && <p className="mt-2 text-xs font-bold text-red-700">Invoice error: {item.invoice_error}</p>}</div>
+      <div className="text-left text-xs text-[#788078] lg:text-right"><strong className="block text-[#39443d]">Requested {new Date(item.created_at).toLocaleDateString()}</strong><span>{item.moodle_instance}</span></div>
+    </div>
+    {isOpen && <div className="mt-5 grid gap-3 border-t border-[#ebe5d8] pt-5 lg:grid-cols-2 xl:grid-cols-[160px_1fr_1fr_1.2fr_auto]">
+      <label className="grid gap-1 text-[10px] font-black uppercase tracking-[.08em] text-[#687169]">Billing<select value={billingPeriod} disabled={isInstitution} onChange={(event) => setBillingPeriod(event.target.value as 'monthly' | 'annual')} className="rounded-lg border border-[#d8d0bd] bg-white px-3 py-2 text-sm font-bold normal-case tracking-normal"><option value="monthly">Monthly</option><option value="annual">Annual</option></select></label>
+      <label className="grid gap-1 text-[10px] font-black uppercase tracking-[.08em] text-[#687169]">Payment reference<input value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} placeholder="M-Pesa, receipt or invoice" className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-sm font-medium normal-case tracking-normal" /></label>
+      <label className="grid gap-1 text-[10px] font-black uppercase tracking-[.08em] text-[#687169]">{isInstitution ? 'Institution name' : 'Internal note'}<input value={isInstitution ? institutionName : adminNotes} onChange={(event) => isInstitution ? setInstitutionName(event.target.value) : setAdminNotes(event.target.value)} placeholder={isInstitution ? 'University or department' : 'Not visible to lecturer'} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-sm font-medium normal-case tracking-normal" /></label>
+      {isInstitution && <label className="grid gap-1 text-[10px] font-black uppercase tracking-[.08em] text-[#687169]">Approved email domains<input value={institutionDomains} onChange={(event) => setInstitutionDomains(event.target.value)} placeholder="ueab.ac.ke, another.edu" className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-sm font-medium normal-case tracking-normal" /></label>}
+      <div className="flex flex-wrap items-end gap-2"><button disabled={busy} onClick={() => void onUpdate(item.id, { action: 'resend_invoice' })} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-xs font-bold">{isInstitution ? 'Resend acknowledgement' : 'Resend invoice'}</button><button disabled={busy} onClick={() => void onUpdate(item.id, { action: 'contacted', adminNotes })} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-xs font-bold">Contacted</button><button disabled={busy} onClick={() => void onUpdate(item.id, { action: 'declined', adminNotes })} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-700">Decline</button><button disabled={busy || !institutionReady} onClick={() => { if (window.confirm(`Activate ${humanPlan(item.requested_plan)} for ${item.email}?`)) void onUpdate(item.id, { action: 'activate', billingPeriod, paymentReference, adminNotes, institutionName, institutionDomains }) }} className="flex items-center gap-2 rounded-lg bg-[#12352d] px-4 py-2 text-xs font-black text-white">{busy ? <LoaderCircle className="animate-spin" size={14} /> : <CheckCircle2 size={14} />}Activate</button></div>
+    </div>}
+  </article>
 }
 
 function InstitutionDesk({ institutions, entitlements, workingId, onUpdate }: { institutions: InstitutionLicence[]; entitlements: Entitlement[]; workingId: string; onUpdate: (id: string, action: 'revoke' | 'restore' | 'extend') => Promise<void> }) {
   if (institutions.length === 0) return <Empty text="No institution agreements are active yet." />
-  return <section className="grid gap-4">{institutions.map((item) => { const active = item.is_active && new Date(item.expires_at) > new Date(); const seats = entitlements.filter((entitlement) => entitlement.plan === 'institution' && entitlement.moodle_instance === item.moodle_instance).length; return <article key={item.id} className="rounded-[1.4rem] border border-[#d8d0bd] bg-white p-5"><div className="flex flex-col justify-between gap-5 md:flex-row md:items-center"><div><div className="flex items-center gap-2"><Status status={active ? 'active' : item.is_active ? 'expired' : 'revoked'} /><span className="text-xs font-bold text-[#ad770e]">{seats} provisioned faculty seat{seats === 1 ? '' : 's'}</span></div><h3 className="mt-3 font-serif text-2xl font-bold text-[#12352d]">{item.institution_name}</h3><p className="mt-1 text-sm text-[#697269]">{item.moodle_instance} / unlimited verified lecturer seats / renews {new Date(item.expires_at).toLocaleDateString()}</p></div><div className="flex gap-2"><button disabled={Boolean(workingId)} onClick={() => void onUpdate(item.id, 'extend')} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-xs font-bold">+1 year</button><button disabled={Boolean(workingId)} onClick={() => void onUpdate(item.id, item.is_active ? 'revoke' : 'restore')} className={`rounded-lg px-3 py-2 text-xs font-bold ${item.is_active ? 'border border-red-200 text-red-700' : 'bg-[#12352d] text-white'}`}>{item.is_active ? 'Revoke coverage' : 'Restore coverage'}</button></div></div></article> })}</section>
+  return <section className="grid gap-4">{institutions.map((item) => { const active = item.is_active && new Date(item.expires_at) > new Date(); const seats = entitlements.filter((entitlement) => entitlement.plan === 'institution' && entitlement.moodle_instance === item.moodle_instance).length; return <article key={item.id} className="rounded-[1.4rem] border border-[#d8d0bd] bg-white p-5"><div className="flex flex-col justify-between gap-5 md:flex-row md:items-center"><div><div className="flex items-center gap-2"><Status status={active ? 'active' : item.is_active ? 'expired' : 'revoked'} /><span className="text-xs font-bold text-[#ad770e]">{seats} provisioned faculty seat{seats === 1 ? '' : 's'}</span></div><h3 className="mt-3 font-serif text-2xl font-bold text-[#12352d]">{item.institution_name}</h3><p className="mt-1 text-sm text-[#697269]">{item.moodle_instance} / {item.email_domains.join(', ') || 'no approved domains'} / renews {new Date(item.expires_at).toLocaleDateString()}</p></div><div className="flex gap-2"><button disabled={Boolean(workingId)} onClick={() => void onUpdate(item.id, 'extend')} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-xs font-bold">+1 year</button><button disabled={Boolean(workingId)} onClick={() => void onUpdate(item.id, item.is_active ? 'revoke' : 'restore')} className={`rounded-lg px-3 py-2 text-xs font-bold ${item.is_active ? 'border border-red-200 text-red-700' : 'bg-[#12352d] text-white'}`}>{item.is_active ? 'Revoke coverage' : 'Restore coverage'}</button></div></div></article> })}</section>
 }
 
 function LicenceDesk({ entitlements, workingId, onUpdate }: { entitlements: Entitlement[]; workingId: string; onUpdate: (id: string, action: 'revoke' | 'restore' | 'extend') => Promise<void> }) {

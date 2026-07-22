@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FaBuilding, FaCheck, FaGraduationCap, FaLaptop } from 'react-icons/fa'
+import { facultyAssistantPlanCards } from '@/lib/faculty-assistant/plans'
 import UpgradeRequestForm from './UpgradeRequestForm'
 
 export const metadata: Metadata = {
@@ -8,33 +9,11 @@ export const metadata: Metadata = {
   description: 'Choose a Faculty Assistant licence for lecturer productivity and secure Moodle integration.',
 }
 
-const plans = [
-  {
-    name: 'Essential',
-    price: 'Free forever',
-    secondaryPrice: 'No card required',
-    note: 'Start useful, stay in control',
-    icon: FaLaptop,
-    features: ['Local Grade Studio projects', 'Visual assessment authoring', 'GIFT and review exports', 'One institution template', 'No Moodle connection or managed AI'],
-  },
-  {
-    name: 'Professional',
-    price: 'KES 1,200 / month',
-    secondaryPrice: 'KES 9,000 / year - save KES 5,400',
-    note: 'The connected lecturer workspace',
-    icon: FaGraduationCap,
-    featured: true,
-    features: ['Everything in Essential', 'Secure Moodle course sync', 'Direct reviewed question-bank publishing', 'Word, PDF and scanned exam recovery', 'Unlimited UEAB/institution templates', 'Advanced analytics and included AI credits'],
-  },
-  {
-    name: 'Institution',
-    price: 'KES 200,000 / year',
-    secondaryPrice: 'Unlimited faculty seats',
-    note: 'One agreement for the whole institution',
-    icon: FaBuilding,
-    features: ['Everything in Professional', 'Unlimited lecturer seats under one institution', 'Central licence and policy controls', 'Shared approved templates and branding', 'Custom SIS and Moodle connectors', 'Audit, deployment, onboarding and priority support'],
-  },
-]
+const planIcons = {
+  essential: FaLaptop,
+  professional: FaGraduationCap,
+  institution: FaBuilding,
+}
 
 export default function FacultyAssistantPlansPage({
   searchParams,
@@ -45,15 +24,15 @@ export default function FacultyAssistantPlansPage({
     <main className="min-h-screen bg-[radial-gradient(circle_at_18%_0%,rgba(212,155,36,0.2),transparent_28rem),linear-gradient(180deg,#f7f3e8,#eef2ee)] px-5 py-12 text-slate-900">
       <div className="mx-auto max-w-6xl">
         <header className="max-w-3xl">
-          <Link href="/" className="text-sm font-bold text-[#0b3866]">UEAB ODeL</Link>
+          <span className="text-sm font-bold text-[#0b3866]">Faculty Assistant</span>
           <p className="mt-10 text-xs font-bold uppercase tracking-[0.24em] text-amber-700">Faculty Assistant licensing</p>
           <h1 className="mt-4 text-4xl font-bold leading-tight text-[#09264a] md:text-6xl">Give every lecturer the useful tools. Charge for the hours automation gives back.</h1>
           <p className="mt-5 text-lg leading-8 text-slate-600">Essential stays genuinely useful for free. Professional removes the repetitive Moodle, assessment and grading work. Institution covers every faculty member under one supported agreement.</p>
         </header>
 
         <section className="mt-10 grid gap-5 lg:grid-cols-3">
-          {plans.map((plan) => {
-            const Icon = plan.icon
+          {facultyAssistantPlanCards.map((plan) => {
+            const Icon = planIcons[plan.id]
             return (
               <article key={plan.name} className={`relative rounded-[1.5rem] border p-6 ${plan.featured ? 'border-amber-400 bg-[#0b294f] text-white shadow-2xl' : 'border-slate-200 bg-white/90'}`}>
                 {plan.featured && <span className="absolute right-5 top-5 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-[#09264a]">Best value</span>}
@@ -85,7 +64,7 @@ export default function FacultyAssistantPlansPage({
           <UpgradeRequestForm defaultPlan={searchParams.plan || 'professional'} />
         </section>
 
-        <section id="download" className="mt-8 rounded-[1.5rem] border border-slate-200 bg-white/75 p-6"><p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Essential download</p><h2 className="mt-2 text-2xl font-bold text-[#09264a]">Start locally, upgrade when connection saves more time.</h2><p className="mt-2 text-slate-600">The approved public Windows installer will be linked here after code signing. Internal UEAB pilot users receive the current installer through ODeL.</p></section>
+        <section id="download" className="mt-8 rounded-[1.5rem] border border-slate-200 bg-white/75 p-6"><p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Essential download</p><h2 className="mt-2 text-2xl font-bold text-[#09264a]">Start locally, upgrade when connection saves more time.</h2><p className="mt-2 text-slate-600">The approved public Windows installer will be linked here after code signing. Pilot users receive the current installer from their implementation administrator.</p></section>
       </div>
     </main>
   )

@@ -3,10 +3,29 @@
 Deploy in this order so the desktop never exposes a write action before the
 server and Moodle capability are ready.
 
+## Private Manual Invoice Settings
+
+Configure these only in the production server environment. They are used in
+private Professional invoice emails and are never rendered on the public plans
+page or returned by the upgrade API:
+
+```bash
+FACULTY_ASSISTANT_MPESA_PHONE="<private M-Pesa number>"
+FACULTY_ASSISTANT_MPESA_RECIPIENT="<verified recipient name>"
+FACULTY_ASSISTANT_EMAIL_FROM_NAME="Faculty Assistant"
+```
+
+The request remains pending after invoice delivery. Only a Licence Desk
+administrator can activate it after independently verifying the payment.
+
 ## 1. Apply the Additive Supabase Migration
 
-Run `supabase/migrations/20260720000300_faculty_assistant_commercial.sql` in
-the linked project's SQL editor. It only adds these service-role-only tables:
+Apply the existing commercial migrations first, then run
+`supabase/migrations/20260722000100_faculty_assistant_invoices_domains.sql` in
+the linked project's SQL editor. The new migration adds private invoice-delivery
+state, approved institution email domains, and the atomic activation RPC.
+
+The earlier commercial migration creates:
 
 - `faculty_assistant_publish_jobs`
 - `faculty_assistant_upgrade_requests`
@@ -17,9 +36,9 @@ legacy remote entries that are missing from the repository, so do not use
 
 ## 2. Upgrade the Moodle Connector
 
-Install `artifacts/moodle/facultyassistant-0.2.0-moodle.zip` through Moodle's
+Install `artifacts/moodle/facultyassistant-0.4.0-moodle.zip` through Moodle's
 plugin installer. The expected component is `local_facultyassistant`, release
-`0.2.0`.
+`0.4.0`. Moodle should detect the package as a Local plugin automatically.
 
 After the upgrade:
 
@@ -34,12 +53,13 @@ After the upgrade:
 
 Package SHA-256:
 
-`9EEDF255056EE7D8447B282B97C138496F6B29F0A5CD0A5C7AD2AC55DDFC52A5`
+`87D1BD2C89D0FE312E91ED53401E222F901633B6440BCE17B2C16FB1811A95B6`
 
 ## 3. Deploy ODeL
 
-Build and restart the existing PM2 application after merging the branch. No
-new environment variables are required.
+Set the private invoice environment variables shown above, then build and
+restart the existing PM2 application after merging the branch. Keep the values
+in the server environment only; do not prefix them with `NEXT_PUBLIC_`.
 
 ## 4. Enable a Pilot Lecturer
 

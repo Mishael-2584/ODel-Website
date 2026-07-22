@@ -93,15 +93,24 @@ export async function provisionInstitutionEntitlement(options: {
   moodleInstance: string
   email: string
 }) {
+  const emailDomain = normalizedEmailDomain(options.email)
+  if (!emailDomain) return null
   const supabase = getSupabaseAdmin()
   const updatedAt = new Date().toISOString()
   const { data: agreement, error: agreementError } = await supabase
     .from('faculty_assistant_institution_licences')
-    .select('id, features, expires_at')
+    .select('id, email_domains, features, expires_at')
     .eq('moodle_instance', options.moodleInstance)
     .eq('is_active', true)
+    .contains('email_domains', [emailDomain])
     .maybeSingle()
-  if (agreementError || !agreement || isInvalidOrExpired(agreement.expires_at)) return null
+  if (
+    agreementError ||
+    !agreement ||
+    !Array.isArray(agreement.email_domains) ||
+    !agreement.email_domains.includes(emailDomain) ||
+    isInvalidOrExpired(agreement.expires_at)
+  ) return null
 
   const { data, error } = await supabase
     .from('faculty_assistant_entitlements')
@@ -120,6 +129,15 @@ export async function provisionInstitutionEntitlement(options: {
     .select('id, plan, features, expires_at, is_active')
     .single()
   return error ? null : data
+}
+
+export function normalizedEmailDomain(email: string) {
+  const domain = email.trim().toLowerCase().split('@')[1] || ''
+  return /^[a-z0-9][a-z0-9.-]*[a-z0-9]$/.test(domain) &&
+    domain.includes('.') &&
+    !domain.includes('..')
+    ? domain
+    : ''
 }
 
 function hasExpired(value: string | null | undefined) {

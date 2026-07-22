@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react'
 import { FaArrowRight, FaCheckCircle, FaLock } from 'react-icons/fa'
+import { facultyAssistantPricing } from '@/lib/faculty-assistant/plans'
 
 export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: string }) {
   const [plan, setPlan] = useState(
@@ -24,19 +25,27 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
     const result = await response.json().catch(() => ({}))
     if (response.status === 401) {
       setState('signin')
-      setMessage('Sign in with your ODeL account so the request is linked to the correct lecturer licence.')
+      setMessage('Sign in securely so the request is linked to the correct Faculty Assistant licence.')
       return
     }
     if (!response.ok) {
       setState('error')
-      setMessage('We could not record the request. Please try again or contact the ODeL office.')
+      setMessage('We could not record the request. Please try again or contact Faculty Assistant support.')
       return
     }
     setState('success')
     setMessage(
       result.existing
-        ? 'Your upgrade request is already in our queue. The ODeL team will contact you.'
-        : 'Your request has been recorded. The ODeL team will confirm payment and activate your licence.',
+        ? 'Your upgrade request is already in our queue. Check the institutional email used for your request or wait for the Faculty Assistant team to contact you.'
+        : result.invoicePersistence === 'failed'
+          ? result.invoiceStatus === 'sent'
+            ? 'Your request is safely recorded and the email was sent, but its Licence Desk tracking record needs attention. The team has been notified; please do not submit a duplicate request.'
+            : 'Your request is safely recorded, but email delivery and its Licence Desk tracking record need attention. The team can contact you without creating another request.'
+          : result.invoiceStatus === 'failed'
+          ? 'Your request is safely recorded, but the invoice email could not be delivered. The Licence Desk can resend or contact you without creating another request.'
+          : plan === 'institution'
+            ? 'Your request is recorded. An acknowledgement was sent to your institutional email, and the Faculty Assistant team will contact you about the agreement and approved domains.'
+            : 'Your request is recorded. A private invoice with payment instructions was sent to your verified institutional email. Licence activation follows payment verification.',
     )
   }
 
@@ -66,8 +75,8 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
       <label className="mt-4 block text-sm font-bold text-slate-700">
         Billing
         <select value={plan === 'institution' ? 'annual' : billingPeriod} disabled={plan === 'institution'} onChange={(event) => setBillingPeriod(event.target.value as 'monthly' | 'annual')} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-medium outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-100 disabled:bg-slate-100">
-          <option value="annual">Annual - best value</option>
-          <option value="monthly">Monthly - KES 1,200</option>
+          <option value="annual">Annual - {facultyAssistantPricing.professional.annualOptionLabel} (best value)</option>
+          <option value="monthly">Monthly - {facultyAssistantPricing.professional.monthlyOptionLabel}</option>
         </select>
       </label>
       <label className="mt-4 block text-sm font-bold text-slate-700">
@@ -93,7 +102,7 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
       <button disabled={state === 'busy'} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#d49b24] px-5 py-3 font-bold text-[#09264a] hover:bg-[#e0ad43] disabled:opacity-60">
         {state === 'busy' ? 'Submitting...' : 'Request activation'} <FaArrowRight />
       </button>
-      <p className="mt-4 flex items-center gap-2 text-xs text-slate-500"><FaLock /> Your request is tied to your secure ODeL identity.</p>
+      <p className="mt-4 flex items-center gap-2 text-xs text-slate-500"><FaLock /> Your request is tied to your verified Faculty Assistant identity.</p>
     </form>
   )
 }

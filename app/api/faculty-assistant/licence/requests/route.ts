@@ -6,6 +6,8 @@ import {
 } from '@/lib/server/faculty-assistant-auth'
 import { requireOdelSession } from '@/lib/server/odel-session'
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
+import { sendFacultyAssistantInvoice } from '@/lib/server/faculty-assistant-invoice'
+import { persistInvoiceDeliveryStatus } from '@/lib/server/faculty-assistant-invoice-status'
 
 export async function POST(request: NextRequest) {
   const origin = request.headers.get('origin')
@@ -72,5 +74,89 @@ export async function POST(request: NextRequest) {
     details: { requestedPlan, billingPeriod, source },
     ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
   })
-  return NextResponse.json({ requestId: data.id, status: data.status }, { status: 201 })
+  let invoiceStatus: 'sent' | 'failed' = 'sent'
+  let invoicePersistence: 'persisted' | 'failed' = 'persisted'
+  try {
+    const delivery = await sendFacultyAssistantInvoice({
+      requestId: String(data.id),
+      email: session.email,
+      displayName: session.studentName,
+      requestedPlan: requestedPlan as 'professional' | 'institution',
+      billingPeriod,
+    })
+    const persistence = await persistInvoiceDeliveryStatus(supabase, String(data.id), 'sent')
+    if (!persistence.persisted) {
+      invoicePersistence = 'failed'
+      console.error('Faculty Assistant invoice status update failed:', persistence.error)
+      await writeFacultyAssistantAudit('licence.invoice.status.persist', 'failed', {
+        moodleUserId: session.moodleUserId,
+        moodleInstance,
+        resourceType: 'upgrade_request',
+        resourceId: String(data.id),
+        details: {
+          attemptedStatus: 'sent',
+          requestedPlan,
+          billingPeriod,
+          error: persistence.error.slice(0, 500),
+        },
+      })
+    }
+    await writeFacultyAssistantAudit('licence.invoice.sent', 'success', {
+      moodleUserId: session.moodleUserId,
+      moodleInstance,
+      resourceType: 'upgrade_request',
+      resourceId: String(data.id),
+      details: {
+        requestedPlan,
+        billingPeriod,
+        messageId: delivery.messageId,
+        invoicePersistence,
+      },
+    })
+  } catch (invoiceError) {
+    invoiceStatus = 'failed'
+    const failure = invoiceError instanceof Error ? invoiceError.message : 'Unknown email error'
+    console.error('Faculty Assistant invoice email failed:', invoiceError)
+    const persistence = await persistInvoiceDeliveryStatus(
+      supabase,
+      String(data.id),
+      'failed',
+      failure,
+    )
+    if (!persistence.persisted) {
+      invoicePersistence = 'failed'
+      console.error('Faculty Assistant failed invoice status update failed:', persistence.error)
+      await writeFacultyAssistantAudit('licence.invoice.status.persist', 'failed', {
+        moodleUserId: session.moodleUserId,
+        moodleInstance,
+        resourceType: 'upgrade_request',
+        resourceId: String(data.id),
+        details: {
+          attemptedStatus: 'failed',
+          requestedPlan,
+          billingPeriod,
+          deliveryError: failure.slice(0, 500),
+          persistenceError: persistence.error.slice(0, 500),
+        },
+      })
+    }
+    await writeFacultyAssistantAudit('licence.invoice.sent', 'failed', {
+      moodleUserId: session.moodleUserId,
+      moodleInstance,
+      resourceType: 'upgrade_request',
+      resourceId: String(data.id),
+      details: {
+        requestedPlan,
+        billingPeriod,
+        error: failure.slice(0, 500),
+        invoicePersistence,
+      },
+    })
+  }
+  return NextResponse.json({
+    requestId: data.id,
+    status: data.status,
+    invoiceStatus,
+    invoicePersistence,
+  }, { status: 201 })
 }
