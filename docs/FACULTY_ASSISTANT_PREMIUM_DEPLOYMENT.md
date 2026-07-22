@@ -1,7 +1,7 @@
-# Faculty Assistant Premium Publishing Deployment
+# Faculty Assistant Premium Moodle Deployment
 
-Deploy in this order so the desktop never exposes a write action before the
-server and Moodle capability are ready.
+Deploy in this order so the desktop never exposes Moodle publishing or grade
+sync before the server and Moodle connector are ready.
 
 ## Private Manual Invoice Settings
 
@@ -36,9 +36,11 @@ legacy remote entries that are missing from the repository, so do not use
 
 ## 2. Upgrade the Moodle Connector
 
-Install `artifacts/moodle/facultyassistant-0.4.0-moodle.zip` through Moodle's
+Install `artifacts/moodle/facultyassistant-0.5.0-moodle.zip` through Moodle's
 plugin installer. The expected component is `local_facultyassistant`, release
-`0.4.0`. Moodle should detect the package as a Local plugin automatically.
+`0.5.0`. Moodle should detect the package as a Local plugin automatically. This
+package upgrades any earlier Faculty Assistant connector directly; installing
+`0.4.0` first is not required.
 
 After the upgrade:
 
@@ -47,13 +49,16 @@ After the upgrade:
 3. Do not grant the capability to Manager, Teacher, Authenticated user, or any
    general integration role.
 4. Confirm the Faculty Assistant external service contains the category and
-   GIFT import functions.
+   GIFT import functions and `local_facultyassistant_get_course_grades`.
 5. Keep the existing dedicated service token; no desktop token changes are
    required.
+6. Keep `local/facultyassistant:useservice` on the dedicated service role. The
+   grade endpoint separately verifies that the signed-in lecturer has
+   `moodle/grade:viewall` in the requested course and respects separate groups.
 
 Package SHA-256:
 
-`87D1BD2C89D0FE312E91ED53401E222F901633B6440BCE17B2C16FB1811A95B6`
+`24FC2B5828E3C091299FB1D4B0042DD7DB090DFABB0338D0715B3C5CE22AFDAB`
 
 ## 3. Deploy ODeL
 
@@ -63,13 +68,13 @@ in the server environment only; do not prefix them with `NEXT_PUBLIC_`.
 
 ## 4. Enable a Pilot Lecturer
 
-Only after the first three steps succeed, add `questions:write` to the pilot
-entitlement's `features` array. The desktop asks the lecturer to explicitly
-reauthorize the new scope before publishing.
+Only after the first three steps succeed, add `questions:write` and
+`grades:read` to the pilot entitlement's `features` array. The desktop asks the
+lecturer to explicitly reauthorize each new scope before using it.
 
-Do not add `questions:write` to all licences by default. Essential licences
-remain local/offline, while Professional and Institution licences receive the
-feature after activation.
+Do not add Moodle scopes to Essential licences. Essential remains local/offline,
+while Professional and Institution licences receive these features after
+activation.
 
 ## 5. Validate
 
@@ -79,6 +84,9 @@ feature after activation.
 4. Publish one clearly named test question to a test course.
 5. Confirm its Moodle creator, category, content, and audit entries.
 6. Retry the same request ID and confirm no duplicate question is created.
+7. Open the same course in Grade Studio and approve read-only grade access.
+8. Synchronize students and grades, confirm Moodle assessment maxima are shown,
+   and export the completed iCampus workbook.
 
 Local Moodle validation completed against lecturer `4`, course `4`, category
 `10`: Moodle imported one GIFT question and returned question ID `1`.
