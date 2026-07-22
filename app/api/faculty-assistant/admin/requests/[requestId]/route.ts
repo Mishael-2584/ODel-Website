@@ -6,6 +6,7 @@ import {
   requireFacultyAssistantAdmin,
 } from '@/lib/server/faculty-assistant-admin'
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
+import { sendFacultyAssistantInvoice } from '@/lib/server/faculty-assistant-invoice'
 
 const allowedStatuses = new Set(['contacted', 'paid', 'declined'])
 
@@ -29,6 +30,41 @@ export async function PATCH(
   if (requestError) return NextResponse.json({ error: 'request_lookup_failed' }, { status: 500 })
   if (!upgradeRequest) return NextResponse.json({ error: 'request_not_found' }, { status: 404 })
 
+  if (action === 'resend_invoice') {
+    try {
+      const delivery = await sendFacultyAssistantInvoice({
+        requestId: String(upgradeRequest.id),
+        email: String(upgradeRequest.email),
+        displayName: String(upgradeRequest.display_name || ''),
+        requestedPlan: upgradeRequest.requested_plan === 'institution' ? 'institution' : 'professional',
+        billingPeriod: upgradeRequest.billing_period === 'monthly' ? 'monthly' : 'annual',
+      })
+      const { error: updateError } = await supabase
+        .from('faculty_assistant_upgrade_requests')
+        .update({ invoice_status: 'sent', invoice_sent_at: new Date().toISOString(), invoice_error: '' })
+        .eq('id', upgradeRequest.id)
+      if (updateError) throw updateError
+      await supabase.from('faculty_assistant_audit_log').insert({
+        moodle_user_id: upgradeRequest.moodle_user_id,
+        moodle_instance: upgradeRequest.moodle_instance,
+        action: 'licence.invoice.resent',
+        resource_type: 'upgrade_request',
+        resource_id: upgradeRequest.id,
+        outcome: 'success',
+        details: { adminId: admin.id, adminEmail: admin.email, messageId: delivery.messageId },
+      })
+      return NextResponse.json({ status: upgradeRequest.status, invoiceStatus: 'sent' })
+    } catch (invoiceError) {
+      const failure = invoiceError instanceof Error ? invoiceError.message : 'Unknown email error'
+      await supabase
+        .from('faculty_assistant_upgrade_requests')
+        .update({ invoice_status: 'failed', invoice_error: failure.slice(0, 500) })
+        .eq('id', upgradeRequest.id)
+      await writeFailedAdminAudit(supabase, admin, 'licence.invoice.resent', upgradeRequest, failure)
+      return NextResponse.json({ error: 'invoice_send_failed' }, { status: 500 })
+    }
+  }
+
   if (action === 'activate') {
     const plan = upgradeRequest.requested_plan === 'institution' ? 'institution' : 'professional'
     const billingPeriod =
@@ -41,6 +77,10 @@ export async function PATCH(
     const expiresAt = licenceExpiry(billingPeriod)
     const institutionName = String(body?.institutionName || '').trim().slice(0, 160)
       || upgradeRequest.moodle_instance
+    const institutionDomains = String(body?.institutionDomains || '')
+      .split(/[\s,;]+/)
+      .map((domain) => domain.trim().toLowerCase().replace(/^@/, ''))
+      .filter(Boolean)
     const { data, error } = await supabase.rpc('faculty_assistant_admin_activate_request', {
       p_request_id: upgradeRequest.id,
       p_plan: plan,
@@ -48,6 +88,7 @@ export async function PATCH(
       p_features: features,
       p_expires_at: expiresAt,
       p_institution_name: institutionName,
+      p_email_domains: plan === 'institution' ? institutionDomains : [],
       p_payment_reference: paymentReference,
       p_admin_notes: adminNotes,
       p_admin_id: admin.id,

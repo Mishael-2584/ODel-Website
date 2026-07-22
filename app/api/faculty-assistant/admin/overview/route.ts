@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       .limit(250),
     supabase
       .from('faculty_assistant_institution_licences')
-      .select('id, moodle_instance, institution_name, features, is_active, expires_at, source_request_id, created_at, updated_at')
+      .select('id, moodle_instance, institution_name, email_domains, features, is_active, expires_at, source_request_id, created_at, updated_at')
       .order('updated_at', { ascending: false })
       .limit(100),
     supabase
