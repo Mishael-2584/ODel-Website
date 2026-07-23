@@ -20,6 +20,7 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  UserPlus,
   UsersRound,
   XCircle,
 } from 'lucide-react'
@@ -128,6 +129,7 @@ export default function FacultyAssistantAdminPage() {
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const [workingId, setWorkingId] = useState('')
 
   const load = useCallback(async () => {
@@ -199,6 +201,45 @@ export default function FacultyAssistantAdminPage() {
     const label = action === 'revoke' ? 'revoke this licence' : `${action} this licence`
     if (!window.confirm(`Are you sure you want to ${label}?`)) return
     await mutate(`/api/faculty-assistant/admin/entitlements/${entitlementId}`, { action })
+  }
+
+  async function grantProfessional(email: string) {
+    const token = localStorage.getItem('admin_token')
+    if (!token) return
+    setWorkingId('grant-professional')
+    setError('')
+    setNotice('')
+    try {
+      const response = await fetch('/api/faculty-assistant/admin/entitlements', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        const messages: Record<string, string> = {
+          invalid_licence_email: 'Enter a valid Moodle account email address.',
+          moodle_user_not_found: 'No active Moodle account matches that email address.',
+          moodle_email_mismatch: 'Moodle returned a different email address. The licence was not granted.',
+          institution_licence_managed: 'This lecturer is covered by an Institution licence. Manage that agreement instead.',
+        }
+        throw new Error(messages[result.error] || result.error || 'The Professional licence could not be granted.')
+      }
+      const expiry = result.entitlement?.expires_at
+        ? new Date(result.entitlement.expires_at).toLocaleDateString()
+        : 'one year from today'
+      setNotice(
+        `Professional activated for ${result.moodleUser?.fullname || email} (${result.moodleUser?.email || email}) through ${expiry}.`,
+      )
+      await load()
+    } catch (grantError) {
+      setError(grantError instanceof Error ? grantError.message : 'The Professional licence could not be granted.')
+    } finally {
+      setWorkingId('')
+    }
   }
 
   async function updateInstitution(
@@ -280,6 +321,7 @@ export default function FacultyAssistantAdminPage() {
           </div>
 
           {error && <div className="mb-5 flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><XCircle size={19} />{error}</div>}
+          {notice && <div className="mb-5 flex gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"><CheckCircle2 size={19} />{notice}</div>}
 
           {tab === 'overview' && (
             <>
@@ -297,7 +339,7 @@ export default function FacultyAssistantAdminPage() {
           )}
 
           {tab === 'requests' && <RequestDesk requests={requests} workingId={workingId} onUpdate={updateRequest} />}
-          {tab === 'licences' && <LicenceDesk entitlements={entitlements} workingId={workingId} onUpdate={updateEntitlement} />}
+          {tab === 'licences' && <LicenceDesk entitlements={entitlements} workingId={workingId} onGrant={grantProfessional} onUpdate={updateEntitlement} />}
           {tab === 'institutions' && <InstitutionDesk institutions={data?.institutions || []} entitlements={data?.entitlements || []} workingId={workingId} onUpdate={updateInstitution} />}
           {tab === 'activity' && <ActivityDesk jobs={data?.publishJobs || []} />}
           {tab === 'audit' && <AuditDesk entries={data?.audit || []} />}
@@ -359,9 +401,18 @@ function InstitutionDesk({ institutions, entitlements, workingId, onUpdate }: { 
   return <section className="grid gap-4">{institutions.map((item) => { const active = item.is_active && new Date(item.expires_at) > new Date(); const seats = entitlements.filter((entitlement) => entitlement.plan === 'institution' && entitlement.moodle_instance === item.moodle_instance).length; return <article key={item.id} className="rounded-[1.4rem] border border-[#d8d0bd] bg-white p-5"><div className="flex flex-col justify-between gap-5 md:flex-row md:items-center"><div><div className="flex items-center gap-2"><Status status={active ? 'active' : item.is_active ? 'expired' : 'revoked'} /><span className="text-xs font-bold text-[#ad770e]">{seats} provisioned faculty seat{seats === 1 ? '' : 's'} / {humanPlan(item.billing_period || 'annual')}</span></div><h3 className="mt-3 font-serif text-2xl font-bold text-[#12352d]">{item.institution_name}</h3><p className="mt-1 text-sm text-[#697269]">{item.moodle_instance} / {item.email_domains.join(', ') || 'no approved domains'} / renews {new Date(item.expires_at).toLocaleDateString()}</p></div><div className="flex gap-2"><button disabled={Boolean(workingId)} onClick={() => void onUpdate(item.id, 'extend')} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-xs font-bold">Extend {item.billing_period === 'semester' ? '6 months' : '1 year'}</button><button disabled={Boolean(workingId)} onClick={() => void onUpdate(item.id, item.is_active ? 'revoke' : 'restore')} className={`rounded-lg px-3 py-2 text-xs font-bold ${item.is_active ? 'border border-red-200 text-red-700' : 'bg-[#12352d] text-white'}`}>{item.is_active ? 'Revoke coverage' : 'Restore coverage'}</button></div></div></article> })}</section>
 }
 
-function LicenceDesk({ entitlements, workingId, onUpdate }: { entitlements: Entitlement[]; workingId: string; onUpdate: (id: string, action: 'revoke' | 'restore' | 'extend') => Promise<void> }) {
-  if (entitlements.length === 0) return <Empty text="No licences match this search." />
-  return <section className="overflow-hidden rounded-[1.4rem] border border-[#d8d0bd] bg-white"><div className="overflow-x-auto"><table className="w-full min-w-[900px] text-left text-sm"><thead className="bg-[#12352d] text-[10px] uppercase tracking-[.1em] text-white/70"><tr><th className="px-5 py-4">Lecturer</th><th>Plan</th><th>Features</th><th>Expires</th><th>Status</th><th className="px-5 text-right">Actions</th></tr></thead><tbody className="divide-y divide-[#ece6da]">{entitlements.map((item) => { const active = item.is_active && (!item.expires_at || new Date(item.expires_at) > new Date()); return <tr key={item.id}><td className="px-5 py-4"><strong className="block text-[#26342d]">{item.email}</strong><span className="text-xs text-[#7b827c]">Moodle #{item.moodle_user_id}</span></td><td><span className="font-serif text-lg font-bold text-[#12352d]">{humanPlan(item.plan)}</span><small className="block text-[#7b827c]">{item.billing_period || 'manual'}</small></td><td className="max-w-[260px] text-xs text-[#677069]">{item.features.join(', ')}</td><td>{item.expires_at ? new Date(item.expires_at).toLocaleDateString() : 'No expiry'}</td><td><Status status={active ? 'active' : item.is_active ? 'expired' : 'revoked'} /></td><td className="px-5"><div className="flex justify-end gap-2"><button disabled={Boolean(workingId)} onClick={() => void onUpdate(item.id, 'extend')} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-xs font-bold">Extend term</button><button disabled={Boolean(workingId)} onClick={() => void onUpdate(item.id, item.is_active ? 'revoke' : 'restore')} className={`rounded-lg px-3 py-2 text-xs font-bold ${item.is_active ? 'border border-red-200 text-red-700' : 'bg-[#12352d] text-white'}`}>{item.is_active ? 'Revoke' : 'Restore'}</button></div></td></tr> })}</tbody></table></div></section>
+function LicenceDesk({ entitlements, workingId, onGrant, onUpdate }: { entitlements: Entitlement[]; workingId: string; onGrant: (email: string) => Promise<void>; onUpdate: (id: string, action: 'revoke' | 'restore' | 'extend') => Promise<void> }) {
+  const [email, setEmail] = useState('')
+  const granting = workingId === 'grant-professional'
+  return <section className="grid gap-5">
+    <form onSubmit={(event) => { event.preventDefault(); if (email.trim()) void onGrant(email.trim()) }} className="grid gap-5 rounded-[1.4rem] border border-[#d8d0bd] bg-[linear-gradient(135deg,#12352d,#1e5043)] p-5 text-white lg:grid-cols-[1fr_minmax(300px,.8fr)] lg:items-end">
+      <div><div className="flex items-center gap-2 text-[#f1ca76]"><UserPlus size={18} /><span className="text-[10px] font-black uppercase tracking-[.18em]">Direct annual grant</span></div><h3 className="mt-3 font-serif text-2xl font-bold">Activate Professional by Moodle email.</h3><p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">The server verifies the exact active Moodle account before granting one year of Professional access. Every grant is audited. Existing Institution seats cannot be overwritten here.</p></div>
+      <div className="grid gap-2 sm:grid-cols-[1fr_auto]"><label className="grid gap-1 text-[10px] font-black uppercase tracking-[.1em] text-white/70">Lecturer Moodle email<input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="lecturer@university.ac.ke" className="rounded-xl border border-white/20 bg-white px-4 py-3 text-sm font-semibold normal-case tracking-normal text-[#172822] outline-none focus:ring-2 focus:ring-[#e4ad3c]" /></label><button disabled={granting || !email.trim()} className="mt-auto flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#e4ad3c] px-5 py-3 text-sm font-black text-[#12352d] disabled:opacity-50">{granting ? <LoaderCircle className="animate-spin" size={17} /> : <UserPlus size={17} />}Grant 1 year</button></div>
+    </form>
+    {entitlements.length === 0
+      ? <Empty text="No licences match this search." />
+      : <div className="overflow-hidden rounded-[1.4rem] border border-[#d8d0bd] bg-white"><div className="overflow-x-auto"><table className="w-full min-w-[900px] text-left text-sm"><thead className="bg-[#12352d] text-[10px] uppercase tracking-[.1em] text-white/70"><tr><th className="px-5 py-4">Lecturer</th><th>Plan</th><th>Features</th><th>Expires</th><th>Status</th><th className="px-5 text-right">Actions</th></tr></thead><tbody className="divide-y divide-[#ece6da]">{entitlements.map((item) => { const active = item.is_active && (!item.expires_at || new Date(item.expires_at) > new Date()); return <tr key={item.id}><td className="px-5 py-4"><strong className="block text-[#26342d]">{item.email}</strong><span className="text-xs text-[#7b827c]">Moodle #{item.moodle_user_id}</span></td><td><span className="font-serif text-lg font-bold text-[#12352d]">{humanPlan(item.plan)}</span><small className="block text-[#7b827c]">{item.billing_period || 'manual'}</small></td><td className="max-w-[260px] text-xs text-[#677069]">{item.features.join(', ')}</td><td>{item.expires_at ? new Date(item.expires_at).toLocaleDateString() : 'No expiry'}</td><td><Status status={active ? 'active' : item.is_active ? 'expired' : 'revoked'} /></td><td className="px-5"><div className="flex justify-end gap-2"><button disabled={Boolean(workingId)} onClick={() => void onUpdate(item.id, 'extend')} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-xs font-bold">Extend term</button><button disabled={Boolean(workingId)} onClick={() => void onUpdate(item.id, item.is_active ? 'revoke' : 'restore')} className={`rounded-lg px-3 py-2 text-xs font-bold ${item.is_active ? 'border border-red-200 text-red-700' : 'bg-[#12352d] text-white'}`}>{item.is_active ? 'Remove Pro access' : 'Restore Pro access'}</button></div></td></tr> })}</tbody></table></div></div>}
+  </section>
 }
 
 function ActivityDesk({ jobs }: { jobs: PublishJob[] }) {

@@ -17,44 +17,31 @@ export async function PATCH(
   const supabase = getSupabaseAdmin()
   const { data: current } = await supabase
     .from('faculty_assistant_entitlements')
-    .select('id, moodle_instance, moodle_user_id, email, plan, expires_at, billing_period')
+    .select('id, expires_at, billing_period')
     .eq('id', params.entitlementId)
     .maybeSingle()
   if (!current) return NextResponse.json({ error: 'entitlement_not_found' }, { status: 404 })
 
-  let patch: Record<string, unknown>
-  if (action === 'revoke') patch = { is_active: false }
-  else if (action === 'restore') patch = { is_active: true }
-  else if (action === 'extend') {
+  let expiresAt: string | null = null
+  if (action === 'extend') {
     const billingPeriod: FacultyAssistantBillingPeriod =
       current.billing_period === 'monthly' || current.billing_period === 'semester'
         ? current.billing_period
         : 'annual'
-    patch = {
-      is_active: true,
-      expires_at: extendLicenceExpiry(current.expires_at || new Date(), billingPeriod),
-      billing_period: billingPeriod,
-    }
-  } else {
+    expiresAt = extendLicenceExpiry(current.expires_at || new Date(), billingPeriod)
+  } else if (action !== 'revoke' && action !== 'restore') {
     return NextResponse.json({ error: 'invalid_entitlement_action' }, { status: 400 })
   }
-  patch.updated_at = new Date().toISOString()
   const { data, error } = await supabase
-    .from('faculty_assistant_entitlements')
-    .update(patch)
-    .eq('id', current.id)
-    .select('id, plan, is_active, expires_at')
+    .rpc('faculty_assistant_admin_update_entitlement', {
+      p_entitlement_id: current.id,
+      p_action: action,
+      p_expires_at: expiresAt,
+      p_admin_id: admin.id,
+      p_admin_email: admin.email,
+    })
     .single()
   if (error || !data) return NextResponse.json({ error: 'entitlement_update_failed' }, { status: 500 })
 
-  await supabase.from('faculty_assistant_audit_log').insert({
-    moodle_user_id: current.moodle_user_id,
-    moodle_instance: current.moodle_instance,
-    action: `licence.${action}`,
-    resource_type: 'entitlement',
-    resource_id: current.id,
-    outcome: 'success',
-    details: { adminId: admin.id, adminEmail: admin.email, plan: current.plan },
-  })
   return NextResponse.json({ entitlement: data })
 }

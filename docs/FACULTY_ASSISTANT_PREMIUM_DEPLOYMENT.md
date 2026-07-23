@@ -30,6 +30,13 @@ Apply the existing commercial migrations first, then run
 the linked project's SQL editor. The new migration adds private invoice-delivery
 state, approved institution email domains, and the atomic activation RPC.
 
+Run `supabase/migrations/20260723000100_faculty_assistant_manual_grants.sql`
+after it. This additive function lets an authenticated Licence Desk
+administrator grant one audited annual Professional licence after Moodle email
+verification. It also makes revoke, restore and extend transactional with their
+audit event; revoke invalidates the entitlement's refresh tokens. It does not
+delete existing licence history.
+
 The earlier commercial migration creates:
 
 - `faculty_assistant_publish_jobs`
@@ -41,9 +48,9 @@ legacy remote entries that are missing from the repository, so do not use
 
 ## 2. Upgrade the Moodle Connector
 
-Install `artifacts/moodle/facultyassistant-0.6.0-moodle.zip` through Moodle's
+Install `artifacts/moodle/facultyassistant-0.7.0-moodle.zip` through Moodle's
 plugin installer. The expected component is `local_facultyassistant`, release
-`0.6.0`. Moodle should detect the package as a Local plugin automatically. This
+`0.7.0`. Moodle should detect the package as a Local plugin automatically. This
 package upgrades any earlier Faculty Assistant connector directly; installing
 `0.4.0` first is not required.
 
@@ -53,8 +60,8 @@ After the upgrade:
 2. Allow `local/facultyassistant:publishquestions` on that role only.
 3. Do not grant the capability to Manager, Teacher, Authenticated user, or any
    general integration role.
-4. Confirm the Faculty Assistant external service contains the category,
-   legacy GIFT import, generic GIFT/XML import, and
+4. Confirm the Faculty Assistant external service contains exact user email
+   lookup, the category functions, legacy GIFT import, generic GIFT/XML import, and
    `local_facultyassistant_get_course_grades` functions.
 5. Keep the existing dedicated service token; no desktop token changes are
    required.
@@ -64,7 +71,7 @@ After the upgrade:
 
 Package SHA-256:
 
-`B1364664F1A2F04EF1E63A482369CA85BBA941B5080EC14FA3F4F5AB644B718B`
+`CD1012A2233BC7013FC9EA6964AE193A46D024A567AC0F3D9B3B011F319691B8`
 
 ## 3. Deploy ODeL
 

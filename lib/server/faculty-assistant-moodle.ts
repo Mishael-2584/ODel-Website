@@ -12,6 +12,27 @@ export async function getFacultyAssistantTeachingCourses(userId: number) {
   return Array.isArray(result) ? result : []
 }
 
+export async function getFacultyAssistantUserByEmail(email: string) {
+  const result = await callMoodleConnector(
+    'local_facultyassistant_get_user_by_email',
+    { email },
+  )
+  if (!result || typeof result !== 'object') {
+    throw new Error('Moodle returned an invalid user lookup response')
+  }
+  const user = result as Record<string, unknown>
+  const id = Number(user.id)
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    throw new Error('Moodle returned an invalid user identifier')
+  }
+  return {
+    id,
+    email: String(user.email || '').trim().toLowerCase(),
+    username: String(user.username || '').trim(),
+    fullname: String(user.fullname || '').trim(),
+  }
+}
+
 export async function getFacultyAssistantQuestionCategories(
   userId: number,
   courseId: number,

@@ -11,6 +11,13 @@ $functions = [
         'ajax' => false,
         'capabilities' => 'local/facultyassistant:useservice',
     ],
+    'local_facultyassistant_get_user_by_email' => [
+        'classname' => 'local_facultyassistant\external\get_user_by_email',
+        'description' => 'Resolves one active Moodle user for an administrator-approved licence grant.',
+        'type' => 'read',
+        'ajax' => false,
+        'capabilities' => 'local/facultyassistant:useservice',
+    ],
     'local_facultyassistant_get_question_categories' => [
         'classname' => 'local_facultyassistant\external\get_question_categories',
         'description' => 'Returns writable question-bank categories for a lecturer course.',
@@ -52,6 +59,7 @@ $services = [
     'Faculty Assistant Connector' => [
         'functions' => [
             'local_facultyassistant_get_teaching_courses',
+            'local_facultyassistant_get_user_by_email',
             'local_facultyassistant_get_course_grades',
             'local_facultyassistant_get_question_categories',
             'local_facultyassistant_create_question_category',
