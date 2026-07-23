@@ -37,6 +37,9 @@ CREATE TABLE IF NOT EXISTS faculty_assistant_moderators (
   UNIQUE (institution_licence_id, email)
 );
 
+ALTER TABLE faculty_assistant_moderators
+  ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT true;
+
 CREATE TABLE IF NOT EXISTS faculty_assistant_moderation_submissions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   institution_licence_id UUID NOT NULL
