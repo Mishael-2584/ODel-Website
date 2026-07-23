@@ -1,3 +1,6 @@
+export type FacultyAssistantPaidPlan = 'professional' | 'institution'
+export type FacultyAssistantBillingPeriod = 'monthly' | 'semester' | 'annual'
+
 export const facultyAssistantPricing = {
   essential: {
     name: 'Essential',
@@ -12,15 +15,67 @@ export const facultyAssistantPricing = {
     monthlyOptionLabel: 'KES 1,000',
     annualPrice: 'KES 9,000 / year',
     annualOptionLabel: 'KES 9,000',
+    annualSavingsKes: 3000,
     annualSavings: 'save KES 3,000',
   },
   institution: {
     name: 'Institution',
-    annualKes: 150000,
-    annualPrice: 'KES 150,000 / year',
+    semesterKes: 150000,
+    annualKes: 250000,
+    semesterPrice: 'KES 150,000 / semester',
+    semesterOptionLabel: 'KES 150,000',
+    annualPrice: 'KES 250,000 / year',
+    annualOptionLabel: 'KES 250,000',
+    annualSavingsKes: 50000,
+    annualSavings: 'save KES 50,000',
     seatLabel: 'Unlimited faculty seats',
+    scopeLabel: 'One approved institution domain and Moodle installation',
+    enterprisePrice: 'Multi-campus and custom deployments from KES 400,000 / year',
   },
 } as const
+
+export function isFacultyAssistantBillingPeriod(
+  plan: FacultyAssistantPaidPlan,
+  period: string,
+): period is FacultyAssistantBillingPeriod {
+  return plan === 'professional'
+    ? period === 'monthly' || period === 'annual'
+    : period === 'semester' || period === 'annual'
+}
+
+export function facultyAssistantBillingLabel(
+  plan: FacultyAssistantPaidPlan,
+  period: FacultyAssistantBillingPeriod,
+) {
+  if (plan === 'professional') {
+    return period === 'monthly'
+      ? `Monthly - ${facultyAssistantPricing.professional.monthlyOptionLabel}`
+      : `Annual - ${facultyAssistantPricing.professional.annualOptionLabel} (${facultyAssistantPricing.professional.annualSavings})`
+  }
+  return period === 'semester'
+    ? `Semester - ${facultyAssistantPricing.institution.semesterOptionLabel} (6 months)`
+    : `Annual - ${facultyAssistantPricing.institution.annualOptionLabel} (${facultyAssistantPricing.institution.annualSavings})`
+}
+
+export function facultyAssistantPriceKes(
+  plan: FacultyAssistantPaidPlan,
+  period: FacultyAssistantBillingPeriod,
+) {
+  if (plan === 'professional') {
+    return period === 'monthly'
+      ? facultyAssistantPricing.professional.monthlyKes
+      : facultyAssistantPricing.professional.annualKes
+  }
+  return period === 'semester'
+    ? facultyAssistantPricing.institution.semesterKes
+    : facultyAssistantPricing.institution.annualKes
+}
+
+export function facultyAssistantTermMonths(period: FacultyAssistantBillingPeriod) {
+  if (period === 'monthly') return 1
+  if (period === 'semester') return 6
+  return 12
+}
 
 export const facultyAssistantPlanCards = [
   {
@@ -45,9 +100,9 @@ export const facultyAssistantPlanCards = [
     id: 'institution',
     name: facultyAssistantPricing.institution.name,
     price: facultyAssistantPricing.institution.annualPrice,
-    secondaryPrice: facultyAssistantPricing.institution.seatLabel,
+    secondaryPrice: `${facultyAssistantPricing.institution.semesterPrice}; annual plan ${facultyAssistantPricing.institution.annualSavings}`,
     note: 'One agreement for the whole institution',
     featured: false,
-    features: ['Everything in Professional', 'Unlimited lecturer seats under approved email domains', 'Central licence and policy controls', 'Shared approved templates and branding', 'Custom SIS and Moodle connectors', 'Audit, deployment, onboarding and priority support'],
+    features: ['Everything in Professional', 'Unlimited lecturer seats under approved email domains', facultyAssistantPricing.institution.scopeLabel, 'Central licence and policy controls', 'Shared approved templates and branding', 'Audit, onboarding and priority support', facultyAssistantPricing.institution.enterprisePrice],
   },
 ] as const

@@ -1,12 +1,17 @@
 import nodemailer from 'nodemailer'
-import { facultyAssistantPricing } from '@/lib/faculty-assistant/plans'
+import {
+  facultyAssistantPriceKes,
+  facultyAssistantPricing,
+  facultyAssistantTermMonths,
+  type FacultyAssistantBillingPeriod,
+} from '@/lib/faculty-assistant/plans'
 
 type InvoiceRequest = {
   requestId: string
   email: string
   displayName: string
   requestedPlan: 'professional' | 'institution'
-  billingPeriod: 'monthly' | 'annual'
+  billingPeriod: FacultyAssistantBillingPeriod
 }
 
 export async function sendFacultyAssistantInvoice(request: InvoiceRequest) {
@@ -36,6 +41,9 @@ export async function sendFacultyAssistantInvoice(request: InvoiceRequest) {
 }
 
 function professionalInvoice(request: InvoiceRequest) {
+  if (request.billingPeriod === 'semester') {
+    throw new Error('Semester billing is not available for Professional licences')
+  }
   const paymentPhone = process.env.FACULTY_ASSISTANT_MPESA_PHONE?.trim()
   const paymentRecipient = process.env.FACULTY_ASSISTANT_MPESA_RECIPIENT?.trim()
   if (!paymentPhone || !paymentRecipient) {
@@ -67,11 +75,25 @@ function professionalInvoice(request: InvoiceRequest) {
 }
 
 function institutionAcknowledgement(request: InvoiceRequest) {
+  if (request.billingPeriod === 'monthly') {
+    throw new Error('Monthly billing is not available for Institution licences')
+  }
+  const amount = facultyAssistantPriceKes('institution', request.billingPeriod)
+  const months = facultyAssistantTermMonths(request.billingPeriod)
+  const annualSaving = request.billingPeriod === 'annual'
+    ? `<p><strong>Annual saving:</strong> KES ${facultyAssistantPricing.institution.annualSavingsKes.toLocaleString('en-KE')}</p>`
+    : ''
   return {
     subject: `Faculty Assistant Institution request ${shortReference(request.requestId)}`,
     html: emailShell(`
       <p>Dear ${escapeHtml(request.displayName || 'Institution representative')},</p>
       <p>Your Institution licence request has been received under reference <strong>${shortReference(request.requestId)}</strong>.</p>
+      <div class="invoice">
+        <p><strong>Requested term:</strong> ${escapeHtml(request.billingPeriod)}</p>
+        <p><strong>Coverage period:</strong> ${months} months</p>
+        <p><strong>Licence amount:</strong> KES ${amount.toLocaleString('en-KE')}</p>
+        ${annualSaving}
+      </div>
       <p>Institution agreements require confirmation of the institution name, approved email domain or domains, deployment scope, and billing arrangements. The Faculty Assistant team will contact you before any licence is activated.</p>
       <p>No personal M-Pesa payment is required from this acknowledgement.</p>
     `),

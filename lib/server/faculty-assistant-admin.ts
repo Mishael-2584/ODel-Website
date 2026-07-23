@@ -1,5 +1,9 @@
 import jwt from 'jsonwebtoken'
 import type { NextRequest } from 'next/server'
+import {
+  facultyAssistantTermMonths,
+  type FacultyAssistantBillingPeriod,
+} from '@/lib/faculty-assistant/plans'
 import { getSupabaseAdmin } from './supabase-admin'
 
 const licenceAdminRoles = new Set(['admin', 'super_admin', 'Administrator'])
@@ -67,9 +71,26 @@ export const institutionFeatures = [
   'institution:seats',
 ]
 
-export function licenceExpiry(period: 'monthly' | 'annual') {
-  const expiry = new Date()
-  if (period === 'monthly') expiry.setUTCMonth(expiry.getUTCMonth() + 1)
-  else expiry.setUTCFullYear(expiry.getUTCFullYear() + 1)
+export function licenceExpiry(period: FacultyAssistantBillingPeriod) {
+  return extendLicenceExpiry(new Date(), period)
+}
+
+export function extendLicenceExpiry(
+  currentExpiry: string | Date,
+  period: FacultyAssistantBillingPeriod,
+) {
+  const parsed = new Date(currentExpiry)
+  const expiry = Number.isFinite(parsed.getTime()) && parsed.getTime() > Date.now()
+    ? parsed
+    : new Date()
+  const originalDay = expiry.getUTCDate()
+  expiry.setUTCDate(1)
+  expiry.setUTCMonth(expiry.getUTCMonth() + facultyAssistantTermMonths(period))
+  const lastDayOfTargetMonth = new Date(Date.UTC(
+    expiry.getUTCFullYear(),
+    expiry.getUTCMonth() + 1,
+    0,
+  )).getUTCDate()
+  expiry.setUTCDate(Math.min(originalDay, lastDayOfTargetMonth))
   return expiry.toISOString()
 }

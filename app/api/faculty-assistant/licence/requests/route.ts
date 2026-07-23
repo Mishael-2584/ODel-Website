@@ -8,6 +8,11 @@ import { requireOdelSession } from '@/lib/server/odel-session'
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
 import { sendFacultyAssistantInvoice } from '@/lib/server/faculty-assistant-invoice'
 import { persistInvoiceDeliveryStatus } from '@/lib/server/faculty-assistant-invoice-status'
+import {
+  isFacultyAssistantBillingPeriod,
+  type FacultyAssistantBillingPeriod,
+  type FacultyAssistantPaidPlan,
+} from '@/lib/faculty-assistant/plans'
 
 export async function POST(request: NextRequest) {
   const origin = request.headers.get('origin')
@@ -19,18 +24,18 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json().catch(() => null) as Record<string, unknown> | null
   const requestedPlan = String(body?.requestedPlan || '')
-  const billingPeriod =
-    requestedPlan === 'institution'
-      ? 'annual'
-      : body?.billingPeriod === 'monthly'
-        ? 'monthly'
-        : 'annual'
   const phone = String(body?.phone || '').trim().slice(0, 40)
   const notes = String(body?.notes || '').trim().slice(0, 1000)
   const source = String(body?.source || 'web').trim().slice(0, 40)
   if (!['professional', 'institution'].includes(requestedPlan)) {
     return NextResponse.json({ error: 'invalid_plan' }, { status: 400 })
   }
+  const paidPlan = requestedPlan as FacultyAssistantPaidPlan
+  const requestedBillingPeriod = String(body?.billingPeriod || 'annual')
+  if (!isFacultyAssistantBillingPeriod(paidPlan, requestedBillingPeriod)) {
+    return NextResponse.json({ error: 'invalid_billing_period' }, { status: 400 })
+  }
+  const billingPeriod = requestedBillingPeriod as FacultyAssistantBillingPeriod
 
   const moodleInstance = facultyAssistantMoodleInstance()
   const supabase = getSupabaseAdmin()
@@ -81,7 +86,7 @@ export async function POST(request: NextRequest) {
       requestId: String(data.id),
       email: session.email,
       displayName: session.studentName,
-      requestedPlan: requestedPlan as 'professional' | 'institution',
+      requestedPlan: paidPlan,
       billingPeriod,
     })
     const persistence = await persistInvoiceDeliveryStatus(supabase, String(data.id), 'sent')
