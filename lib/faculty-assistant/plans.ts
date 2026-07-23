@@ -11,26 +11,34 @@ export const facultyAssistantPricing = {
     name: 'Professional',
     monthlyKes: 1000,
     annualKes: 9000,
+    monthlyUsd: 9,
+    annualUsd: 70,
     monthlyPrice: 'KES 1,000 / month',
     monthlyOptionLabel: 'KES 1,000',
     annualPrice: 'KES 9,000 / year',
     annualOptionLabel: 'KES 9,000',
+    internationalPrice: 'USD 9 / month or USD 70 / year',
     annualSavingsKes: 3000,
+    annualSavingsUsd: 38,
     annualSavings: 'save KES 3,000',
   },
   institution: {
     name: 'Institution',
     semesterKes: 150000,
     annualKes: 250000,
+    semesterUsd: 1200,
+    annualUsd: 2000,
     semesterPrice: 'KES 150,000 / semester',
     semesterOptionLabel: 'KES 150,000',
     annualPrice: 'KES 250,000 / year',
     annualOptionLabel: 'KES 250,000',
+    internationalPrice: 'USD 1,200 / semester or USD 2,000 / year',
     annualSavingsKes: 50000,
+    annualSavingsUsd: 400,
     annualSavings: 'save KES 50,000',
     seatLabel: 'Unlimited faculty seats',
     scopeLabel: 'One approved institution domain and Moodle installation',
-    enterprisePrice: 'Multi-campus and custom deployments from KES 400,000 / year',
+    enterprisePrice: 'Multi-campus/custom: from KES 400,000 or USD 3,500 / year',
   },
 } as const
 
@@ -49,12 +57,12 @@ export function facultyAssistantBillingLabel(
 ) {
   if (plan === 'professional') {
     return period === 'monthly'
-      ? `Monthly - ${facultyAssistantPricing.professional.monthlyOptionLabel}`
-      : `Annual - ${facultyAssistantPricing.professional.annualOptionLabel} (${facultyAssistantPricing.professional.annualSavings})`
+      ? `Monthly - ${facultyAssistantPricing.professional.monthlyOptionLabel} (international USD 9)`
+      : `Annual - ${facultyAssistantPricing.professional.annualOptionLabel} (international USD 70; ${facultyAssistantPricing.professional.annualSavings})`
   }
   return period === 'semester'
-    ? `Semester - ${facultyAssistantPricing.institution.semesterOptionLabel} (6 months)`
-    : `Annual - ${facultyAssistantPricing.institution.annualOptionLabel} (${facultyAssistantPricing.institution.annualSavings})`
+    ? `Semester - ${facultyAssistantPricing.institution.semesterOptionLabel} (international USD 1,200; 6 months)`
+    : `Annual - ${facultyAssistantPricing.institution.annualOptionLabel} (international USD 2,000; ${facultyAssistantPricing.institution.annualSavings})`
 }
 
 export function facultyAssistantPriceKes(
@@ -83,6 +91,7 @@ export const facultyAssistantPlanCards = [
     name: facultyAssistantPricing.essential.name,
     price: facultyAssistantPricing.essential.price,
     secondaryPrice: facultyAssistantPricing.essential.secondaryPrice,
+    internationalPrice: '',
     note: 'Start useful, stay in control',
     featured: false,
     features: ['Local Grade Studio projects', 'Moodle report to calculated grade workbook', 'Flexible grading policies', 'Visual assessment authoring', 'GIFT and review exports', 'No Moodle connection or managed AI'],
@@ -92,6 +101,7 @@ export const facultyAssistantPlanCards = [
     name: facultyAssistantPricing.professional.name,
     price: facultyAssistantPricing.professional.monthlyPrice,
     secondaryPrice: `${facultyAssistantPricing.professional.annualPrice} - ${facultyAssistantPricing.professional.annualSavings}`,
+    internationalPrice: `International: ${facultyAssistantPricing.professional.internationalPrice}`,
     note: 'The connected lecturer workspace',
     featured: true,
     features: ['Everything in Essential', 'Secure Moodle course workspace sync', 'Direct reviewed question-bank publishing', 'Word, PDF and scanned exam recovery', 'Advanced grade analytics', 'Priority beta support and early feature access'],
@@ -101,6 +111,7 @@ export const facultyAssistantPlanCards = [
     name: facultyAssistantPricing.institution.name,
     price: facultyAssistantPricing.institution.annualPrice,
     secondaryPrice: `${facultyAssistantPricing.institution.semesterPrice}; annual plan ${facultyAssistantPricing.institution.annualSavings}`,
+    internationalPrice: `International: ${facultyAssistantPricing.institution.internationalPrice}`,
     note: 'One agreement for the whole institution',
     featured: false,
     features: ['Everything in Professional', 'Unlimited lecturer seats under approved email domains', facultyAssistantPricing.institution.scopeLabel, 'Central licence and policy controls', 'Shared approved templates and branding', 'Audit, onboarding and priority support', facultyAssistantPricing.institution.enterprisePrice],
