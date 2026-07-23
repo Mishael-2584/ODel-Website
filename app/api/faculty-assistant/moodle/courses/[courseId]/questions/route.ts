@@ -5,10 +5,11 @@ import {
   verifyFacultyAssistantRequest,
   writeFacultyAssistantAudit,
 } from '@/lib/server/faculty-assistant-auth'
-import { importFacultyAssistantGiftQuestions } from '@/lib/server/faculty-assistant-moodle'
+import { importFacultyAssistantQuestions } from '@/lib/server/faculty-assistant-moodle'
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
 
-const maxGiftBytes = 1_000_000
+const maxQuestionContentBytes = 2_000_000
+const supportedFormats = new Set(['gift', 'xml'])
 
 export async function POST(
   request: NextRequest,
@@ -24,12 +25,16 @@ export async function POST(
   const courseId = Number(params.courseId)
   const body = await request.json().catch(() => null) as Record<string, unknown> | null
   const categoryId = Number(body?.categoryId)
-  const gift = typeof body?.gift === 'string' ? body.gift : ''
+  const legacyGift = typeof body?.gift === 'string' ? body.gift : ''
+  const isLegacyGiftRequest = typeof body?.content !== 'string' && legacyGift !== ''
+  const format = typeof body?.format === 'string' ? body.format.toLowerCase() : 'gift'
+  const content = typeof body?.content === 'string' ? body.content : legacyGift
   const idempotencyKey = typeof body?.idempotencyKey === 'string' ? body.idempotencyKey : ''
   if (
     !Number.isSafeInteger(courseId) || courseId <= 0 ||
     !Number.isSafeInteger(categoryId) || categoryId <= 0 ||
-    !gift.trim() || Buffer.byteLength(gift, 'utf8') > maxGiftBytes ||
+    !supportedFormats.has(format) ||
+    !content.trim() || Buffer.byteLength(content, 'utf8') > maxQuestionContentBytes ||
     !/^[A-Za-z0-9._~-]{16,128}$/.test(idempotencyKey)
   ) {
     return NextResponse.json({ error: 'invalid_publish_request' }, { status: 400 })
@@ -37,7 +42,9 @@ export async function POST(
 
   const payloadHash = crypto
     .createHash('sha256')
-    .update(`${courseId}\n${categoryId}\n${gift}`)
+    .update(isLegacyGiftRequest
+      ? `${courseId}\n${categoryId}\n${content}`
+      : `${courseId}\n${categoryId}\n${format}\n${content}`)
     .digest('hex')
   const supabase = getSupabaseAdmin()
   const { data: existing } = await supabase
@@ -74,11 +81,12 @@ export async function POST(
   }
 
   try {
-    const result = await importFacultyAssistantGiftQuestions({
+    const result = await importFacultyAssistantQuestions({
       userId: identity.moodleUserId,
       courseId,
       categoryId,
-      gift,
+      format: format as 'gift' | 'xml',
+      content,
     }) as Record<string, unknown>
     await supabase
       .from('faculty_assistant_publish_jobs')
@@ -89,7 +97,7 @@ export async function POST(
       moodleInstance: identity.moodleInstance,
       resourceType: 'course',
       resourceId: String(courseId),
-      details: { categoryId, imported: result.imported, publishJobId: job.id },
+      details: { categoryId, format, imported: result.imported, publishJobId: job.id },
       ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
     })
     return NextResponse.json(result)
@@ -104,7 +112,7 @@ export async function POST(
       moodleInstance: identity.moodleInstance,
       resourceType: 'course',
       resourceId: String(courseId),
-      details: { categoryId, publishJobId: job.id },
+      details: { categoryId, format, publishJobId: job.id },
     })
     console.error('Faculty Assistant Moodle question publish failed:', error)
     return NextResponse.json({ error: 'moodle_publish_failed' }, { status: 502 })

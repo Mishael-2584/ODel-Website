@@ -39,6 +39,13 @@ $functions = [
         'ajax' => false,
         'capabilities' => 'local/facultyassistant:publishquestions',
     ],
+    'local_facultyassistant_import_questions' => [
+        'classname' => 'local_facultyassistant\external\import_questions',
+        'description' => 'Imports reviewed GIFT or Moodle XML questions into an existing lecturer course category.',
+        'type' => 'write',
+        'ajax' => false,
+        'capabilities' => 'local/facultyassistant:publishquestions',
+    ],
 ];
 
 $services = [
@@ -49,6 +56,7 @@ $services = [
             'local_facultyassistant_get_question_categories',
             'local_facultyassistant_create_question_category',
             'local_facultyassistant_import_gift_questions',
+            'local_facultyassistant_import_questions',
         ],
         'restrictedusers' => 1,
         'enabled' => 0,

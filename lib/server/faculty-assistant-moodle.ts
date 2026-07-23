@@ -130,6 +130,22 @@ export async function importFacultyAssistantGiftQuestions(options: {
   })
 }
 
+export async function importFacultyAssistantQuestions(options: {
+  userId: number
+  courseId: number
+  categoryId: number
+  format: 'gift' | 'xml'
+  content: string
+}) {
+  return callMoodleConnector('local_facultyassistant_import_questions', {
+    userid: String(options.userId),
+    courseid: String(options.courseId),
+    categoryid: String(options.categoryId),
+    format: options.format,
+    content: options.content,
+  })
+}
+
 async function callMoodleConnector(
   wsfunction: string,
   values: Record<string, string>,
