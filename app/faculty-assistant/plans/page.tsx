@@ -43,6 +43,7 @@ export default function FacultyAssistantPlansPage({
                 <p className={`mt-1 text-sm ${plan.featured ? 'text-blue-100' : 'text-slate-500'}`}>{plan.note}</p>
                 <p className="mt-5 text-xl font-bold">{plan.price}</p>
                 <p className={`mt-1 text-sm font-semibold ${plan.featured ? 'text-amber-200' : 'text-amber-800'}`}>{plan.secondaryPrice}</p>
+                {plan.internationalPrice && <p className={`mt-2 text-xs font-bold ${plan.featured ? 'text-blue-100' : 'text-emerald-800'}`}>{plan.internationalPrice}</p>}
                 <div className="mt-5 space-y-3">
                   {plan.features.map((feature) => <p key={feature} className="flex gap-3 text-sm leading-6"><FaCheck className="mt-1 flex-none text-emerald-500" /> {feature}</p>)}
                 </div>
@@ -77,6 +78,7 @@ export default function FacultyAssistantPlansPage({
         </section>
 
         <section className="mt-8 rounded-[1.5rem] border border-blue-200 bg-blue-50 p-5 text-sm leading-6 text-[#0b294f]">
+          <p className="mb-2"><strong>Pricing currencies:</strong> KES is shown first for Kenya and regional billing. USD prices are fixed international list prices and do not change with daily exchange rates.</p>
           <strong>Need help with Faculty Assistant?</strong>{' '}
           Email <a className="font-bold underline" href={`mailto:${facultyAssistantContact.supportEmail}`}>{facultyAssistantContact.supportEmail}</a> for product, licence, billing, or technical support. General and institution enquiries can also be sent to <a className="font-bold underline" href={`mailto:${facultyAssistantContact.helloEmail}`}>{facultyAssistantContact.helloEmail}</a>.
         </section>
