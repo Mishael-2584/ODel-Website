@@ -105,7 +105,7 @@ export async function provisionInstitutionEntitlement(options: {
   const updatedAt = new Date().toISOString()
   const { data: agreement, error: agreementError } = await supabase
     .from('faculty_assistant_institution_licences')
-    .select('id, email_domains, features, expires_at')
+    .select('id, email_domains, features, expires_at, billing_period')
     .eq('moodle_instance', options.moodleInstance)
     .eq('is_active', true)
     .contains('email_domains', [emailDomain])
@@ -128,7 +128,7 @@ export async function provisionInstitutionEntitlement(options: {
       features: agreement.features,
       is_active: true,
       expires_at: agreement.expires_at,
-      billing_period: 'annual',
+      billing_period: agreement.billing_period === 'semester' ? 'semester' : 'annual',
       institution_licence_id: agreement.id,
       updated_at: updatedAt,
     }, { onConflict: 'moodle_instance,moodle_user_id' })

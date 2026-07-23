@@ -2,14 +2,18 @@
 
 import { FormEvent, useState } from 'react'
 import { FaArrowRight, FaCheckCircle, FaLock } from 'react-icons/fa'
-import { facultyAssistantPricing } from '@/lib/faculty-assistant/plans'
+import {
+  facultyAssistantBillingLabel,
+  type FacultyAssistantBillingPeriod,
+  type FacultyAssistantPaidPlan,
+} from '@/lib/faculty-assistant/plans'
 
 export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: string }) {
-  const [plan, setPlan] = useState(
+  const [plan, setPlan] = useState<FacultyAssistantPaidPlan>(
     defaultPlan === 'institution' ? 'institution' : 'professional',
   )
   const [phone, setPhone] = useState('')
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('annual')
+  const [billingPeriod, setBillingPeriod] = useState<FacultyAssistantBillingPeriod>('annual')
   const [notes, setNotes] = useState('')
   const [state, setState] = useState<'idle' | 'busy' | 'success' | 'signin' | 'error'>('idle')
   const [message, setMessage] = useState('')
@@ -20,7 +24,7 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
     const response = await fetch('/api/faculty-assistant/licence/requests', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requestedPlan: plan, billingPeriod: plan === 'institution' ? 'annual' : billingPeriod, phone, notes, source: 'desktop-plans' }),
+      body: JSON.stringify({ requestedPlan: plan, billingPeriod, phone, notes, source: 'desktop-plans' }),
     })
     const result = await response.json().catch(() => ({}))
     if (response.status === 401) {
@@ -67,16 +71,21 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
 
       <label className="mt-5 block text-sm font-bold text-slate-700">
         Plan
-        <select value={plan} onChange={(event) => setPlan(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-medium outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-100">
+        <select value={plan} onChange={(event) => {
+          setPlan(event.target.value as FacultyAssistantPaidPlan)
+          setBillingPeriod('annual')
+        }} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-medium outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-100">
           <option value="professional">Professional lecturer</option>
           <option value="institution">Institution / department</option>
         </select>
       </label>
       <label className="mt-4 block text-sm font-bold text-slate-700">
         Billing
-        <select value={plan === 'institution' ? 'annual' : billingPeriod} disabled={plan === 'institution'} onChange={(event) => setBillingPeriod(event.target.value as 'monthly' | 'annual')} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-medium outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-100 disabled:bg-slate-100">
-          <option value="annual">Annual - {facultyAssistantPricing.professional.annualOptionLabel} (best value)</option>
-          <option value="monthly">Monthly - {facultyAssistantPricing.professional.monthlyOptionLabel}</option>
+        <select value={billingPeriod} onChange={(event) => setBillingPeriod(event.target.value as FacultyAssistantBillingPeriod)} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-medium outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-100">
+          <option value="annual">{facultyAssistantBillingLabel(plan, 'annual')} - best value</option>
+          {plan === 'professional'
+            ? <option value="monthly">{facultyAssistantBillingLabel(plan, 'monthly')}</option>
+            : <option value="semester">{facultyAssistantBillingLabel(plan, 'semester')}</option>}
         </select>
       </label>
       <label className="mt-4 block text-sm font-bold text-slate-700">

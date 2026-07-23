@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireFacultyAssistantAdmin } from '@/lib/server/faculty-assistant-admin'
+import {
+  extendLicenceExpiry,
+  requireFacultyAssistantAdmin,
+} from '@/lib/server/faculty-assistant-admin'
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
 
 export async function PATCH(
@@ -16,7 +19,7 @@ export async function PATCH(
   const supabase = getSupabaseAdmin()
   const { data: current, error: readError } = await supabase
     .from('faculty_assistant_institution_licences')
-    .select('id, moodle_instance, institution_name, expires_at')
+    .select('id, moodle_instance, institution_name, expires_at, billing_period')
     .eq('id', params.institutionId)
     .maybeSingle()
   if (readError) return NextResponse.json({ error: 'institution_lookup_failed' }, { status: 500 })
@@ -24,12 +27,8 @@ export async function PATCH(
 
   let expiresAt: string | null = null
   if (action === 'extend') {
-    const currentExpiry = new Date(current.expires_at).getTime()
-    const from = Number.isFinite(currentExpiry) && currentExpiry > Date.now()
-      ? new Date(currentExpiry)
-      : new Date()
-    from.setUTCFullYear(from.getUTCFullYear() + 1)
-    expiresAt = from.toISOString()
+    const billingPeriod = current.billing_period === 'semester' ? 'semester' : 'annual'
+    expiresAt = extendLicenceExpiry(current.expires_at, billingPeriod)
   }
 
   const { data, error } = await supabase.rpc('faculty_assistant_admin_update_institution', {

@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireFacultyAssistantAdmin } from '@/lib/server/faculty-assistant-admin'
+import {
+  extendLicenceExpiry,
+  requireFacultyAssistantAdmin,
+} from '@/lib/server/faculty-assistant-admin'
+import type { FacultyAssistantBillingPeriod } from '@/lib/faculty-assistant/plans'
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
 
 export async function PATCH(
@@ -13,7 +17,7 @@ export async function PATCH(
   const supabase = getSupabaseAdmin()
   const { data: current } = await supabase
     .from('faculty_assistant_entitlements')
-    .select('id, moodle_instance, moodle_user_id, email, plan, expires_at')
+    .select('id, moodle_instance, moodle_user_id, email, plan, expires_at, billing_period')
     .eq('id', params.entitlementId)
     .maybeSingle()
   if (!current) return NextResponse.json({ error: 'entitlement_not_found' }, { status: 404 })
@@ -22,10 +26,15 @@ export async function PATCH(
   if (action === 'revoke') patch = { is_active: false }
   else if (action === 'restore') patch = { is_active: true }
   else if (action === 'extend') {
-    const expiry = new Date(current.expires_at || Date.now())
-    const from = expiry.getTime() > Date.now() ? expiry : new Date()
-    from.setUTCFullYear(from.getUTCFullYear() + 1)
-    patch = { is_active: true, expires_at: from.toISOString(), billing_period: 'annual' }
+    const billingPeriod: FacultyAssistantBillingPeriod =
+      current.billing_period === 'monthly' || current.billing_period === 'semester'
+        ? current.billing_period
+        : 'annual'
+    patch = {
+      is_active: true,
+      expires_at: extendLicenceExpiry(current.expires_at || new Date(), billingPeriod),
+      billing_period: billingPeriod,
+    }
   } else {
     return NextResponse.json({ error: 'invalid_entitlement_action' }, { status: 400 })
   }

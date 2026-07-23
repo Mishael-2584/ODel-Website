@@ -8,6 +8,11 @@ import {
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
 import { sendFacultyAssistantInvoice } from '@/lib/server/faculty-assistant-invoice'
 import { persistInvoiceDeliveryStatus } from '@/lib/server/faculty-assistant-invoice-status'
+import {
+  isFacultyAssistantBillingPeriod,
+  type FacultyAssistantBillingPeriod,
+  type FacultyAssistantPaidPlan,
+} from '@/lib/faculty-assistant/plans'
 
 const allowedStatuses = new Set(['contacted', 'paid', 'declined'])
 const invoiceEligibleStatuses = new Set(['pending', 'contacted', 'paid'])
@@ -45,12 +50,19 @@ export async function PATCH(
     }
 
     try {
+      const invoicePlan: FacultyAssistantPaidPlan =
+        upgradeRequest.requested_plan === 'institution' ? 'institution' : 'professional'
+      const storedBillingPeriod = String(upgradeRequest.billing_period || 'annual')
+      const invoiceBillingPeriod: FacultyAssistantBillingPeriod =
+        isFacultyAssistantBillingPeriod(invoicePlan, storedBillingPeriod)
+          ? storedBillingPeriod
+          : 'annual'
       const delivery = await sendFacultyAssistantInvoice({
         requestId: String(upgradeRequest.id),
         email: invoiceEmail,
         displayName: String(upgradeRequest.display_name || ''),
-        requestedPlan: upgradeRequest.requested_plan === 'institution' ? 'institution' : 'professional',
-        billingPeriod: upgradeRequest.billing_period === 'monthly' ? 'monthly' : 'annual',
+        requestedPlan: invoicePlan,
+        billingPeriod: invoiceBillingPeriod,
       })
       const persistence = await persistInvoiceDeliveryStatus(
         supabase,
@@ -109,13 +121,15 @@ export async function PATCH(
   }
 
   if (action === 'activate') {
-    const plan = upgradeRequest.requested_plan === 'institution' ? 'institution' : 'professional'
-    const billingPeriod =
-      plan === 'institution'
-        ? 'annual'
-        : body?.billingPeriod === 'monthly'
-          ? 'monthly'
-          : 'annual'
+    const plan: FacultyAssistantPaidPlan =
+      upgradeRequest.requested_plan === 'institution' ? 'institution' : 'professional'
+    const requestedBillingPeriod = String(
+      body?.billingPeriod || upgradeRequest.billing_period || 'annual',
+    )
+    if (!isFacultyAssistantBillingPeriod(plan, requestedBillingPeriod)) {
+      return NextResponse.json({ error: 'invalid_billing_period' }, { status: 400 })
+    }
+    const billingPeriod = requestedBillingPeriod as FacultyAssistantBillingPeriod
     const features = plan === 'institution' ? institutionFeatures : professionalFeatures
     const expiresAt = licenceExpiry(billingPeriod)
     const institutionName = String(body?.institutionName || '').trim().slice(0, 160)
