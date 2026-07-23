@@ -65,7 +65,15 @@ export default function FacultyAssistantPlansPage({
           <UpgradeRequestForm defaultPlan={searchParams.plan || 'professional'} />
         </section>
 
-        <section id="download" className="mt-8 rounded-[1.5rem] border border-slate-200 bg-white/75 p-6"><p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Windows beta</p><h2 className="mt-2 text-2xl font-bold text-[#09264a]">Faculty Assistant 0.16 beta is for invited pilot lecturers.</h2><p className="mt-2 text-slate-600">Pilot users receive the installer and SHA-256 checksum from their implementation administrator. The public self-service download will appear here after Windows code signing and pilot acceptance.</p><p className="mt-3 text-sm font-semibold text-amber-800">AI Assistant and Course Outline Designer are not included in this beta.</p></section>
+        <section id="download" className="mt-8 rounded-[1.5rem] border border-slate-200 bg-white/75 p-6 md:flex md:items-center md:justify-between md:gap-8">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Latest desktop beta</p>
+            <h2 className="mt-2 text-2xl font-bold text-[#09264a]">Faculty Assistant v0.18.0-beta.1 is available now.</h2>
+            <p className="mt-2 max-w-3xl text-slate-600">Download the approved Windows installer or a macOS and Linux candidate package from the official Faculty Assistant release page. Every package includes a published SHA-256 checksum.</p>
+            <p className="mt-3 text-sm font-semibold text-amber-800">AI Assistant, Course Outline Designer and automatic updates are not included in this beta.</p>
+          </div>
+          <a href="https://facultyassistant.org/download" target="_blank" rel="noreferrer" className="mt-5 inline-block whitespace-nowrap rounded-xl bg-[#09264a] px-5 py-3 text-center text-sm font-bold text-white md:mt-0">Choose your download</a>
+        </section>
       </div>
     </main>
   )
