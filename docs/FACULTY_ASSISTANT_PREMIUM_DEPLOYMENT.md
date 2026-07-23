@@ -30,6 +30,13 @@ Apply the existing commercial migrations first, then run
 the linked project's SQL editor. The new migration adds private invoice-delivery
 state, approved institution email domains, and the atomic activation RPC.
 
+Run `supabase/migrations/20260723000100_faculty_assistant_manual_grants.sql`
+after it. This additive function lets an authenticated Licence Desk
+administrator grant one audited annual Professional licence after Moodle email
+verification. It also makes revoke, restore and extend transactional with their
+audit event; revoke invalidates the entitlement's refresh tokens. It does not
+delete existing licence history.
+
 The earlier commercial migration creates:
 
 - `faculty_assistant_publish_jobs`
@@ -41,9 +48,9 @@ legacy remote entries that are missing from the repository, so do not use
 
 ## 2. Upgrade the Moodle Connector
 
-Install `artifacts/moodle/facultyassistant-0.5.0-moodle.zip` through Moodle's
+Install `artifacts/moodle/facultyassistant-0.7.0-moodle.zip` through Moodle's
 plugin installer. The expected component is `local_facultyassistant`, release
-`0.5.0`. Moodle should detect the package as a Local plugin automatically. This
+`0.7.0`. Moodle should detect the package as a Local plugin automatically. This
 package upgrades any earlier Faculty Assistant connector directly; installing
 `0.4.0` first is not required.
 
@@ -53,8 +60,9 @@ After the upgrade:
 2. Allow `local/facultyassistant:publishquestions` on that role only.
 3. Do not grant the capability to Manager, Teacher, Authenticated user, or any
    general integration role.
-4. Confirm the Faculty Assistant external service contains the category and
-   GIFT import functions and `local_facultyassistant_get_course_grades`.
+4. Confirm the Faculty Assistant external service contains exact user email
+   lookup, the category functions, legacy GIFT import, generic GIFT/XML import, and
+   `local_facultyassistant_get_course_grades` functions.
 5. Keep the existing dedicated service token; no desktop token changes are
    required.
 6. Keep `local/facultyassistant:useservice` on the dedicated service role. The
@@ -63,7 +71,7 @@ After the upgrade:
 
 Package SHA-256:
 
-`24FC2B5828E3C091299FB1D4B0042DD7DB090DFABB0338D0715B3C5CE22AFDAB`
+`CD1012A2233BC7013FC9EA6964AE193A46D024A567AC0F3D9B3B011F319691B8`
 
 ## 3. Deploy ODeL
 
@@ -83,11 +91,13 @@ activation.
 
 ## 5. Validate
 
-1. Open a synced course in Assessment Studio.
+1. Open a synced course in Assessment Studio and import or author one simple
+   GIFT bank and one XML-recommended bank containing essay grader notes.
 2. Enable publishing through the browser authorization screen.
 3. Load Moodle question categories.
-4. Publish one clearly named test question to a test course.
-5. Confirm its Moodle creator, category, content, and audit entries.
+4. Publish each bank to a test course.
+5. Confirm their Moodle creator, category, format, content, marks, private
+   grader information, and audit entries.
 6. Retry the same request ID and confirm no duplicate question is created.
 7. Open the same course in Grade Studio and approve read-only grade access.
 8. Synchronize students and grades, confirm Moodle assessment maxima are shown,

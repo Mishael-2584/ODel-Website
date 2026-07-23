@@ -12,6 +12,27 @@ export async function getFacultyAssistantTeachingCourses(userId: number) {
   return Array.isArray(result) ? result : []
 }
 
+export async function getFacultyAssistantUserByEmail(email: string) {
+  const result = await callMoodleConnector(
+    'local_facultyassistant_get_user_by_email',
+    { email },
+  )
+  if (!result || typeof result !== 'object') {
+    throw new Error('Moodle returned an invalid user lookup response')
+  }
+  const user = result as Record<string, unknown>
+  const id = Number(user.id)
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    throw new Error('Moodle returned an invalid user identifier')
+  }
+  return {
+    id,
+    email: String(user.email || '').trim().toLowerCase(),
+    username: String(user.username || '').trim(),
+    fullname: String(user.fullname || '').trim(),
+  }
+}
+
 export async function getFacultyAssistantQuestionCategories(
   userId: number,
   courseId: number,
@@ -127,6 +148,22 @@ export async function importFacultyAssistantGiftQuestions(options: {
     courseid: String(options.courseId),
     categoryid: String(options.categoryId),
     gift: options.gift,
+  })
+}
+
+export async function importFacultyAssistantQuestions(options: {
+  userId: number
+  courseId: number
+  categoryId: number
+  format: 'gift' | 'xml'
+  content: string
+}) {
+  return callMoodleConnector('local_facultyassistant_import_questions', {
+    userid: String(options.userId),
+    courseid: String(options.courseId),
+    categoryid: String(options.categoryId),
+    format: options.format,
+    content: options.content,
   })
 }
 
