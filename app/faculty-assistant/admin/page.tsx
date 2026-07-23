@@ -297,6 +297,7 @@ export default function FacultyAssistantAdminPage() {
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden text-right sm:block"><strong className="block text-sm">{data?.admin.name}</strong><span className="text-xs text-white/60">{data?.admin.email}</span></div>
+            <button onClick={() => router.push('/faculty-assistant/admin/moderation')} className="rounded-lg border border-white/20 px-3 py-2 text-xs font-bold hover:bg-white/10">Moderation controls</button>
             <button onClick={() => router.push('/admin/dashboard')} className="rounded-lg border border-white/20 px-3 py-2 text-xs font-bold hover:bg-white/10">Content admin</button>
             <button onClick={() => { localStorage.removeItem('admin_token'); localStorage.removeItem('admin_user'); router.push('/admin/login') }} className="grid h-9 w-9 place-items-center rounded-lg border border-white/20 hover:bg-white/10" title="Sign out"><LogOut size={16} /></button>
           </div>

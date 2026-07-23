@@ -78,7 +78,7 @@ export async function getActiveEntitlement(
   const supabase = getSupabaseAdmin()
   const baseQuery = supabase
     .from('faculty_assistant_entitlements')
-    .select('id, plan, features, expires_at, is_active')
+    .select('id, plan, features, expires_at, is_active, institution_licence_id')
     .eq('moodle_user_id', moodleUserId)
     .eq('moodle_instance', moodleInstance)
     .eq('is_active', true)

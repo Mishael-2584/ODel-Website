@@ -18,6 +18,11 @@ export async function GET(request: NextRequest) {
       email: identity.email,
       name: identity.name,
     },
-    licence: { plan: entitlement.plan, expiresAt: entitlement.expires_at, features: entitlement.features },
+    licence: {
+      plan: entitlement.plan,
+      expiresAt: entitlement.expires_at,
+      features: entitlement.features,
+      institutionLicenceId: entitlement.institution_licence_id,
+    },
   })
 }
