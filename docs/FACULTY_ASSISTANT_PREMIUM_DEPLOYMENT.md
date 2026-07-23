@@ -48,11 +48,17 @@ legacy remote entries that are missing from the repository, so do not use
 
 ## 2. Upgrade the Moodle Connector
 
-Install `artifacts/moodle/facultyassistant-0.7.0-moodle.zip` through Moodle's
+Install `artifacts/moodle/local_facultyassistant-0.7.0.zip` through Moodle's
 plugin installer. The expected component is `local_facultyassistant`, release
 `0.7.0`. Moodle should detect the package as a Local plugin automatically. This
 package upgrades any earlier Faculty Assistant connector directly; installing
 `0.4.0` first is not required.
+
+Leave Moodle's advanced **Plugin type** field unselected. After uploading the
+ZIP, Moodle should report the detected component as `local_facultyassistant`.
+Do not continue if Moodle displays **Unable to detect the plugin type**; rebuild
+the package with `.\scripts\build-moodle-plugin.ps1` and upload the generated
+`local_facultyassistant` archive.
 
 After the upgrade:
 
@@ -71,7 +77,7 @@ After the upgrade:
 
 Package SHA-256:
 
-`CD1012A2233BC7013FC9EA6964AE193A46D024A567AC0F3D9B3B011F319691B8`
+`50C88ADA6174FFC7AE6ACCFEBB2241118DE346EDCB3109A0C65585D52D92EE6F`
 
 ## 3. Deploy ODeL
 
