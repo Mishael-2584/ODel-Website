@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FaBuilding, FaCheck, FaGraduationCap, FaLaptop } from 'react-icons/fa'
+import { facultyAssistantContact } from '@/lib/faculty-assistant/contact'
 import { facultyAssistantPlanCards } from '@/lib/faculty-assistant/plans'
 import UpgradeRequestForm from './UpgradeRequestForm'
 
@@ -73,6 +74,11 @@ export default function FacultyAssistantPlansPage({
             <p className="mt-3 text-sm font-semibold text-amber-800">AI Assistant, Course Outline Designer and automatic updates are not included in this beta.</p>
           </div>
           <a href="https://facultyassistant.org/download" target="_blank" rel="noreferrer" className="mt-5 inline-block whitespace-nowrap rounded-xl bg-[#09264a] px-5 py-3 text-center text-sm font-bold text-white md:mt-0">Choose your download</a>
+        </section>
+
+        <section className="mt-8 rounded-[1.5rem] border border-blue-200 bg-blue-50 p-5 text-sm leading-6 text-[#0b294f]">
+          <strong>Need help with Faculty Assistant?</strong>{' '}
+          Email <a className="font-bold underline" href={`mailto:${facultyAssistantContact.supportEmail}`}>{facultyAssistantContact.supportEmail}</a> for product, licence, billing, or technical support. General and institution enquiries can also be sent to <a className="font-bold underline" href={`mailto:${facultyAssistantContact.helloEmail}`}>{facultyAssistantContact.helloEmail}</a>.
         </section>
       </div>
     </main>
