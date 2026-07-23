@@ -13,10 +13,15 @@ page or returned by the upgrade API:
 FACULTY_ASSISTANT_MPESA_PHONE="<private M-Pesa number>"
 FACULTY_ASSISTANT_MPESA_RECIPIENT="<verified recipient name>"
 FACULTY_ASSISTANT_EMAIL_FROM_NAME="Faculty Assistant"
+FACULTY_ASSISTANT_EMAIL_FROM="support@facultyassistant.org"
+FACULTY_ASSISTANT_SUPPORT_EMAIL="support@facultyassistant.org"
 ```
 
 The request remains pending after invoice delivery. Only a Licence Desk
 administrator can activate it after independently verifying the payment.
+The support address is also used as the reply-to address for Faculty Assistant
+licence emails. General product and institution enquiries use
+`hello@facultyassistant.org`.
 
 ## 1. Apply the Additive Supabase Migration
 

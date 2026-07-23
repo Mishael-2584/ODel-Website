@@ -7,6 +7,7 @@ import {
   type FacultyAssistantBillingPeriod,
   type FacultyAssistantPaidPlan,
 } from '@/lib/faculty-assistant/plans'
+import { facultyAssistantContact } from '@/lib/faculty-assistant/contact'
 
 export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: string }) {
   const [plan, setPlan] = useState<FacultyAssistantPaidPlan>(
@@ -112,6 +113,7 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
         {state === 'busy' ? 'Submitting...' : 'Request activation'} <FaArrowRight />
       </button>
       <p className="mt-4 flex items-center gap-2 text-xs text-slate-500"><FaLock /> Your request is tied to your verified Faculty Assistant identity.</p>
+      <p className="mt-2 text-xs text-slate-500">Need assistance? <a className="font-bold underline" href={`mailto:${facultyAssistantContact.supportEmail}`}>{facultyAssistantContact.supportEmail}</a></p>
     </form>
   )
 }

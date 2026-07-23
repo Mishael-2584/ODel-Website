@@ -5,6 +5,7 @@ import {
   facultyAssistantTermMonths,
   type FacultyAssistantBillingPeriod,
 } from '@/lib/faculty-assistant/plans'
+import { facultyAssistantContact } from '@/lib/faculty-assistant/contact'
 
 type InvoiceRequest = {
   requestId: string
@@ -33,7 +34,8 @@ export async function sendFacultyAssistantInvoice(request: InvoiceRequest) {
     path: process.env.SENDMAIL_PATH || '/usr/sbin/sendmail',
   })
   return transporter.sendMail({
-    from: `${process.env.FACULTY_ASSISTANT_EMAIL_FROM_NAME || 'Faculty Assistant'} <${process.env.EMAIL_FROM || 'noreply@ueab.ac.ke'}>`,
+    from: `${process.env.FACULTY_ASSISTANT_EMAIL_FROM_NAME || 'Faculty Assistant'} <${process.env.FACULTY_ASSISTANT_EMAIL_FROM || process.env.EMAIL_FROM || facultyAssistantContact.supportEmail}>`,
+    replyTo: process.env.FACULTY_ASSISTANT_SUPPORT_EMAIL || facultyAssistantContact.supportEmail,
     to: request.email,
     subject: content.subject,
     html: content.html,
@@ -107,8 +109,8 @@ function emailShell(content: string) {
     .head{padding:24px 30px;background:#12352d;color:#fff}.head b{color:#f1ca76;letter-spacing:.08em}
     .body{padding:30px}.invoice,.payment{margin:20px 0;padding:18px;border-radius:12px;background:#f8f5ec}
     .payment{border:1px solid #dfb552;background:#fff8df}.invoice p,.payment p{margin:5px 0}
-    .foot{padding:16px 30px;background:#f8f5ec;color:#6b746e;font-size:12px}
-  </style></head><body><div class="wrap"><div class="head"><b>FACULTY ASSISTANT</b><div>Licence Desk</div></div><div class="body">${content}</div><div class="foot">This message was generated for a verified Faculty Assistant upgrade request. Do not forward private payment instructions.</div></div></body></html>`
+    .foot{padding:16px 30px;background:#f8f5ec;color:#6b746e;font-size:12px}.foot a{color:#315f50;font-weight:700}
+  </style></head><body><div class="wrap"><div class="head"><b>FACULTY ASSISTANT</b><div>Licence Desk</div></div><div class="body">${content}</div><div class="foot">This message was generated for a verified Faculty Assistant upgrade request. Do not forward private payment instructions.<br>Support: <a href="mailto:${facultyAssistantContact.supportEmail}">${facultyAssistantContact.supportEmail}</a></div></div></body></html>`
 }
 
 function shortReference(value: string) {
