@@ -403,6 +403,19 @@ npm install
 
 ## 🤝 Contributing
 
+### Faculty Assistant Moodle package
+
+Build the installable Moodle connector from the repository root:
+
+```powershell
+.\scripts\build-moodle-plugin.ps1
+```
+
+The command creates `artifacts/moodle/local_facultyassistant-<release>.zip`
+and fails if Moodle 4.4 cannot automatically detect its component as
+`local_facultyassistant`. Only install the latest `local_facultyassistant`
+archive; older Faculty Assistant ZIPs are intentionally not retained.
+
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/amazing-feature`
 3. Commit changes: `git commit -m 'Add amazing feature'`
