@@ -13,6 +13,8 @@ type InvoiceRequest = {
   displayName: string
   requestedPlan: 'professional' | 'institution'
   billingPeriod: FacultyAssistantBillingPeriod
+  paymentUrl?: string
+  stkInitiated?: boolean
 }
 
 export async function sendFacultyAssistantInvoice(request: InvoiceRequest) {
@@ -28,17 +30,55 @@ export async function sendFacultyAssistantInvoice(request: InvoiceRequest) {
     return { messageId: `console-${request.requestId}` }
   }
 
-  const transporter = nodemailer.createTransport({
-    sendmail: true,
-    newline: 'unix',
-    path: process.env.SENDMAIL_PATH || '/usr/sbin/sendmail',
-  })
+  const transporter = facultyAssistantTransporter()
   return transporter.sendMail({
-    from: `${process.env.FACULTY_ASSISTANT_EMAIL_FROM_NAME || 'Faculty Assistant'} <${process.env.FACULTY_ASSISTANT_EMAIL_FROM || process.env.EMAIL_FROM || facultyAssistantContact.supportEmail}>`,
+    from: facultyAssistantSender(),
     replyTo: process.env.FACULTY_ASSISTANT_SUPPORT_EMAIL || facultyAssistantContact.supportEmail,
     to: request.email,
     subject: content.subject,
     html: content.html,
+  })
+}
+
+export async function sendFacultyAssistantActivationEmail(request: {
+  requestId: string
+  email: string
+  displayName: string
+  billingPeriod: string
+  expiresAt: string
+  paymentReference: string
+}) {
+  const expiry = new Date(request.expiresAt)
+  const expiryText = Number.isFinite(expiry.getTime())
+    ? new Intl.DateTimeFormat('en-KE', { dateStyle: 'long' }).format(expiry)
+    : request.expiresAt
+  const subject = `Faculty Assistant Professional activated ${shortReference(request.requestId)}`
+  const html = emailShell(`
+    <p>Dear ${escapeHtml(request.displayName || 'Lecturer')},</p>
+    <h2 style="color:#12352d">Your Professional licence is active.</h2>
+    <p>PayNexus confirmed your M-Pesa payment and Faculty Assistant activated the licence automatically.</p>
+    <div class="invoice">
+      <p><strong>Licence:</strong> Professional, ${escapeHtml(request.billingPeriod)}</p>
+      <p><strong>Active until:</strong> ${escapeHtml(expiryText)}</p>
+      <p><strong>Payment reference:</strong> ${escapeHtml(request.paymentReference)}</p>
+    </div>
+    <p>Open Faculty Assistant and use <strong>Refresh licence</strong>. If Moodle Connection was waiting for access, sign in again after refreshing.</p>
+    <p>If the licence does not appear within a few minutes, contact Faculty Assistant support and include the payment reference above.</p>
+  `)
+  if (process.env.EMAIL_TRANSPORT === 'console') {
+    console.log('[Faculty Assistant activation email]', {
+      to: request.email,
+      subject,
+      requestId: request.requestId,
+    })
+    return { messageId: `console-activation-${request.requestId}` }
+  }
+  return facultyAssistantTransporter().sendMail({
+    from: facultyAssistantSender(),
+    replyTo: process.env.FACULTY_ASSISTANT_SUPPORT_EMAIL || facultyAssistantContact.supportEmail,
+    to: request.email,
+    subject,
+    html,
   })
 }
 
@@ -48,14 +88,24 @@ function professionalInvoice(request: InvoiceRequest) {
   }
   const paymentPhone = process.env.FACULTY_ASSISTANT_MPESA_PHONE?.trim()
   const paymentRecipient = process.env.FACULTY_ASSISTANT_MPESA_RECIPIENT?.trim()
-  if (!paymentPhone || !paymentRecipient) {
-    throw new Error('Faculty Assistant M-Pesa invoice details are not configured')
-  }
   const annual = request.billingPeriod === 'annual'
   const amount = annual
     ? facultyAssistantPricing.professional.annualKes
     : facultyAssistantPricing.professional.monthlyKes
   const period = annual ? '12 months' : '1 month'
+  const paymentUrl = safePaymentUrl(request.paymentUrl)
+  if (!paymentUrl && (!paymentPhone || !paymentRecipient)) {
+    throw new Error('Faculty Assistant payment details are not configured')
+  }
+  const paymentBlock = paymentUrl
+    ? `
+      <div class="payment">
+        <p><strong>${request.stkInitiated ? 'An M-Pesa prompt has been sent to your phone.' : 'Pay securely with M-Pesa.'}</strong></p>
+        <p>If the prompt expires or does not appear, use the private checkout button below.</p>
+        <p style="margin-top:16px"><a class="pay" href="${escapeHtml(paymentUrl)}">Open secure M-Pesa checkout</a></p>
+      </div>
+    `
+    : manualPaymentBlock()
   return {
     subject: `Faculty Assistant Professional invoice ${shortReference(request.requestId)}`,
     html: emailShell(`
@@ -67,12 +117,20 @@ function professionalInvoice(request: InvoiceRequest) {
         <p><strong>Licence period:</strong> ${period}</p>
         <p><strong>Amount due:</strong> KES ${amount.toLocaleString('en-KE')}</p>
       </div>
-      <div class="payment">
-        <p><strong>M-Pesa payment number:</strong> ${paymentPhone}</p>
-        <p><strong>Recipient:</strong> ${paymentRecipient}</p>
-      </div>
-      <p>Please retain the M-Pesa confirmation. Access is activated only after the Faculty Assistant Licence Desk verifies the payment; payment alone does not grant Moodle or application access.</p>
+      ${paymentBlock}
+      <p>Please retain the M-Pesa confirmation. The browser return page does not activate access by itself. Activation follows a verified PayNexus server notification and is recorded in the Licence Desk.</p>
     `),
+  }
+
+  function manualPaymentBlock() {
+    return `
+      <div class="payment">
+        <p><strong>Automated checkout is temporarily unavailable.</strong></p>
+        <p><strong>M-Pesa payment number:</strong> ${escapeHtml(paymentPhone || '')}</p>
+        <p><strong>Recipient:</strong> ${escapeHtml(paymentRecipient || '')}</p>
+        <p>Manual payments require Licence Desk confirmation before activation.</p>
+      </div>
+    `
   }
 }
 
@@ -109,12 +167,40 @@ function emailShell(content: string) {
     .head{padding:24px 30px;background:#12352d;color:#fff}.head b{color:#f1ca76;letter-spacing:.08em}
     .body{padding:30px}.invoice,.payment{margin:20px 0;padding:18px;border-radius:12px;background:#f8f5ec}
     .payment{border:1px solid #dfb552;background:#fff8df}.invoice p,.payment p{margin:5px 0}
+    .pay{display:inline-block;padding:12px 18px;border-radius:9px;color:#09264a!important;background:#f1ca76;text-decoration:none;font-weight:800}
     .foot{padding:16px 30px;background:#f8f5ec;color:#6b746e;font-size:12px}.foot a{color:#315f50;font-weight:700}
   </style></head><body><div class="wrap"><div class="head"><b>FACULTY ASSISTANT</b><div>Licence Desk</div></div><div class="body">${content}</div><div class="foot">This message was generated for a verified Faculty Assistant upgrade request. Do not forward private payment instructions.<br>Support: <a href="mailto:${facultyAssistantContact.supportEmail}">${facultyAssistantContact.supportEmail}</a></div></div></body></html>`
 }
 
 function shortReference(value: string) {
   return `FA-${value.replace(/-/g, '').slice(0, 10).toUpperCase()}`
+}
+
+function facultyAssistantTransporter() {
+  return nodemailer.createTransport({
+    sendmail: true,
+    newline: 'unix',
+    path: process.env.SENDMAIL_PATH || '/usr/sbin/sendmail',
+  })
+}
+
+function facultyAssistantSender() {
+  return `${process.env.FACULTY_ASSISTANT_EMAIL_FROM_NAME || 'Faculty Assistant'} <${process.env.FACULTY_ASSISTANT_EMAIL_FROM || process.env.EMAIL_FROM || facultyAssistantContact.supportEmail}>`
+}
+
+function safePaymentUrl(value?: string) {
+  if (!value) return ''
+  try {
+    const parsed = new URL(value)
+    const isPayNexusHost =
+      parsed.hostname === 'paynexus.co.ke' ||
+      parsed.hostname.endsWith('.paynexus.co.ke')
+    return parsed.protocol === 'https:' && isPayNexusHost
+      ? parsed.toString()
+      : ''
+  } catch {
+    return ''
+  }
 }
 
 function escapeHtml(value: string) {

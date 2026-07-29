@@ -3,13 +3,19 @@
 Deploy in this order so the desktop never exposes Moodle publishing or grade
 sync before the server and Moodle connector are ready.
 
-## Private Manual Invoice Settings
+## Payment and Email Settings
 
 Configure these only in the production server environment. They are used in
-private Professional invoice emails and are never rendered on the public plans
-page or returned by the upgrade API:
+Professional checkout and private licence emails and are never rendered on the
+public plans page or returned to browser JavaScript:
 
 ```bash
+PAYNEXUS_SECRET_KEY="<production sk_ key>"
+PAYNEXUS_PUBLIC_KEY="<production pk_ key>"
+PAYNEXUS_WEBHOOK_SECRET="<webhook signing secret>"
+PAYNEXUS_BASE_URL="https://paynexus.co.ke"
+FACULTY_ASSISTANT_PAYMENT_RETURN_ORIGIN="https://facultyassistant.org"
+FACULTY_ASSISTANT_PAYMENT_REPORT_SECRET="<shared random secret, at least 32 characters>"
 FACULTY_ASSISTANT_MPESA_PHONE="<private M-Pesa number>"
 FACULTY_ASSISTANT_MPESA_RECIPIENT="<verified recipient name>"
 FACULTY_ASSISTANT_EMAIL_FROM_NAME="Faculty Assistant"
@@ -17,8 +23,12 @@ FACULTY_ASSISTANT_EMAIL_FROM="support@facultyassistant.org"
 FACULTY_ASSISTANT_SUPPORT_EMAIL="support@facultyassistant.org"
 ```
 
-The request remains pending after invoice delivery. Only a Licence Desk
-administrator can activate it after independently verifying the payment.
+The M-Pesa phone and recipient remain a manual fallback when PayNexus checkout
+is unavailable. Professional monthly and annual payments activate only after a
+signed PayNexus `payment.completed` webhook passes amount, currency and
+idempotency checks. Institution requests remain agreement-led and require
+manual Licence Desk activation.
+
 The support address is also used as the reply-to address for Faculty Assistant
 licence emails. General product and institution enquiries use
 `hello@facultyassistant.org`.
@@ -36,6 +46,12 @@ administrator grant one audited annual Professional licence after Moodle email
 verification. It also makes revoke, restore and extend transactional with their
 audit event; revoke invalidates the entitlement's refresh tokens. It does not
 delete existing licence history.
+
+Run
+`supabase/migrations/20260729000100_faculty_assistant_paynexus_payments.sql`
+after the earlier commercial migrations. It adds the private payment-order
+ledger and the transaction-safe PayNexus activation RPC. The migration is
+additive and does not remove existing requests, entitlements or audit records.
 
 The earlier commercial migration creates:
 
@@ -81,9 +97,34 @@ Package SHA-256:
 
 ## 3. Deploy ODeL
 
-Set the private invoice environment variables shown above, then build and
+Set the payment and email environment variables shown above, then build and
 restart the existing PM2 application after merging the branch. Keep the values
 in the server environment only; do not prefix them with `NEXT_PUBLIC_`.
+
+In PayNexus, register this webhook for `payment.completed`,
+`payment.failed`, and `payment.initiated`:
+
+```text
+https://odel.ueab.ac.ke/api/faculty-assistant/payments/paynexus/webhook
+```
+
+Keep these browser return URLs allowlisted:
+
+```text
+https://facultyassistant.org/payment/return
+https://facultyassistant.org/payment/success
+https://facultyassistant.org/payment/cancelled
+```
+
+Configure the separate Faculty Assistant Netlify site with the same
+`FACULTY_ASSISTANT_PAYMENT_REPORT_SECRET` and:
+
+```text
+FACULTY_ASSISTANT_ODEL_PAYMENT_REPORT_URL=https://odel.ueab.ac.ke/api/faculty-assistant/integrations/payments
+```
+
+The report endpoint is read-only and server-to-server. Never reuse the PayNexus
+webhook secret or API key as the report secret.
 
 ## 4. Enable a Pilot Lecturer
 
@@ -108,6 +149,15 @@ activation.
 7. Open the same course in Grade Studio and approve read-only grade access.
 8. Synchronize students and grades, confirm Moodle assessment maxima are shown,
    and export the completed iCampus workbook.
+9. Submit one Professional monthly request with a test lecturer and confirm the
+   STK prompt and private checkout email contain the same Faculty Assistant
+   order reference and amount.
+10. Complete one payment, confirm only one entitlement extension occurs even if
+    the webhook is replayed, and confirm the activation email is sent.
+11. Confirm the ODeL licence page and the separate
+    `facultyassistant.org/admin` PayNexus report both show the completed payment.
+12. Test cancellation and a failed STK prompt; confirm neither activates a
+    licence and the hosted checkout link remains available.
 
 Local Moodle validation completed against lecturer `4`, course `4`, category
 `10`: Moodle imported one GIFT question and returned question ID `1`.

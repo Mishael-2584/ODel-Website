@@ -8,7 +8,10 @@ import { requireOdelSession } from '@/lib/server/odel-session'
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
 import { sendFacultyAssistantInvoice } from '@/lib/server/faculty-assistant-invoice'
 import { persistInvoiceDeliveryStatus } from '@/lib/server/faculty-assistant-invoice-status'
+import { startFacultyAssistantProfessionalPayment } from '@/lib/server/faculty-assistant-payment'
+import { normalizeKenyanPhone, payNexusConfigured } from '@/lib/server/paynexus'
 import {
+  facultyAssistantPriceKes,
   isFacultyAssistantBillingPeriod,
   type FacultyAssistantBillingPeriod,
   type FacultyAssistantPaidPlan,
@@ -36,6 +39,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_billing_period' }, { status: 400 })
   }
   const billingPeriod = requestedBillingPeriod as FacultyAssistantBillingPeriod
+  if (
+    paidPlan === 'professional'
+    && payNexusConfigured()
+    && !normalizeKenyanPhone(phone)
+  ) {
+    return NextResponse.json({ error: 'valid_mpesa_phone_required' }, { status: 400 })
+  }
 
   const moodleInstance = facultyAssistantMoodleInstance()
   const supabase = getSupabaseAdmin()
@@ -48,7 +58,17 @@ export async function POST(request: NextRequest) {
     .in('status', ['pending', 'contacted', 'paid'])
     .maybeSingle()
   if (existing) {
-    return NextResponse.json({ requestId: existing.id, status: existing.status, existing: true })
+    const { data: payment } = await supabase
+      .from('faculty_assistant_payment_orders')
+      .select('id, account_reference, amount_kes, status, checkout_url, stk_reference, failure_reason')
+      .eq('request_id', existing.id)
+      .maybeSingle()
+    return NextResponse.json({
+      requestId: existing.id,
+      status: existing.status,
+      existing: true,
+      payment: payment ? publicPayment(payment) : null,
+    })
   }
 
   const { data, error } = await supabase
@@ -79,6 +99,45 @@ export async function POST(request: NextRequest) {
     details: { requestedPlan, billingPeriod, source },
     ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
   })
+  let payment: Awaited<ReturnType<typeof startFacultyAssistantProfessionalPayment>> = null
+  if (paidPlan === 'professional') {
+    try {
+      payment = await startFacultyAssistantProfessionalPayment({
+        supabase,
+        requestId: String(data.id),
+        amountKes: facultyAssistantPriceKes(paidPlan, billingPeriod),
+        phone,
+        billingPeriod: billingPeriod as 'monthly' | 'annual',
+      })
+      await writeFacultyAssistantAudit('licence.payment.started', 'success', {
+        moodleUserId: session.moodleUserId,
+        moodleInstance,
+        resourceType: 'payment_order',
+        resourceId: payment?.orderId,
+        details: {
+          requestId: data.id,
+          provider: payment ? 'paynexus' : 'manual',
+          amountKes: facultyAssistantPriceKes(paidPlan, billingPeriod),
+          stkStatus: payment?.stkStatus || 'not_configured',
+          checkoutCreated: Boolean(payment?.checkoutUrl),
+        },
+      })
+    } catch (paymentError) {
+      const failure = paymentError instanceof Error ? paymentError.message : 'Unknown payment error'
+      console.error('Faculty Assistant PayNexus initiation failed:', paymentError)
+      await writeFacultyAssistantAudit('licence.payment.started', 'failed', {
+        moodleUserId: session.moodleUserId,
+        moodleInstance,
+        resourceType: 'upgrade_request',
+        resourceId: String(data.id),
+        details: {
+          requestId: data.id,
+          provider: 'paynexus',
+          error: failure.slice(0, 500),
+        },
+      })
+    }
+  }
   let invoiceStatus: 'sent' | 'failed' = 'sent'
   let invoicePersistence: 'persisted' | 'failed' = 'persisted'
   try {
@@ -88,6 +147,8 @@ export async function POST(request: NextRequest) {
       displayName: session.studentName,
       requestedPlan: paidPlan,
       billingPeriod,
+      paymentUrl: payment?.checkoutUrl,
+      stkInitiated: payment?.stkStatus === 'initiated',
     })
     const persistence = await persistInvoiceDeliveryStatus(supabase, String(data.id), 'sent')
     if (!persistence.persisted) {
@@ -163,5 +224,18 @@ export async function POST(request: NextRequest) {
     status: data.status,
     invoiceStatus,
     invoicePersistence,
+    payment,
   }, { status: 201 })
+}
+
+function publicPayment(payment: Record<string, unknown>) {
+  return {
+    orderId: String(payment.id || ''),
+    accountReference: String(payment.account_reference || ''),
+    amountKes: Number(payment.amount_kes || 0),
+    status: String(payment.status || ''),
+    checkoutUrl: String(payment.checkout_url || ''),
+    stkStatus: payment.stk_reference ? 'initiated' : 'not_initiated',
+    error: String(payment.failure_reason || ''),
+  }
 }
