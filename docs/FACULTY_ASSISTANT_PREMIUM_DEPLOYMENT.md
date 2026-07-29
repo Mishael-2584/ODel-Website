@@ -11,23 +11,30 @@ public plans page or returned to browser JavaScript:
 
 ```bash
 PAYNEXUS_SECRET_KEY="<production sk_ key>"
-PAYNEXUS_PUBLIC_KEY="<production pk_ key>"
 PAYNEXUS_WEBHOOK_SECRET="<webhook signing secret>"
 PAYNEXUS_BASE_URL="https://paynexus.co.ke"
 FACULTY_ASSISTANT_PAYMENT_RETURN_ORIGIN="https://facultyassistant.org"
 FACULTY_ASSISTANT_PAYMENT_REPORT_SECRET="<shared random secret, at least 32 characters>"
-FACULTY_ASSISTANT_MPESA_PHONE="<private M-Pesa number>"
-FACULTY_ASSISTANT_MPESA_RECIPIENT="<verified recipient name>"
 FACULTY_ASSISTANT_EMAIL_FROM_NAME="Faculty Assistant"
 FACULTY_ASSISTANT_EMAIL_FROM="support@facultyassistant.org"
 FACULTY_ASSISTANT_SUPPORT_EMAIL="support@facultyassistant.org"
 ```
 
-The M-Pesa phone and recipient remain a manual fallback when PayNexus checkout
-is unavailable. Professional monthly and annual payments activate only after a
-signed PayNexus `payment.completed` webhook passes amount, currency and
-idempotency checks. Institution requests remain agreement-led and require
-manual Licence Desk activation.
+`PAYNEXUS_PUBLIC_KEY` is not required by the current server-side payment flow.
+The API secret creates payment requests, while the separate webhook secret
+verifies PayNexus callbacks. The report secret is an internal Faculty Assistant
+server-to-server credential and must not reuse either PayNexus secret.
+
+Professional monthly and annual payments activate only after a signed PayNexus
+`payment.completed` webhook passes amount, currency and idempotency checks.
+No personal M-Pesa number is required when PayNexus is the exclusive payment
+channel. The legacy `FACULTY_ASSISTANT_MPESA_PHONE` and
+`FACULTY_ASSISTANT_MPESA_RECIPIENT` variables may be configured only if an
+approved manual fallback is deliberately required.
+
+Institution requests remain agreement-led, do not expose personal M-Pesa
+details, and require manual Licence Desk activation after the institution's
+approved invoice, paybill or bank-settlement process.
 
 The support address is also used as the reply-to address for Faculty Assistant
 licence emails. General product and institution enquiries use
