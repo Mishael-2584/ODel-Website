@@ -57,12 +57,19 @@ export async function PATCH(
         isFacultyAssistantBillingPeriod(invoicePlan, storedBillingPeriod)
           ? storedBillingPeriod
           : 'annual'
+      const { data: paymentOrder } = await supabase
+        .from('faculty_assistant_payment_orders')
+        .select('checkout_url, stk_reference')
+        .eq('request_id', upgradeRequest.id)
+        .maybeSingle()
       const delivery = await sendFacultyAssistantInvoice({
         requestId: String(upgradeRequest.id),
         email: invoiceEmail,
         displayName: String(upgradeRequest.display_name || ''),
         requestedPlan: invoicePlan,
         billingPeriod: invoiceBillingPeriod,
+        paymentUrl: String(paymentOrder?.checkout_url || ''),
+        stkInitiated: Boolean(paymentOrder?.stk_reference),
       })
       const persistence = await persistInvoiceDeliveryStatus(
         supabase,
