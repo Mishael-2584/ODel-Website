@@ -94,9 +94,6 @@ function professionalInvoice(request: InvoiceRequest) {
     : facultyAssistantPricing.professional.monthlyKes
   const period = annual ? '12 months' : '1 month'
   const paymentUrl = safePaymentUrl(request.paymentUrl)
-  if (!paymentUrl && (!paymentPhone || !paymentRecipient)) {
-    throw new Error('Faculty Assistant payment details are not configured')
-  }
   const paymentBlock = paymentUrl
     ? `
       <div class="payment">
@@ -105,7 +102,9 @@ function professionalInvoice(request: InvoiceRequest) {
         <p style="margin-top:16px"><a class="pay" href="${escapeHtml(paymentUrl)}">Open secure M-Pesa checkout</a></p>
       </div>
     `
-    : manualPaymentBlock()
+    : paymentPhone && paymentRecipient
+      ? manualPaymentBlock()
+      : unavailablePaymentBlock()
   return {
     subject: `Faculty Assistant Professional invoice ${shortReference(request.requestId)}`,
     html: emailShell(`
@@ -129,6 +128,15 @@ function professionalInvoice(request: InvoiceRequest) {
         <p><strong>M-Pesa payment number:</strong> ${escapeHtml(paymentPhone || '')}</p>
         <p><strong>Recipient:</strong> ${escapeHtml(paymentRecipient || '')}</p>
         <p>Manual payments require Licence Desk confirmation before activation.</p>
+      </div>
+    `
+  }
+
+  function unavailablePaymentBlock() {
+    return `
+      <div class="payment">
+        <p><strong>The secure payment prompt is temporarily unavailable.</strong></p>
+        <p>Your request is safely recorded. The Licence Desk will resend the private PayNexus checkout when the gateway is available; no payment is due through a personal number.</p>
       </div>
     `
   }
