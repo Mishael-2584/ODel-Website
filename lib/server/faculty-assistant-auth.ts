@@ -277,7 +277,7 @@ export function requestedScopes(value: string | null) {
         scope as (typeof allowedFacultyAssistantScopes)[number],
       ),
     )
-  return requested.length ? Array.from(new Set(requested)) : ['profile:read', 'courses:read']
+  return requested.length ? Array.from(new Set(requested)) : ['profile:read']
 }
 
 export async function writeFacultyAssistantAudit(
