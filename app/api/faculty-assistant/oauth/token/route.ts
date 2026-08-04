@@ -3,6 +3,7 @@ import {
   facultyAssistantClientId,
   facultyAssistantRedirectUri,
   getActiveEntitlement,
+  grantedFacultyAssistantScopes,
   hashToken,
   issueAccessToken,
   randomToken,
@@ -117,7 +118,10 @@ async function exchangeRefreshToken(body: Record<string, unknown>) {
     moodleInstance: String(current.moodle_instance),
     email: String(current.email),
     name: String(current.display_name || ''),
-    scopes: current.scopes.map(String),
+    scopes: grantedFacultyAssistantScopes(
+      current.scopes.map(String),
+      entitlement.features,
+    ),
     plan: String(entitlement.plan),
     entitlementId: String(entitlement.id),
   }

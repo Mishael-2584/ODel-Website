@@ -134,7 +134,61 @@ export async function provisionInstitutionEntitlement(options: {
     }, { onConflict: 'moodle_instance,moodle_user_id' })
     .select('id, plan, features, expires_at, is_active')
     .single()
-  return error ? null : data
+  return error || !data
+    ? null
+    : { ...data, institution_licence_id: agreement.id }
+}
+
+export async function provisionEssentialEntitlement(options: {
+  moodleUserId: number
+  moodleInstance: string
+  email: string
+}) {
+  if (normalizedEmailDomain(options.email) !== 'ueab.ac.ke') return null
+  const supabase = getSupabaseAdmin()
+  const { data: existing, error: existingError } = await supabase
+    .from('faculty_assistant_entitlements')
+    .select('id, plan, features, expires_at, is_active')
+    .eq('moodle_user_id', options.moodleUserId)
+    .eq('moodle_instance', options.moodleInstance)
+    .maybeSingle()
+  if (existingError || existing?.is_active === false) return null
+  if (existing && !hasExpired(existing.expires_at)) {
+    return { ...existing, institution_licence_id: null }
+  }
+
+  const { data, error } = await supabase
+    .from('faculty_assistant_entitlements')
+    .upsert({
+      moodle_user_id: options.moodleUserId,
+      moodle_instance: options.moodleInstance,
+      email: options.email.trim().toLowerCase(),
+      plan: 'essential',
+      features: ['profile:read'],
+      is_active: true,
+      expires_at: null,
+      billing_period: null,
+      institution_licence_id: null,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'moodle_instance,moodle_user_id' })
+    .select('id, plan, features, expires_at, is_active')
+    .single()
+  return error || !data
+    ? null
+    : { ...data, institution_licence_id: null }
+}
+
+export function grantedFacultyAssistantScopes(
+  requested: readonly string[],
+  entitlementFeatures: readonly string[],
+) {
+  const features = new Set(entitlementFeatures.map(String))
+  return Array.from(new Set(requested.map(String))).filter(
+    (scope) =>
+      allowedFacultyAssistantScopes.includes(
+        scope as (typeof allowedFacultyAssistantScopes)[number],
+      ) && features.has(scope),
+  )
 }
 
 export function normalizedEmailDomain(email: string) {
