@@ -39,24 +39,14 @@ export async function startFacultyAssistantProfessionalPayment(
     .eq('request_id', options.requestId)
     .maybeSingle()
   if (lookupError) throw new Error(`payment_order_lookup_failed:${lookupError.message}`)
-  if (existing) return paymentSummary(existing)
+  if (existing && !isRetryableFacultyAssistantPayment(existing.status, existing.updated_at)) {
+    return paymentSummary(existing)
+  }
 
   const accountReference = facultyAssistantPaymentReference(options.requestId)
-  const { data: order, error: insertError } = await options.supabase
-    .from('faculty_assistant_payment_orders')
-    .insert({
-      request_id: options.requestId,
-      account_reference: accountReference,
-      amount_kes: options.amountKes,
-      currency: 'KES',
-      phone,
-      status: 'created',
-    })
-    .select('*')
-    .single()
-  if (insertError || !order) {
-    throw new Error(`payment_order_create_failed:${insertError?.message || 'no_order'}`)
-  }
+  const order = existing
+    ? await resetPaymentOrder(options, existing.id, phone)
+    : await createPaymentOrder(options, accountReference, phone)
 
   const returnOrigin = facultyAssistantPaymentReturnOrigin()
   const description = `Faculty Assistant Professional ${options.billingPeriod} - ${accountReference}`
@@ -103,6 +93,66 @@ export async function startFacultyAssistantProfessionalPayment(
     throw new Error(`payment_order_update_failed:${updateError?.message || 'no_order'}`)
   }
   return paymentSummary(updated)
+}
+
+export function isRetryableFacultyAssistantPayment(status: unknown, updatedAt?: unknown) {
+  const normalizedStatus = String(status || '').toLowerCase()
+  if (['failed', 'cancelled', 'expired'].includes(normalizedStatus)) return true
+  if (normalizedStatus !== 'created') return false
+
+  const updatedTime = new Date(String(updatedAt || '')).getTime()
+  return Number.isFinite(updatedTime) && Date.now() - updatedTime >= 2 * 60 * 1000
+}
+
+async function createPaymentOrder(
+  options: StartPaymentOptions,
+  accountReference: string,
+  phone: string,
+) {
+  const { data, error } = await options.supabase
+    .from('faculty_assistant_payment_orders')
+    .insert({
+      request_id: options.requestId,
+      account_reference: accountReference,
+      amount_kes: options.amountKes,
+      currency: 'KES',
+      phone,
+      status: 'created',
+    })
+    .select('*')
+    .single()
+  if (error || !data) {
+    throw new Error(`payment_order_create_failed:${error?.message || 'no_order'}`)
+  }
+  return data
+}
+
+async function resetPaymentOrder(
+  options: StartPaymentOptions,
+  orderId: unknown,
+  phone: string,
+) {
+  const { data, error } = await options.supabase
+    .from('faculty_assistant_payment_orders')
+    .update({
+      amount_kes: options.amountKes,
+      phone,
+      status: 'created',
+      stk_reference: null,
+      stk_checkout_request_id: null,
+      checkout_session_id: null,
+      checkout_url: null,
+      last_provider_status: 'retrying',
+      failure_reason: '',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', orderId)
+    .select('*')
+    .single()
+  if (error || !data) {
+    throw new Error(`payment_order_retry_failed:${error?.message || 'no_order'}`)
+  }
+  return data
 }
 
 function paymentSummary(order: Record<string, unknown>): FacultyAssistantPaymentSummary {
