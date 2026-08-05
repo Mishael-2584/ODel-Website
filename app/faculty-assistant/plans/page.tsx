@@ -4,6 +4,7 @@ import { FaBuilding, FaCheck, FaGraduationCap, FaLaptop } from 'react-icons/fa'
 import { facultyAssistantContact } from '@/lib/faculty-assistant/contact'
 import { facultyAssistantPlanCards } from '@/lib/faculty-assistant/plans'
 import UpgradeRequestForm from './UpgradeRequestForm'
+import { FacultyAssistantBrand } from '@/components/faculty-assistant/FacultyAssistantBrand'
 
 export const metadata: Metadata = {
   title: 'Faculty Assistant Plans',
@@ -25,7 +26,7 @@ export default function FacultyAssistantPlansPage({
     <main className="min-h-screen bg-[radial-gradient(circle_at_18%_0%,rgba(212,155,36,0.2),transparent_28rem),linear-gradient(180deg,#f7f3e8,#eef2ee)] px-5 py-12 text-slate-900">
       <div className="mx-auto max-w-6xl">
         <header className="max-w-3xl">
-          <span className="text-sm font-bold text-[#0b3866]">Faculty Assistant</span>
+          <FacultyAssistantBrand className="h-auto w-56" priority />
           <p className="mt-10 text-xs font-bold uppercase tracking-[0.24em] text-amber-700">Faculty Assistant licensing</p>
           <h1 className="mt-4 text-4xl font-bold leading-tight text-[#09264a] md:text-6xl">Give every lecturer the useful tools. Charge for the hours automation gives back.</h1>
           <p className="mt-5 text-lg leading-8 text-slate-600">Essential stays genuinely useful for free. Professional removes the repetitive Moodle, assessment and grading work. Institution covers every faculty member under one supported agreement.</p>

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, ArrowLeft, Building2, Save, ShieldCheck, UserPlus, UsersRound } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { FacultyAssistantBrand } from '@/components/faculty-assistant/FacultyAssistantBrand'
 
 type Institution = {
   id: string
@@ -129,16 +130,19 @@ export default function ModerationAdministrationPage() {
   }
 
   if (!data) {
-    return <main className="flex min-h-screen items-center justify-center bg-[#f3efe5] text-[#123a55]">Loading institution controls...</main>
+    return <main className="flex min-h-screen items-center justify-center bg-[#f3efe5] text-[#09264a]">Loading institution controls...</main>
   }
 
   return (
     <main className="min-h-screen bg-[#f3efe5] text-[#10233c]">
-      <header className="bg-[#123a55] px-5 py-6 text-white">
+      <header className="bg-[#061a33] px-5 py-6 text-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[.2em] text-[#f5c85b]">Faculty Assistant administration</p>
-            <h1 className="mt-1 font-serif text-3xl font-bold">Moderation controls</h1>
+          <div className="flex items-center gap-4">
+            <FacultyAssistantBrand variant="symbol" className="h-12 w-12 object-contain" />
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[.2em] text-[#f5c85b]">Faculty Assistant administration</p>
+              <h1 className="mt-1 font-serif text-3xl font-bold">Moderation controls</h1>
+            </div>
           </div>
           <Link className="flex items-center gap-2 rounded-xl border border-white/20 px-4 py-3 text-sm font-bold hover:bg-white/10" href="/faculty-assistant/admin">
             <ArrowLeft size={18} /> Licence Desk

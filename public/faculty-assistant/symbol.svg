@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="392" viewBox="0 0 420 392" role="img" aria-label="Faculty Assistant logo">
+<g>
+  <path fill="#F2C35D" d="M208 84 326 58c13-3 24 7 24 20v224c0 12-10 22-22 22H208z"/>
+  <path fill="#FFFDF8" stroke="#09264A" stroke-width="10" d="M246 127h116c10 0 18 8 18 18v184c0 10-8 18-18 18H246z"/>
+  <rect x="278" y="166" width="22" height="22" rx="4" fill="#1C7A5A"/>
+  <path d="M278 221h68M278 250h68M278 279h51" fill="none" stroke="#09264A" stroke-width="9" stroke-linecap="round"/>
+  <path fill="#09264A" d="M73 85 235 42c13-3 25 6 25 20v245c0 9-6 17-15 20l-121 38-51-25z"/>
+  <path fill="#F6F1E5" d="m117 138 91-23v42l-47 12v39l40-10v41l-40 10v76l-44 13z"/>
+  <path fill="#F6F1E5" stroke="#09264A" stroke-width="2" stroke-linejoin="round" fill-rule="evenodd" d="M178 350 225 184h39l57 166h-44l-11-39h-50l-11 39zm49-80h28l-15-54z"/>
+</g>
+</svg>
