@@ -17,11 +17,28 @@ const planIcons = {
   institution: FaBuilding,
 }
 
-export default function FacultyAssistantPlansPage({
+const releaseManifestUrl = 'https://raw.githubusercontent.com/Mishael-2584/faculty-assistant-downloads/main/latest.json'
+
+async function latestReleaseTag() {
+  try {
+    const response = await fetch(releaseManifestUrl, { next: { revalidate: 900 } })
+    if (!response.ok) return null
+
+    const manifest = await response.json() as { tagName?: unknown }
+    const tagName = typeof manifest.tagName === 'string' ? manifest.tagName.trim() : ''
+    return /^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(tagName) ? tagName : null
+  } catch {
+    return null
+  }
+}
+
+export default async function FacultyAssistantPlansPage({
   searchParams,
 }: {
   searchParams: { plan?: string }
 }) {
+  const releaseTag = await latestReleaseTag()
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_18%_0%,rgba(212,155,36,0.2),transparent_28rem),linear-gradient(180deg,#f7f3e8,#eef2ee)] px-5 py-12 text-slate-900">
       <div className="mx-auto max-w-6xl">
@@ -71,7 +88,7 @@ export default function FacultyAssistantPlansPage({
         <section id="download" className="mt-8 rounded-[1.5rem] border border-slate-200 bg-white/75 p-6 md:flex md:items-center md:justify-between md:gap-8">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Latest desktop beta</p>
-            <h2 className="mt-2 text-2xl font-bold text-[#09264a]">Faculty Assistant v0.19.0-beta.1 is available now.</h2>
+            <h2 className="mt-2 text-2xl font-bold text-[#09264a]">{releaseTag ? `Faculty Assistant ${releaseTag} is available now.` : 'The latest Faculty Assistant beta is available now.'}</h2>
             <p className="mt-2 max-w-3xl text-slate-600">Download the approved Windows installer or a macOS and Linux candidate package from the official Faculty Assistant release page. Every package includes a published SHA-256 checksum.</p>
             <p className="mt-3 text-sm font-semibold text-amber-800">AI Assistant, Course Outline Designer and automatic updates are not included in this beta.</p>
           </div>
