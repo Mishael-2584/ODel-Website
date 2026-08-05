@@ -6,9 +6,9 @@ import {
   FaCheckCircle,
   FaExclamationTriangle,
   FaExternalLinkAlt,
-  FaLaptop,
   FaLock,
 } from 'react-icons/fa'
+import { FacultyAssistantBrand } from '@/components/faculty-assistant/FacultyAssistantBrand'
 
 type CompletionState = 'opening' | 'approved' | 'error' | 'invalid'
 
@@ -66,10 +66,7 @@ export default function FacultyAssistantCompletePage() {
         <section className="grid w-full overflow-hidden rounded-[2rem] border border-white/15 bg-white/95 text-slate-900 shadow-2xl lg:grid-cols-[0.9fr_1.1fr]">
           <div className="flex flex-col justify-between bg-[#0b294f] p-9 text-white lg:p-12">
             <div>
-              <div className="mb-9 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#d49b24] text-[#09264a]">
-                <FaLaptop className="text-2xl" />
-              </div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-amber-300">Faculty Assistant</p>
+              <FacultyAssistantBrand variant="dark" className="mb-9 h-auto w-56" priority />
               <h1 className="mt-4 text-4xl font-bold leading-tight">Your lecturer workspace is ready.</h1>
               <p className="mt-5 max-w-md leading-7 text-blue-100">
                 UEAB ODeL completed the secure handoff. Your Moodle password was never shared with the desktop application.

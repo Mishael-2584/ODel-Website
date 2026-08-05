@@ -30,6 +30,7 @@ import {
   isFacultyAssistantBillingPeriod,
   type FacultyAssistantBillingPeriod,
 } from '@/lib/faculty-assistant/plans'
+import { FacultyAssistantBrand } from '@/components/faculty-assistant/FacultyAssistantBrand'
 
 type DeskTab = 'overview' | 'requests' | 'licences' | 'institutions' | 'activity' | 'audit'
 
@@ -276,7 +277,7 @@ export default function FacultyAssistantAdminPage() {
 
   if (loading && !data) {
     return (
-      <main className="grid min-h-screen place-items-center bg-[#f3efe3] text-[#12352d]">
+      <main className="grid min-h-screen place-items-center bg-[#f3efe3] text-[#09264a]">
         <div className="text-center"><LoaderCircle className="mx-auto animate-spin" /><p className="mt-3 text-sm font-bold">Opening the Licence Desk...</p></div>
       </main>
     )
@@ -289,11 +290,11 @@ export default function FacultyAssistantAdminPage() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_82%_0%,rgba(219,164,58,.19),transparent_30rem),linear-gradient(180deg,#f7f3e8,#eef2ec)] text-[#172822]">
-      <header className="border-b border-[#d8d0bd] bg-[#12352d] text-white">
+      <header className="border-b border-[#d8d0bd] bg-[#061a33] text-white">
         <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-6 px-5 py-5 lg:px-8">
           <div className="flex items-center gap-4">
-            <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#e4ad3c] text-[#12352d]"><ShieldCheck /></div>
-            <div><p className="text-[10px] font-black uppercase tracking-[.22em] text-[#f1ca76]">Faculty Assistant</p><h1 className="font-serif text-2xl font-bold">Licence Desk</h1></div>
+            <FacultyAssistantBrand variant="symbol" className="h-11 w-12 object-contain" />
+            <div><p className="text-[10px] font-black uppercase tracking-[.22em] text-[#f1ca76]">Faculty Assistant operations</p><h1 className="font-serif text-2xl font-bold">Licence Desk</h1></div>
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden text-right sm:block"><strong className="block text-sm">{data?.admin.name}</strong><span className="text-xs text-white/60">{data?.admin.email}</span></div>

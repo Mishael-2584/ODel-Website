@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   XCircle,
 } from 'lucide-react'
+import { FacultyAssistantBrand } from '@/components/faculty-assistant/FacultyAssistantBrand'
 
 type Submission = {
   id: string
@@ -262,13 +263,10 @@ export default function FacultyAssistantModerationDesk() {
     return (
       <main className="min-h-screen bg-[#0c2d46] px-5 py-12 text-[#10233c]">
         <div className="mx-auto grid min-h-[78vh] max-w-5xl overflow-hidden rounded-[2rem] bg-[#f7f3e9] shadow-2xl lg:grid-cols-[1.05fr_.95fr]">
-          <section className="relative overflow-hidden bg-[#123a55] p-9 text-white md:p-14">
+          <section className="relative overflow-hidden bg-[#061a33] p-9 text-white md:p-14">
             <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#e9ae22]/20" />
             <div className="relative">
-              <div className="mb-16 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e9ae22] text-[#102b43]">
-                <BookOpenCheck size={28} />
-              </div>
-              <p className="text-xs font-bold uppercase tracking-[.25em] text-[#f5c85b]">Faculty Assistant</p>
+              <FacultyAssistantBrand variant="dark" className="mb-16 h-auto w-60" priority />
               <h1 className="mt-4 max-w-lg font-serif text-5xl font-bold leading-[.98]">Grade moderation, with a defensible trail.</h1>
               <p className="mt-6 max-w-md leading-7 text-slate-200">
                 Review the exact frozen version submitted by a lecturer, return corrections, or issue the approval receipt used for final export.
@@ -363,14 +361,12 @@ export default function FacultyAssistantModerationDesk() {
 
   return (
     <main className="min-h-screen bg-[#f3efe5] text-[#10233c]">
-      <header className="border-b border-white/10 bg-[#123a55] px-5 py-5 text-white">
+      <header className="border-b border-white/10 bg-[#061a33] px-5 py-5 text-white">
         <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#e9ae22] text-[#102b43]">
-              <BookOpenCheck size={23} />
-            </div>
+            <FacultyAssistantBrand variant="symbol" className="h-11 w-12 object-contain" />
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#f5c85b]">Faculty Assistant</p>
+              <p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#f5c85b]">Faculty Assistant workspace</p>
               <h1 className="font-serif text-2xl font-bold">Moderation Desk</h1>
             </div>
           </div>
