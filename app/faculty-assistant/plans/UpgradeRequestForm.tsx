@@ -57,7 +57,7 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
       setPayment(result.payment || null)
       setState('success')
       setMessage(
-        result.existing
+        result.existing && !result.resumed
           ? result.payment
             ? professionalPaymentMessage(result.payment)
             : 'Your upgrade request is already in our queue. Check the institutional email used for your request or wait for the Faculty Assistant team to contact you.'

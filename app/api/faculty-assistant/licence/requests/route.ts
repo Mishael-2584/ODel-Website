@@ -8,7 +8,10 @@ import { requireOdelSession } from '@/lib/server/odel-session'
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
 import { sendFacultyAssistantInvoice } from '@/lib/server/faculty-assistant-invoice'
 import { persistInvoiceDeliveryStatus } from '@/lib/server/faculty-assistant-invoice-status'
-import { startFacultyAssistantProfessionalPayment } from '@/lib/server/faculty-assistant-payment'
+import {
+  isRetryableFacultyAssistantPayment,
+  startFacultyAssistantProfessionalPayment,
+} from '@/lib/server/faculty-assistant-payment'
 import { normalizeKenyanPhone, payNexusConfigured } from '@/lib/server/paynexus'
 import {
   facultyAssistantPriceKes,
@@ -49,7 +52,7 @@ export async function POST(request: NextRequest) {
 
   const moodleInstance = facultyAssistantMoodleInstance()
   const supabase = getSupabaseAdmin()
-  const { data: existing } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from('faculty_assistant_upgrade_requests')
     .select('id, status')
     .eq('moodle_instance', moodleInstance)
@@ -57,46 +60,90 @@ export async function POST(request: NextRequest) {
     .eq('requested_plan', requestedPlan)
     .in('status', ['pending', 'contacted', 'paid'])
     .maybeSingle()
-  if (existing) {
-    const { data: payment } = await supabase
-      .from('faculty_assistant_payment_orders')
-      .select('id, account_reference, amount_kes, status, checkout_url, stk_reference, failure_reason')
-      .eq('request_id', existing.id)
-      .maybeSingle()
-    return NextResponse.json({
-      requestId: existing.id,
-      status: existing.status,
-      existing: true,
-      payment: payment ? publicPayment(payment) : null,
-    })
+  if (existingError) {
+    console.error('Faculty Assistant existing upgrade lookup failed:', existingError)
+    return NextResponse.json({ error: 'request_lookup_failed' }, { status: 500 })
   }
 
-  const { data, error } = await supabase
-    .from('faculty_assistant_upgrade_requests')
-    .insert({
-      moodle_instance: moodleInstance,
-      moodle_user_id: session.moodleUserId,
+  let resumedExisting = false
+  let requestRecord: { id: string; status: string }
+  if (existing) {
+    const { data: existingPayment, error: paymentLookupError } = await supabase
+      .from('faculty_assistant_payment_orders')
+      .select('id, account_reference, amount_kes, status, checkout_url, stk_reference, failure_reason, updated_at')
+      .eq('request_id', existing.id)
+      .maybeSingle()
+    if (paymentLookupError) {
+      console.error('Faculty Assistant existing payment lookup failed:', paymentLookupError)
+      return NextResponse.json({ error: 'payment_lookup_failed' }, { status: 500 })
+    }
+
+    const canResumePayment = paidPlan === 'professional' && (
+      !existingPayment || isRetryableFacultyAssistantPayment(
+        existingPayment.status,
+        existingPayment.updated_at,
+      )
+    )
+    if (!canResumePayment) {
+      return NextResponse.json({
+        requestId: existing.id,
+        status: existing.status,
+        existing: true,
+        resumed: false,
+        payment: existingPayment ? publicPayment(existingPayment) : null,
+      })
+    }
+
+    const requestUpdates: Record<string, unknown> = {
       email: session.email,
       display_name: session.studentName,
-      requested_plan: requestedPlan,
       phone,
-      notes,
       source,
       billing_period: billingPeriod,
-    })
-    .select('id, status')
-    .single()
-  if (error || !data) {
-    console.error('Faculty Assistant upgrade request failed:', error)
-    return NextResponse.json({ error: 'request_failed' }, { status: 500 })
+      updated_at: new Date().toISOString(),
+    }
+    if (notes) requestUpdates.notes = notes
+    const { data: resumed, error: resumeError } = await supabase
+      .from('faculty_assistant_upgrade_requests')
+      .update(requestUpdates)
+      .eq('id', existing.id)
+      .select('id, status')
+      .single()
+    if (resumeError || !resumed) {
+      console.error('Faculty Assistant upgrade resume failed:', resumeError)
+      return NextResponse.json({ error: 'request_resume_failed' }, { status: 500 })
+    }
+    resumedExisting = true
+    requestRecord = resumed
+  } else {
+    const { data: created, error: createError } = await supabase
+      .from('faculty_assistant_upgrade_requests')
+      .insert({
+        moodle_instance: moodleInstance,
+        moodle_user_id: session.moodleUserId,
+        email: session.email,
+        display_name: session.studentName,
+        requested_plan: requestedPlan,
+        phone,
+        notes,
+        source,
+        billing_period: billingPeriod,
+      })
+      .select('id, status')
+      .single()
+    if (createError || !created) {
+      console.error('Faculty Assistant upgrade request failed:', createError)
+      return NextResponse.json({ error: 'request_failed' }, { status: 500 })
+    }
+    requestRecord = created
   }
 
   await writeFacultyAssistantAudit('licence.upgrade.request', 'success', {
     moodleUserId: session.moodleUserId,
     moodleInstance,
     resourceType: 'upgrade_request',
-    resourceId: String(data.id),
-    details: { requestedPlan, billingPeriod, source },
+    resourceId: String(requestRecord.id),
+    details: { requestedPlan, billingPeriod, source, resumedExisting },
     ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
   })
   let payment: Awaited<ReturnType<typeof startFacultyAssistantProfessionalPayment>> = null
@@ -104,7 +151,7 @@ export async function POST(request: NextRequest) {
     try {
       payment = await startFacultyAssistantProfessionalPayment({
         supabase,
-        requestId: String(data.id),
+        requestId: String(requestRecord.id),
         amountKes: facultyAssistantPriceKes(paidPlan, billingPeriod),
         phone,
         billingPeriod: billingPeriod as 'monthly' | 'annual',
@@ -115,7 +162,7 @@ export async function POST(request: NextRequest) {
         resourceType: 'payment_order',
         resourceId: payment?.orderId,
         details: {
-          requestId: data.id,
+          requestId: requestRecord.id,
           provider: payment ? 'paynexus' : 'manual',
           amountKes: facultyAssistantPriceKes(paidPlan, billingPeriod),
           stkStatus: payment?.stkStatus || 'not_configured',
@@ -129,9 +176,9 @@ export async function POST(request: NextRequest) {
         moodleUserId: session.moodleUserId,
         moodleInstance,
         resourceType: 'upgrade_request',
-        resourceId: String(data.id),
+        resourceId: String(requestRecord.id),
         details: {
-          requestId: data.id,
+          requestId: requestRecord.id,
           provider: 'paynexus',
           error: failure.slice(0, 500),
         },
@@ -142,7 +189,7 @@ export async function POST(request: NextRequest) {
   let invoicePersistence: 'persisted' | 'failed' = 'persisted'
   try {
     const delivery = await sendFacultyAssistantInvoice({
-      requestId: String(data.id),
+      requestId: String(requestRecord.id),
       email: session.email,
       displayName: session.studentName,
       requestedPlan: paidPlan,
@@ -150,7 +197,7 @@ export async function POST(request: NextRequest) {
       paymentUrl: payment?.checkoutUrl,
       stkInitiated: payment?.stkStatus === 'initiated',
     })
-    const persistence = await persistInvoiceDeliveryStatus(supabase, String(data.id), 'sent')
+    const persistence = await persistInvoiceDeliveryStatus(supabase, String(requestRecord.id), 'sent')
     if (!persistence.persisted) {
       invoicePersistence = 'failed'
       console.error('Faculty Assistant invoice status update failed:', persistence.error)
@@ -158,7 +205,7 @@ export async function POST(request: NextRequest) {
         moodleUserId: session.moodleUserId,
         moodleInstance,
         resourceType: 'upgrade_request',
-        resourceId: String(data.id),
+        resourceId: String(requestRecord.id),
         details: {
           attemptedStatus: 'sent',
           requestedPlan,
@@ -171,7 +218,7 @@ export async function POST(request: NextRequest) {
       moodleUserId: session.moodleUserId,
       moodleInstance,
       resourceType: 'upgrade_request',
-      resourceId: String(data.id),
+      resourceId: String(requestRecord.id),
       details: {
         requestedPlan,
         billingPeriod,
@@ -185,7 +232,7 @@ export async function POST(request: NextRequest) {
     console.error('Faculty Assistant invoice email failed:', invoiceError)
     const persistence = await persistInvoiceDeliveryStatus(
       supabase,
-      String(data.id),
+      String(requestRecord.id),
       'failed',
       failure,
     )
@@ -196,7 +243,7 @@ export async function POST(request: NextRequest) {
         moodleUserId: session.moodleUserId,
         moodleInstance,
         resourceType: 'upgrade_request',
-        resourceId: String(data.id),
+        resourceId: String(requestRecord.id),
         details: {
           attemptedStatus: 'failed',
           requestedPlan,
@@ -210,7 +257,7 @@ export async function POST(request: NextRequest) {
       moodleUserId: session.moodleUserId,
       moodleInstance,
       resourceType: 'upgrade_request',
-      resourceId: String(data.id),
+      resourceId: String(requestRecord.id),
       details: {
         requestedPlan,
         billingPeriod,
@@ -220,12 +267,14 @@ export async function POST(request: NextRequest) {
     })
   }
   return NextResponse.json({
-    requestId: data.id,
-    status: data.status,
+    requestId: requestRecord.id,
+    status: requestRecord.status,
+    existing: resumedExisting,
+    resumed: resumedExisting,
     invoiceStatus,
     invoicePersistence,
     payment,
-  }, { status: 201 })
+  }, { status: resumedExisting ? 200 : 201 })
 }
 
 function publicPayment(payment: Record<string, unknown>) {
