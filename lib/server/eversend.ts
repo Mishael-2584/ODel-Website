@@ -41,7 +41,9 @@ export async function initiateEversendCollection(options: {
       amount: options.amount,
       country: 'KE',
       currency: 'KES',
-      customer: { email: options.email },
+      // Eversend documents customer as JSON but its collection validator accepts
+      // that JSON as a string rather than a nested request object.
+      customer: JSON.stringify({ email: options.email }),
       transactionRef: options.transactionRef.replace(/[^A-Za-z0-9]/g, '').slice(0, 40),
       ...(options.otp ? { otp: options.otp } : {}),
     }),
