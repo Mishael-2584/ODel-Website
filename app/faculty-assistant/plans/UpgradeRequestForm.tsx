@@ -23,6 +23,7 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
   const [verificationCode, setVerificationCode] = useState('')
   const [verificationBusy, setVerificationBusy] = useState(false)
   const [verificationMessage, setVerificationMessage] = useState('')
+  const [existingRequest, setExistingRequest] = useState(false)
   const [payment, setPayment] = useState<{
     status: string
     stkStatus: string
@@ -61,12 +62,13 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
       }
       setRequestId(String(result.requestId || ''))
       setPayment(result.payment || null)
+      setExistingRequest(Boolean(result.existing && !result.resumed))
       setState('success')
       setMessage(
         result.existing && !result.resumed
           ? result.payment
-            ? professionalPaymentMessage(result.payment)
-            : 'Your upgrade request is already in our queue. Check the institutional email used for your request or wait for the Faculty Assistant team to contact you.'
+            ? existingProfessionalRequestMessage(result.payment)
+            : `An active ${plan === 'institution' ? 'Institution' : 'Professional'} request already exists for this account. It remains in the Licence Desk queue; please do not submit another request.`
           : result.invoicePersistence === 'failed'
             ? result.invoiceStatus === 'sent'
               ? 'Your request is safely recorded and the email was sent, but its Licence Desk tracking record needs attention. The team has been notified; please do not submit a duplicate request.'
@@ -155,11 +157,15 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
 
   if (state === 'success') {
     const activated = payment?.status === 'completed'
+    const waitingOnExistingRequest = existingRequest && !activated
     return (
       <div className={`rounded-2xl border p-6 ${activated ? 'border-emerald-200 bg-emerald-50 text-emerald-950' : 'border-amber-200 bg-amber-50 text-amber-950'}`}>
         <FaCheckCircle className="text-3xl text-emerald-600" />
-        <h3 className="mt-4 text-xl font-bold">{activated ? 'Licence activated' : 'Complete your M-Pesa payment'}</h3>
+        <h3 className="mt-4 text-xl font-bold">{activated ? 'Licence activated' : waitingOnExistingRequest ? 'Upgrade request already active' : 'Complete your M-Pesa payment'}</h3>
         <p className="mt-2 leading-6">{message}</p>
+        {waitingOnExistingRequest && requestId && (
+          <p className="mt-3 text-sm">Request ID: <strong>{requestId}</strong></p>
+        )}
         {payment && (
           <div className="mt-5 rounded-xl border border-black/10 bg-white/70 p-4 text-sm">
             <div className="flex flex-wrap justify-between gap-2">
@@ -295,6 +301,25 @@ function professionalPaymentMessage(payment: {
     return `A private M-Pesa checkout link was emailed to you. Your licence activates automatically after ${paymentProviderLabel(payment)} confirms payment.`
   }
   return 'Automated payment could not be started. Your request is recorded, and the Licence Desk can assist without creating a duplicate request.'
+}
+
+function existingProfessionalRequestMessage(payment: {
+  status?: string
+  stkStatus?: string
+  checkoutUrl?: string
+  provider?: 'eversend' | 'paynexus'
+  otpRequired?: boolean
+}) {
+  if (payment.status === 'completed') {
+    return 'This request has already been paid. Refresh Faculty Assistant to load the activated licence, or contact support if access is not yet visible.'
+  }
+  if (payment.otpRequired) {
+    return 'An active Professional request is already waiting for phone verification. Enter the Eversend SMS code below to continue; a duplicate request was not created.'
+  }
+  if (payment.stkStatus === 'initiated' || payment.checkoutUrl) {
+    return 'An active Professional payment request already exists for this account. Complete the existing M-Pesa prompt or checkout, then use Check payment status below; a duplicate request was not created.'
+  }
+  return 'An active Professional request already exists for this account, but its automated payment is not currently available. The Licence Desk can close the stale request or assist with payment; a duplicate request was not created.'
 }
 
 function paymentProviderLabel(payment: { provider?: 'eversend' | 'paynexus' }) {

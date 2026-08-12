@@ -192,6 +192,17 @@ export default function FacultyAssistantAdminPage() {
     requestId: string,
     payload: Record<string, unknown>,
   ) {
+    if (payload.action === 'close') {
+      const reason = String(payload.adminNotes || '').trim()
+      if (!window.confirm(
+        'Close this open request and allow the lecturer to start a fresh upgrade? '
+        + 'The request and payment history will remain in the audit trail.',
+      )) return
+      payload = {
+        ...payload,
+        adminNotes: reason || 'Closed by the Licence Desk to allow a fresh upgrade request.',
+      }
+    }
     await mutate(`/api/faculty-assistant/admin/requests/${requestId}`, payload)
   }
 
@@ -256,6 +267,7 @@ export default function FacultyAssistantAdminPage() {
     if (!token) return
     setWorkingId(path)
     setError('')
+    setNotice('')
     try {
       const response = await fetch(path, {
         method: 'PATCH',
@@ -266,7 +278,16 @@ export default function FacultyAssistantAdminPage() {
         body: JSON.stringify(payload),
       })
       const result = await response.json().catch(() => ({}))
-      if (!response.ok) throw new Error(result.error || 'The licence action failed.')
+      if (!response.ok) {
+        const messages: Record<string, string> = {
+          request_cannot_be_closed: 'This request is paid, activated, or still pending at the payment provider. Reconcile its payment status before closing it.',
+          request_close_failed: 'The request could not be closed safely. No local request or payment state was changed.',
+        }
+        throw new Error(messages[result.error] || result.error || 'The licence action failed.')
+      }
+      if (result.closedForRetry) {
+        setNotice('The unpaid request was closed. Its audit history was retained, and the lecturer can now start a fresh upgrade request.')
+      }
       await load()
     } catch (mutationError) {
       setError(mutationError instanceof Error ? mutationError.message : 'The licence action failed.')
@@ -393,7 +414,7 @@ function RequestCard({ item, busy, onUpdate }: { item: UpgradeRequest; busy: boo
       <label className="grid gap-1 text-[10px] font-black uppercase tracking-[.08em] text-[#687169]">Payment reference<input value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} placeholder="M-Pesa, receipt or invoice" className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-sm font-medium normal-case tracking-normal" /></label>
       <label className="grid gap-1 text-[10px] font-black uppercase tracking-[.08em] text-[#687169]">{isInstitution ? 'Institution name' : 'Internal note'}<input value={isInstitution ? institutionName : adminNotes} onChange={(event) => isInstitution ? setInstitutionName(event.target.value) : setAdminNotes(event.target.value)} placeholder={isInstitution ? 'University or department' : 'Not visible to lecturer'} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-sm font-medium normal-case tracking-normal" /></label>
       {isInstitution && <label className="grid gap-1 text-[10px] font-black uppercase tracking-[.08em] text-[#687169]">Approved email domains<input value={institutionDomains} onChange={(event) => setInstitutionDomains(event.target.value)} placeholder="ueab.ac.ke, another.edu" className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-sm font-medium normal-case tracking-normal" /></label>}
-      <div className="flex flex-wrap items-end gap-2"><button disabled={busy} onClick={() => void onUpdate(item.id, { action: 'resend_invoice' })} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-xs font-bold">{isInstitution ? 'Resend acknowledgement' : 'Resend invoice'}</button><button disabled={busy} onClick={() => void onUpdate(item.id, { action: 'contacted', adminNotes })} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-xs font-bold">Contacted</button><button disabled={busy} onClick={() => void onUpdate(item.id, { action: 'declined', adminNotes })} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-700">Decline</button><button disabled={busy || !institutionReady} onClick={() => { if (window.confirm(`Activate ${humanPlan(item.requested_plan)} for ${item.email}?`)) void onUpdate(item.id, { action: 'activate', billingPeriod, paymentReference, adminNotes, institutionName, institutionDomains }) }} className="flex items-center gap-2 rounded-lg bg-[#12352d] px-4 py-2 text-xs font-black text-white">{busy ? <LoaderCircle className="animate-spin" size={14} /> : <CheckCircle2 size={14} />}Activate</button></div>
+      <div className="flex flex-wrap items-end gap-2"><button disabled={busy} onClick={() => void onUpdate(item.id, { action: 'resend_invoice' })} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-xs font-bold">{isInstitution ? 'Resend acknowledgement' : 'Resend invoice'}</button><button disabled={busy} onClick={() => void onUpdate(item.id, { action: 'contacted', adminNotes })} className="rounded-lg border border-[#d8d0bd] px-3 py-2 text-xs font-bold">Contacted</button><button disabled={busy} title="Keeps the audit history but allows a fresh request" onClick={() => void onUpdate(item.id, { action: 'close', adminNotes })} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-700">Close and allow new request</button><button disabled={busy || !institutionReady} onClick={() => { if (window.confirm(`Activate ${humanPlan(item.requested_plan)} for ${item.email}?`)) void onUpdate(item.id, { action: 'activate', billingPeriod, paymentReference, adminNotes, institutionName, institutionDomains }) }} className="flex items-center gap-2 rounded-lg bg-[#12352d] px-4 py-2 text-xs font-black text-white">{busy ? <LoaderCircle className="animate-spin" size={14} /> : <CheckCircle2 size={14} />}Activate</button></div>
     </div>}
   </article>
 }
