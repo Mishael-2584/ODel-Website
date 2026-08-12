@@ -60,7 +60,7 @@ export async function startFacultyAssistantProfessionalPayment(
 
   const generatedReference = facultyAssistantPaymentReference(options.requestId)
   const accountReference = provider === 'eversend'
-    ? generatedReference.replace(/[^A-Za-z0-9]/g, '')
+    ? eversendPaymentReference(generatedReference, Boolean(existing))
     : generatedReference
   const order = existing
     ? await resetPaymentOrder(options, existing.id, phone, provider, accountReference)
@@ -116,6 +116,11 @@ export async function startFacultyAssistantProfessionalPayment(
     throw new Error(`payment_order_update_failed:${updateError?.message || 'no_order'}`)
   }
   return paymentSummary(updated)
+}
+
+function eversendPaymentReference(reference: string, retry: boolean) {
+  const normalized = reference.replace(/[^A-Za-z0-9]/g, '').slice(0, 28)
+  return retry ? `${normalized}${Date.now().toString(36).toUpperCase()}`.slice(0, 40) : normalized
 }
 
 async function startEversendPayment(

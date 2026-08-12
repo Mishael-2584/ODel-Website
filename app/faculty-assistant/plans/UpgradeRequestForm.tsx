@@ -98,9 +98,39 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
       setPayment(result.payment || null)
       if (result.request?.status === 'activated' || result.payment?.status === 'completed') {
         setMessage('Payment confirmed. Your Professional licence is active. Open Faculty Assistant and refresh the licence.')
+      } else if (result.payment?.status === 'failed') {
+        setMessage('The last M-Pesa collection was not completed. You can safely send another prompt below without creating a new upgrade request.')
+      } else if (result.payment?.status === 'pending') {
+        setMessage('The M-Pesa request is processing. If you already paid, keep this page open or use Check payment status; you will not be charged again by checking.')
       }
     } catch {
       setMessage('Payment status could not be refreshed. We will keep checking while this page remains open.')
+    } finally {
+      setChecking(false)
+    }
+  }
+
+  async function retryPayment() {
+    if (checking) return
+    setChecking(true)
+    try {
+      const response = await fetch('/api/faculty-assistant/licence/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestedPlan: plan, billingPeriod, phone, notes, source: 'payment-retry' }),
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        setMessage('Another M-Pesa prompt could not be prepared. Please wait briefly and try again; your existing request remains safe.')
+        return
+      }
+      setRequestId(String(result.requestId || requestId))
+      setPayment(result.payment || null)
+      setVerificationCode('')
+      setVerificationMessage('')
+      setMessage(professionalPaymentMessage(result.payment || null))
+    } catch {
+      setMessage('The payment service could not be reached. Your existing request remains safe; reconnect and try again.')
     } finally {
       setChecking(false)
     }
@@ -128,6 +158,7 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
           verification_attempt_limit_reached: 'Too many unsuccessful attempts. Contact Faculty Assistant support.',
           verification_resend_limit_reached: 'The resend limit has been reached. Contact Faculty Assistant support.',
           verification_resend_too_soon: 'Please wait one minute before requesting another code.',
+          verification_provider_failed: 'Your code may have been accepted, but Eversend did not return a final collection result. Use Check payment status before trying another prompt.',
         }
         setVerificationMessage(messages[String(result.error || '')] || 'Verification could not be completed. Please try again.')
         return
@@ -138,7 +169,11 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
         setVerificationMessage('A new verification code was sent to your phone.')
       } else {
         setVerificationCode('')
-        setMessage('Phone verified. Eversend has started the M-Pesa payment prompt. Complete it once; your licence activates after the signed payment confirmation.')
+        setMessage(result.payment?.status === 'failed' || result.collectionFailed
+          ? 'Phone verification succeeded, but the M-Pesa collection was not completed. You can safely send another prompt below.'
+          : result.processing
+          ? 'Your phone verification was accepted and Eversend is still confirming the M-Pesa request. Do not enter the code again; use Check payment status.'
+          : 'Phone verified. Eversend has started the M-Pesa payment prompt. Complete it once; your licence activates after provider confirmation.')
       }
     } catch {
       setVerificationMessage('The verification service could not be reached. Please reconnect and try again.')
@@ -218,6 +253,11 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
         {!activated && payment && !payment.otpRequired && (
           <button type="button" disabled={checking} onClick={() => void refreshPayment()} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-amber-300 bg-white px-5 py-3 font-bold disabled:opacity-60">
             <FaSyncAlt className={checking ? 'animate-spin' : ''} /> {checking ? 'Checking...' : 'Check payment status'}
+          </button>
+        )}
+        {!activated && payment?.status === 'failed' && (
+          <button type="button" disabled={checking} onClick={() => void retryPayment()} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#d49b24] px-5 py-3 font-bold text-[#09264a] disabled:opacity-60">
+            <FaSyncAlt className={checking ? 'animate-spin' : ''} /> {checking ? 'Preparing...' : 'Send another M-Pesa prompt'}
           </button>
         )}
         {payment?.checkoutUrl && <p className="mt-3 text-xs opacity-75">Do not pay both the phone prompt and checkout link. They are two ways to complete the same licence order.</p>}

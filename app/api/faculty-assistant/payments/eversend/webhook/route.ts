@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendFacultyAssistantActivationEmail } from '@/lib/server/faculty-assistant-invoice'
-import { verifyEversendWebhook } from '@/lib/server/eversend'
+import { getEversendTransaction, verifyEversendWebhook } from '@/lib/server/eversend'
 import { getSupabaseAdmin } from '@/lib/server/supabase-admin'
 
 export const dynamic = 'force-dynamic'
@@ -31,22 +31,11 @@ export async function POST(request: NextRequest) {
     || ['failed', 'declined'].includes(String(data.status || '').toLowerCase())
   if (!successful && !failed) return NextResponse.json({ received: true, ignored: true })
 
-  const references = uniqueReferences(data)
-  if (!references.length) return NextResponse.json({ received: true, matched: false })
-  const filters = references.flatMap((reference) => [
-    `account_reference.eq.${reference}`,
-    `stk_reference.eq.${reference}`,
-    `completed_reference.eq.${reference}`,
-    `transaction_id.eq.${reference}`,
-    `provider_transaction_id.eq.${reference}`,
-  ])
+  const references = await resolvedReferences(data)
   const supabase = getSupabaseAdmin()
-  const { data: orders, error: lookupError } = await supabase
-    .from('faculty_assistant_payment_orders')
-    .select('*')
-    .eq('provider', 'eversend')
-    .or(filters.join(','))
-    .limit(2)
+  const { orders, error: lookupError } = references.length
+    ? await ordersByReference(supabase, references)
+    : { orders: [], error: null }
   if (lookupError) {
     console.error('Eversend payment order lookup failed:', lookupError)
     return NextResponse.json({ error: 'payment_lookup_failed' }, { status: 500 })
@@ -136,6 +125,26 @@ export async function POST(request: NextRequest) {
   }
 }
 
+async function ordersByReference(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  references: string[],
+) {
+  const filters = references.flatMap((reference) => [
+    `account_reference.eq.${reference}`,
+    `stk_reference.eq.${reference}`,
+    `completed_reference.eq.${reference}`,
+    `transaction_id.eq.${reference}`,
+    `provider_transaction_id.eq.${reference}`,
+  ])
+  const { data, error } = await supabase
+    .from('faculty_assistant_payment_orders')
+    .select('*')
+    .eq('provider', 'eversend')
+    .or(filters.join(','))
+    .limit(2)
+  return { orders: data || [], error }
+}
+
 function parsePayload(rawBody: string): Record<string, unknown> | null {
   try {
     const value = JSON.parse(rawBody)
@@ -154,6 +163,20 @@ function uniqueReferences(data: Record<string, unknown>) {
     data.transactionRef, data.transaction_ref, data.reference,
     data.transactionId, data.transaction_id, data.transactionReference,
   ].map(safeReference).filter(Boolean)))
+}
+
+async function resolvedReferences(data: Record<string, unknown>) {
+  const references = uniqueReferences(data)
+  for (const reference of [...references]) {
+    try {
+      const transaction = await getEversendTransaction(reference)
+      if (transaction.transactionRef) references.push(transaction.transactionRef)
+      if (transaction.transactionId) references.push(transaction.transactionId)
+    } catch {
+      // A webhook reference may already be the client reference; direct matching still applies.
+    }
+  }
+  return Array.from(new Set(references))
 }
 
 function safeReference(value: unknown) {

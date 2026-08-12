@@ -9,6 +9,17 @@ export type EversendCollection = {
   raw: Record<string, unknown>
 }
 
+export type EversendTransaction = {
+  transactionId: string
+  transactionRef: string
+  type: string
+  currency: string
+  amount: number
+  status: string
+  phone: string
+  raw: Record<string, unknown>
+}
+
 export class EversendApiError extends Error {
   constructor(
     message: string,
@@ -69,6 +80,30 @@ export async function requestEversendCollectionOtp(phone: string) {
   const pinId = firstValue(data, ['pinId', 'pin_id', 'id'])
   if (!pinId) throw new Error('eversend_otp_response_invalid')
   return { pinId }
+}
+
+export async function getEversendTransaction(reference: string) {
+  const transactionReference = reference.trim()
+  if (!/^[A-Za-z0-9_.:/-]{3,120}$/.test(transactionReference)) {
+    throw new Error('eversend_transaction_reference_invalid')
+  }
+  const payload = await eversendRequest(
+    `/v1/transactions/${encodeURIComponent(transactionReference)}`,
+    { method: 'GET' },
+  )
+  const body = objectPayload(payload)
+  const nested = objectPayload(body.data)
+  const data = Object.keys(nested).length ? nested : body
+  return {
+    transactionId: firstValue(data, ['transactionId', 'transaction_id', 'id']),
+    transactionRef: firstValue(data, ['transactionRef', 'transaction_ref']),
+    type: firstValue(data, ['type']).toLowerCase(),
+    currency: firstValue(data, ['currency']).toUpperCase(),
+    amount: Number(data.amount),
+    status: firstValue(data, ['status', 'state']).toLowerCase(),
+    phone: firstValue(data, ['phoneNumber', 'PhoneNumber', 'phone']).replace(/\D/g, ''),
+    raw: body,
+  } satisfies EversendTransaction
 }
 
 export function eversendOtpRequired(error: unknown) {
