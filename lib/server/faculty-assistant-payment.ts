@@ -6,7 +6,12 @@ import {
   normalizeKenyanPhone,
   payNexusConfigured,
 } from './paynexus'
-import { eversendConfigured, initiateEversendCollection } from './eversend'
+import {
+  eversendConfigured,
+  eversendOtpRequired,
+  initiateEversendCollection,
+  requestEversendCollectionOtp,
+} from './eversend'
 
 type StartPaymentOptions = {
   supabase: SupabaseClient
@@ -27,6 +32,8 @@ export type FacultyAssistantPaymentSummary = {
   checkoutSessionId: string
   error: string
   provider: 'eversend' | 'paynexus'
+  otpRequired: boolean
+  otpExpiresAt: string
 }
 
 export async function startFacultyAssistantProfessionalPayment(
@@ -43,7 +50,11 @@ export async function startFacultyAssistantProfessionalPayment(
     .eq('request_id', options.requestId)
     .maybeSingle()
   if (lookupError) throw new Error(`payment_order_lookup_failed:${lookupError.message}`)
-  if (existing && !isRetryableFacultyAssistantPayment(existing.status, existing.updated_at)) {
+  if (existing && !isRetryableFacultyAssistantPayment(
+    existing.status,
+    existing.updated_at,
+    existing.last_provider_status,
+  )) {
     return paymentSummary(existing)
   }
 
@@ -140,6 +151,31 @@ async function startEversendPayment(
     if (error || !data) throw new Error(`payment_order_update_failed:${error?.message || 'no_order'}`)
     return paymentSummary(data)
   } catch (error) {
+    if (eversendOtpRequired(error)) {
+      const otp = await requestEversendCollectionOtp(phone)
+      const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+      const { data, error: updateError } = await options.supabase
+        .from('faculty_assistant_payment_orders')
+        .update({
+          provider: 'eversend',
+          status: 'created',
+          last_provider_status: 'otp_required',
+          failure_reason: '',
+          otp_pin_id: otp.pinId,
+          otp_requested_at: new Date().toISOString(),
+          otp_expires_at: otpExpiresAt,
+          otp_send_count: 1,
+          otp_attempt_count: 0,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', order.id)
+        .select('*')
+        .single()
+      if (updateError || !data) {
+        throw new Error(`payment_order_otp_update_failed:${updateError?.message || 'no_order'}`)
+      }
+      return paymentSummary(data)
+    }
     const failure = errorMessage(error)
     const { data, error: updateError } = await options.supabase
       .from('faculty_assistant_payment_orders')
@@ -158,8 +194,13 @@ async function startEversendPayment(
   }
 }
 
-export function isRetryableFacultyAssistantPayment(status: unknown, updatedAt?: unknown) {
+export function isRetryableFacultyAssistantPayment(
+  status: unknown,
+  updatedAt?: unknown,
+  providerStatus?: unknown,
+) {
   const normalizedStatus = String(status || '').toLowerCase()
+  if (String(providerStatus || '').toLowerCase() === 'otp_required') return false
   if (['failed', 'cancelled', 'expired'].includes(normalizedStatus)) return true
   if (normalizedStatus !== 'created') return false
 
@@ -212,6 +253,11 @@ async function resetPaymentOrder(
       last_provider_status: 'retrying',
       failure_reason: '',
       provider,
+      otp_pin_id: null,
+      otp_requested_at: null,
+      otp_expires_at: null,
+      otp_send_count: 0,
+      otp_attempt_count: 0,
       account_reference: accountReference,
       updated_at: new Date().toISOString(),
     })
@@ -239,6 +285,8 @@ function paymentSummary(order: Record<string, unknown>): FacultyAssistantPayment
     checkoutSessionId: String(order.checkout_session_id || ''),
     error: String(order.failure_reason || ''),
     provider: String(order.provider || 'paynexus') === 'eversend' ? 'eversend' : 'paynexus',
+    otpRequired: String(order.last_provider_status || '') === 'otp_required',
+    otpExpiresAt: String(order.otp_expires_at || ''),
   }
 }
 

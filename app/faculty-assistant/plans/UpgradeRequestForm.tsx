@@ -20,6 +20,9 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
   const [message, setMessage] = useState('')
   const [requestId, setRequestId] = useState('')
   const [checking, setChecking] = useState(false)
+  const [verificationCode, setVerificationCode] = useState('')
+  const [verificationBusy, setVerificationBusy] = useState(false)
+  const [verificationMessage, setVerificationMessage] = useState('')
   const [payment, setPayment] = useState<{
     status: string
     stkStatus: string
@@ -28,6 +31,8 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
     amountKes: number
     activationEmailStatus?: string
     provider?: 'eversend' | 'paynexus'
+    otpRequired?: boolean
+    otpExpiresAt?: string
   } | null>(null)
 
   async function submit(event: FormEvent) {
@@ -99,8 +104,49 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
     }
   }
 
+  async function handleVerification(action: 'verify' | 'resend') {
+    if (!requestId || verificationBusy) return
+    setVerificationBusy(true)
+    setVerificationMessage('')
+    try {
+      const response = await fetch('/api/faculty-assistant/payments/eversend/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId,
+          action,
+          ...(action === 'verify' ? { pin: verificationCode } : {}),
+        }),
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        const messages: Record<string, string> = {
+          invalid_verification_code: 'That verification code was not accepted. Check the SMS and try again.',
+          verification_code_expired: 'That code has expired. Request a new code below.',
+          verification_attempt_limit_reached: 'Too many unsuccessful attempts. Contact Faculty Assistant support.',
+          verification_resend_limit_reached: 'The resend limit has been reached. Contact Faculty Assistant support.',
+          verification_resend_too_soon: 'Please wait one minute before requesting another code.',
+        }
+        setVerificationMessage(messages[String(result.error || '')] || 'Verification could not be completed. Please try again.')
+        return
+      }
+      setPayment(result.payment || null)
+      if (action === 'resend') {
+        setVerificationCode('')
+        setVerificationMessage('A new verification code was sent to your phone.')
+      } else {
+        setVerificationCode('')
+        setMessage('Phone verified. Eversend has started the M-Pesa payment prompt. Complete it once; your licence activates after the signed payment confirmation.')
+      }
+    } catch {
+      setVerificationMessage('The verification service could not be reached. Please reconnect and try again.')
+    } finally {
+      setVerificationBusy(false)
+    }
+  }
+
   useEffect(() => {
-    if (!requestId || !payment || !['created', 'pending'].includes(payment.status)) return
+    if (!requestId || !payment || payment.otpRequired || !['created', 'pending'].includes(payment.status)) return
     const timer = window.setInterval(() => void refreshPayment(), 5000)
     return () => window.clearInterval(timer)
   // Poll only while this specific order remains open.
@@ -123,12 +169,47 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
             <p className="mt-2">Status: <strong className="capitalize">{payment.status.replace(/_/g, ' ')}</strong></p>
           </div>
         )}
+        {!activated && payment?.otpRequired && (
+          <div className="mt-5 rounded-xl border border-amber-300 bg-white p-4">
+            <p className="font-bold">Verify this phone number</p>
+            <p className="mt-1 text-sm leading-6">Eversend sent a temporary code by SMS. Enter it here to continue to the M-Pesa prompt. Faculty Assistant support will never ask for this code.</p>
+            <label className="mt-4 block text-sm font-bold">
+              Verification code
+              <input
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]*"
+                maxLength={8}
+                value={verificationCode}
+                onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, '').slice(0, 8))}
+                className="mt-2 w-full rounded-xl border border-amber-300 px-4 py-3 text-lg font-bold tracking-[0.2em] outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-100"
+              />
+            </label>
+            {verificationMessage && <p className="mt-3 text-sm font-medium">{verificationMessage}</p>}
+            <button
+              type="button"
+              disabled={verificationBusy || verificationCode.length < 4}
+              onClick={() => void handleVerification('verify')}
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#d49b24] px-5 py-3 font-bold text-[#09264a] disabled:opacity-60"
+            >
+              {verificationBusy ? 'Verifying...' : 'Verify and send M-Pesa prompt'} <FaArrowRight />
+            </button>
+            <button
+              type="button"
+              disabled={verificationBusy}
+              onClick={() => void handleVerification('resend')}
+              className="mt-2 w-full px-4 py-2 text-sm font-bold underline disabled:opacity-60"
+            >
+              Send a new code
+            </button>
+          </div>
+        )}
         {!activated && payment?.checkoutUrl && (
           <a href={payment.checkoutUrl} target="_blank" rel="noreferrer" className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#d49b24] px-5 py-3 font-bold text-[#09264a] hover:bg-[#e0ad43]">
             Open secure M-Pesa checkout <FaArrowRight />
           </a>
         )}
-        {!activated && payment && (
+        {!activated && payment && !payment.otpRequired && (
           <button type="button" disabled={checking} onClick={() => void refreshPayment()} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-amber-300 bg-white px-5 py-3 font-bold disabled:opacity-60">
             <FaSyncAlt className={checking ? 'animate-spin' : ''} /> {checking ? 'Checking...' : 'Check payment status'}
           </button>
@@ -196,9 +277,13 @@ function professionalPaymentMessage(payment: {
   stkStatus?: string
   checkoutUrl?: string
   provider?: 'eversend' | 'paynexus'
+  otpRequired?: boolean
 } | null) {
   if (!payment) {
     return 'Your request is recorded. A private invoice with payment instructions was sent to your verified institutional email. Manual Licence Desk verification applies while automated checkout is unavailable.'
+  }
+  if (payment.otpRequired) {
+    return 'Eversend sent a phone-verification code. Enter it below to continue securely to the M-Pesa prompt.'
   }
   if (payment.stkStatus === 'initiated' && payment.checkoutUrl) {
     return `An M-Pesa prompt was sent to your phone, and a private backup checkout link was emailed to you. Your licence activates automatically after ${paymentProviderLabel(payment)} confirms payment.`

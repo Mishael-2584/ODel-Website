@@ -66,10 +66,14 @@ Then run these migrations in order:
 
 1. `supabase/migrations/20260812000100_faculty_assistant_course_builder.sql`
 2. `supabase/migrations/20260812000200_faculty_assistant_eversend_payments.sql`
+3. `supabase/migrations/20260812000300_faculty_assistant_eversend_otp.sql`
 
 The first adds `coursebuilder:write` to commercial entitlements. The second
 keeps historical PayNexus orders intact, allows Eversend orders, and adds the
-provider-aware transactional activation RPC.
+provider-aware transactional activation RPC. The third adds private OTP
+transaction metadata and bounded attempt counters for Eversend accounts that
+still require phone verification. The lecturer's verification PIN is never
+stored.
 
 The earlier commercial migration creates:
 
@@ -152,9 +156,9 @@ curl -4 https://api.ipify.org
 
 Ask Eversend to whitelist the business account for collections without the
 collection OTP API because ODeL already collects the authenticated lecturer's
-phone number. Until this is approved, Eversend may reject initiation with an
-OTP requirement; the upgrade request and email remain available for Licence
-Desk follow-up, but no licence is activated.
+phone number. When that exemption is not active, ODeL automatically uses
+Eversend's documented verification-code flow before sending the M-Pesa prompt.
+The no-OTP exemption remains preferable because it removes that extra step.
 
 Configure the separate Faculty Assistant Netlify site with the same
 `FACULTY_ASSISTANT_PAYMENT_REPORT_SECRET` and:

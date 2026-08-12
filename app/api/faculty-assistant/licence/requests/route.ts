@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
   if (existing) {
     const { data: existingPayment, error: paymentLookupError } = await supabase
       .from('faculty_assistant_payment_orders')
-      .select('id, provider, account_reference, amount_kes, status, checkout_url, stk_reference, failure_reason, updated_at')
+      .select('id, provider, account_reference, amount_kes, status, checkout_url, stk_reference, failure_reason, updated_at, last_provider_status, otp_expires_at')
       .eq('request_id', existing.id)
       .maybeSingle()
     if (paymentLookupError) {
@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
       !existingPayment || isRetryableFacultyAssistantPayment(
         existingPayment.status,
         existingPayment.updated_at,
+        existingPayment.last_provider_status,
       )
     )
     if (!canResumePayment) {
@@ -198,6 +199,7 @@ export async function POST(request: NextRequest) {
       billingPeriod,
       paymentUrl: payment?.checkoutUrl,
       stkInitiated: payment?.stkStatus === 'initiated',
+      otpRequired: payment?.otpRequired === true,
       paymentProvider: payment?.provider,
     })
     const persistence = await persistInvoiceDeliveryStatus(supabase, String(requestRecord.id), 'sent')
@@ -290,5 +292,7 @@ function publicPayment(payment: Record<string, unknown>) {
     checkoutUrl: String(payment.checkout_url || ''),
     stkStatus: payment.stk_reference || payment.status === 'pending' ? 'initiated' : 'not_initiated',
     error: String(payment.failure_reason || ''),
+    otpRequired: String(payment.last_provider_status || '') === 'otp_required',
+    otpExpiresAt: String(payment.otp_expires_at || ''),
   }
 }
