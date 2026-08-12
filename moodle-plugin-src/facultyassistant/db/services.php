@@ -53,6 +53,20 @@ $functions = [
         'ajax' => false,
         'capabilities' => 'local/facultyassistant:publishquestions',
     ],
+    'local_facultyassistant_get_course_builder' => [
+        'classname' => 'local_facultyassistant\external\get_course_builder',
+        'description' => 'Returns a revisioned UEAB Course Builder payload for a lecturer course.',
+        'type' => 'read',
+        'ajax' => false,
+        'capabilities' => 'local/facultyassistant:publishcoursebuilder',
+    ],
+    'local_facultyassistant_publish_course_builder' => [
+        'classname' => 'local_facultyassistant\external\publish_course_builder',
+        'description' => 'Publishes a reviewed UEAB Course Builder payload for a lecturer course.',
+        'type' => 'write',
+        'ajax' => false,
+        'capabilities' => 'local/facultyassistant:publishcoursebuilder',
+    ],
 ];
 
 $services = [
@@ -65,6 +79,8 @@ $services = [
             'local_facultyassistant_create_question_category',
             'local_facultyassistant_import_gift_questions',
             'local_facultyassistant_import_questions',
+            'local_facultyassistant_get_course_builder',
+            'local_facultyassistant_publish_course_builder',
         ],
         'restrictedusers' => 1,
         'enabled' => 0,

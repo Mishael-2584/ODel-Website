@@ -167,6 +167,68 @@ export async function importFacultyAssistantQuestions(options: {
   })
 }
 
+export async function getFacultyAssistantCourseBuilder(
+  userId: number,
+  courseId: number,
+) {
+  const result = await callMoodleConnector(
+    'local_facultyassistant_get_course_builder',
+    { userid: String(userId), courseid: String(courseId) },
+  )
+  if (!result || typeof result !== 'object' || !('payloadjson' in result)) {
+    throw new Error('Moodle returned an invalid Course Builder response')
+  }
+  const response = result as Record<string, unknown>
+  const payload = JSON.parse(String(response.payloadjson || '')) as unknown
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw new Error('Moodle returned an invalid Course Builder payload')
+  }
+  if (Number(response.courseid) !== courseId) {
+    throw new Error('Moodle Course Builder response did not match the requested course')
+  }
+  return {
+    courseId,
+    revision: Number(response.revision || 0),
+    source: String(response.source || ''),
+    contentHash: String(response.contenthash || ''),
+    payload,
+  }
+}
+
+export async function publishFacultyAssistantCourseBuilder(options: {
+  userId: number
+  courseId: number
+  expectedRevision: number
+  payload: Record<string, unknown>
+}) {
+  const payloadJson = JSON.stringify(options.payload)
+  if (Buffer.byteLength(payloadJson, 'utf8') > 5_000_000) {
+    throw new Error('Course Builder payload is too large')
+  }
+  const result = await callMoodleConnector(
+    'local_facultyassistant_publish_course_builder',
+    {
+      userid: String(options.userId),
+      courseid: String(options.courseId),
+      expectedrevision: String(options.expectedRevision),
+      payloadjson: payloadJson,
+    },
+  )
+  if (!result || typeof result !== 'object') {
+    throw new Error('Moodle returned an invalid Course Builder publish response')
+  }
+  const response = result as Record<string, unknown>
+  return {
+    success: response.success === true,
+    courseId: Number(response.courseid || options.courseId),
+    revision: Number(response.revision || 0),
+    contentHash: String(response.contenthash || ''),
+    url: String(response.url || ''),
+    code: String(response.code || ''),
+    message: String(response.message || ''),
+  }
+}
+
 async function callMoodleConnector(
   wsfunction: string,
   values: Record<string, string>,

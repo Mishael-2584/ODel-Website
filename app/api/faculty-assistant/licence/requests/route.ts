@@ -10,9 +10,10 @@ import { sendFacultyAssistantInvoice } from '@/lib/server/faculty-assistant-invo
 import { persistInvoiceDeliveryStatus } from '@/lib/server/faculty-assistant-invoice-status'
 import {
   isRetryableFacultyAssistantPayment,
+  facultyAssistantPaymentProvider,
   startFacultyAssistantProfessionalPayment,
 } from '@/lib/server/faculty-assistant-payment'
-import { normalizeKenyanPhone, payNexusConfigured } from '@/lib/server/paynexus'
+import { normalizeKenyanPhone } from '@/lib/server/paynexus'
 import {
   facultyAssistantPriceKes,
   isFacultyAssistantBillingPeriod,
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
   const billingPeriod = requestedBillingPeriod as FacultyAssistantBillingPeriod
   if (
     paidPlan === 'professional'
-    && payNexusConfigured()
+    && facultyAssistantPaymentProvider()
     && !normalizeKenyanPhone(phone)
   ) {
     return NextResponse.json({ error: 'valid_mpesa_phone_required' }, { status: 400 })
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
   if (existing) {
     const { data: existingPayment, error: paymentLookupError } = await supabase
       .from('faculty_assistant_payment_orders')
-      .select('id, account_reference, amount_kes, status, checkout_url, stk_reference, failure_reason, updated_at')
+      .select('id, provider, account_reference, amount_kes, status, checkout_url, stk_reference, failure_reason, updated_at')
       .eq('request_id', existing.id)
       .maybeSingle()
     if (paymentLookupError) {
@@ -155,6 +156,7 @@ export async function POST(request: NextRequest) {
         amountKes: facultyAssistantPriceKes(paidPlan, billingPeriod),
         phone,
         billingPeriod: billingPeriod as 'monthly' | 'annual',
+        email: session.email,
       })
       await writeFacultyAssistantAudit('licence.payment.started', 'success', {
         moodleUserId: session.moodleUserId,
@@ -163,7 +165,7 @@ export async function POST(request: NextRequest) {
         resourceId: payment?.orderId,
         details: {
           requestId: requestRecord.id,
-          provider: payment ? 'paynexus' : 'manual',
+          provider: payment?.provider || 'manual',
           amountKes: facultyAssistantPriceKes(paidPlan, billingPeriod),
           stkStatus: payment?.stkStatus || 'not_configured',
           checkoutCreated: Boolean(payment?.checkoutUrl),
@@ -171,7 +173,7 @@ export async function POST(request: NextRequest) {
       })
     } catch (paymentError) {
       const failure = paymentError instanceof Error ? paymentError.message : 'Unknown payment error'
-      console.error('Faculty Assistant PayNexus initiation failed:', paymentError)
+      console.error('Faculty Assistant payment initiation failed:', paymentError)
       await writeFacultyAssistantAudit('licence.payment.started', 'failed', {
         moodleUserId: session.moodleUserId,
         moodleInstance,
@@ -179,7 +181,7 @@ export async function POST(request: NextRequest) {
         resourceId: String(requestRecord.id),
         details: {
           requestId: requestRecord.id,
-          provider: 'paynexus',
+          provider: facultyAssistantPaymentProvider() || 'manual',
           error: failure.slice(0, 500),
         },
       })
@@ -196,6 +198,7 @@ export async function POST(request: NextRequest) {
       billingPeriod,
       paymentUrl: payment?.checkoutUrl,
       stkInitiated: payment?.stkStatus === 'initiated',
+      paymentProvider: payment?.provider,
     })
     const persistence = await persistInvoiceDeliveryStatus(supabase, String(requestRecord.id), 'sent')
     if (!persistence.persisted) {
@@ -280,11 +283,12 @@ export async function POST(request: NextRequest) {
 function publicPayment(payment: Record<string, unknown>) {
   return {
     orderId: String(payment.id || ''),
+    provider: String(payment.provider || 'paynexus'),
     accountReference: String(payment.account_reference || ''),
     amountKes: Number(payment.amount_kes || 0),
     status: String(payment.status || ''),
     checkoutUrl: String(payment.checkout_url || ''),
-    stkStatus: payment.stk_reference ? 'initiated' : 'not_initiated',
+    stkStatus: payment.stk_reference || payment.status === 'pending' ? 'initiated' : 'not_initiated',
     error: String(payment.failure_reason || ''),
   }
 }

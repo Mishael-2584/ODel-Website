@@ -62,6 +62,7 @@ export const professionalFeatures = [
   'courses:read',
   'grades:read',
   'questions:write',
+  'coursebuilder:write',
 ]
 
 export const institutionFeatures = [

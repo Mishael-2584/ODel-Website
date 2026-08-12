@@ -18,4 +18,10 @@ $capabilities = [
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => [],
     ],
+    'local/facultyassistant:publishcoursebuilder' => [
+        'riskbitmask' => RISK_CONFIG | RISK_DATALOSS | RISK_XSS,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [],
+    ],
 ];

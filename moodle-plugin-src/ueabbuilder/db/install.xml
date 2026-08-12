@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/ueabbuilder/db" VERSION="2026080605" COMMENT="UEAB Course Builder versioned module data">
+  <TABLES>
+    <TABLE NAME="block_ueabbuilder_data" COMMENT="Current module and topic template data per course">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="datajson" TYPE="text" NOTNULL="true"/>
+        <FIELD NAME="schemaversion" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1"/>
+        <FIELD NAME="revision" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="source" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="block"/>
+        <FIELD NAME="contenthash" TYPE="char" LENGTH="64" NOTNULL="true" DEFAULT=""/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="course_fk" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+        <KEY NAME="courseid_uix" TYPE="unique" FIELDS="courseid"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="block_ueabbuilder_versions" COMMENT="Immutable UEAB Course Builder revision history">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="revision" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="source" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="block"/>
+        <FIELD NAME="contenthash" TYPE="char" LENGTH="64" NOTNULL="true" DEFAULT=""/>
+        <FIELD NAME="datajson" TYPE="text" NOTNULL="true"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="course_fk" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+        <KEY NAME="courserevision_uix" TYPE="unique" FIELDS="courseid, revision"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="coursecreated_ix" UNIQUE="false" FIELDS="courseid, timecreated"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="block_ueabbuilder_pages" COMMENT="Moodle Page activities owned by the Course Builder">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="sectionnum" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="course_fk" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+        <KEY NAME="cm_fk" TYPE="foreign" FIELDS="cmid" REFTABLE="course_modules" REFFIELDS="id"/>
+        <KEY NAME="coursesection_uix" TYPE="unique" FIELDS="courseid, sectionnum"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>

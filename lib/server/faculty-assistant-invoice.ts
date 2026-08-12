@@ -15,6 +15,7 @@ type InvoiceRequest = {
   billingPeriod: FacultyAssistantBillingPeriod
   paymentUrl?: string
   stkInitiated?: boolean
+  paymentProvider?: 'eversend' | 'paynexus'
 }
 
 export async function sendFacultyAssistantInvoice(request: InvoiceRequest) {
@@ -47,6 +48,7 @@ export async function sendFacultyAssistantActivationEmail(request: {
   billingPeriod: string
   expiresAt: string
   paymentReference: string
+  paymentProvider?: 'eversend' | 'paynexus'
 }) {
   const expiry = new Date(request.expiresAt)
   const expiryText = Number.isFinite(expiry.getTime())
@@ -56,7 +58,7 @@ export async function sendFacultyAssistantActivationEmail(request: {
   const html = emailShell(`
     <p>Dear ${escapeHtml(request.displayName || 'Lecturer')},</p>
     <h2 style="color:#12352d">Your Professional licence is active.</h2>
-    <p>PayNexus confirmed your M-Pesa payment and Faculty Assistant activated the licence automatically.</p>
+    <p>${escapeHtml(providerLabel(request.paymentProvider))} confirmed your M-Pesa payment and Faculty Assistant activated the licence automatically.</p>
     <div class="invoice">
       <p><strong>Licence:</strong> Professional, ${escapeHtml(request.billingPeriod)}</p>
       <p><strong>Active until:</strong> ${escapeHtml(expiryText)}</p>
@@ -102,6 +104,13 @@ function professionalInvoice(request: InvoiceRequest) {
         <p style="margin-top:16px"><a class="pay" href="${escapeHtml(paymentUrl)}">Open secure M-Pesa checkout</a></p>
       </div>
     `
+    : request.stkInitiated
+      ? `
+        <div class="payment">
+          <p><strong>An M-Pesa prompt has been sent to your phone.</strong></p>
+          <p>Complete the prompt once. Your licence activates automatically after ${escapeHtml(providerLabel(request.paymentProvider))} sends a verified payment confirmation.</p>
+        </div>
+      `
     : paymentPhone && paymentRecipient
       ? manualPaymentBlock()
       : unavailablePaymentBlock()
@@ -117,7 +126,7 @@ function professionalInvoice(request: InvoiceRequest) {
         <p><strong>Amount due:</strong> KES ${amount.toLocaleString('en-KE')}</p>
       </div>
       ${paymentBlock}
-      <p>Please retain the M-Pesa confirmation. The browser return page does not activate access by itself. Activation follows a verified PayNexus server notification and is recorded in the Licence Desk.</p>
+      <p>Please retain the M-Pesa confirmation. Activation follows a verified ${escapeHtml(providerLabel(request.paymentProvider))} server notification and is recorded in the Licence Desk.</p>
     `),
   }
 
@@ -136,7 +145,7 @@ function professionalInvoice(request: InvoiceRequest) {
     return `
       <div class="payment">
         <p><strong>The secure payment prompt is temporarily unavailable.</strong></p>
-        <p>Your request is safely recorded. The Licence Desk will resend the private PayNexus checkout when the gateway is available; no payment is due through a personal number.</p>
+        <p>Your request is safely recorded. The Licence Desk will retry the secure payment prompt when the gateway is available; no payment is due through a personal number.</p>
       </div>
     `
   }
@@ -209,6 +218,12 @@ function safePaymentUrl(value?: string) {
   } catch {
     return ''
   }
+}
+
+function providerLabel(provider?: 'eversend' | 'paynexus') {
+  if (provider === 'paynexus') return 'PayNexus'
+  if (provider === 'eversend') return 'Eversend'
+  return 'payment gateway'
 }
 
 function escapeHtml(value: string) {
