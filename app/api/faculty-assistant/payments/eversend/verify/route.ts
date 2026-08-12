@@ -187,9 +187,34 @@ export async function POST(request: NextRequest) {
       })
       return NextResponse.json({ payment: publicPayment(updated), verified: true })
     } catch (error) {
+      if (collectionOutcomeUnknown(error)) {
+        const updated = await persistCollectionState(paymentOrder.id, {
+          status: 'pending',
+          last_provider_status: 'provider_confirmation_pending',
+          failure_reason: '',
+          otp_pin_id: null,
+          otp_expires_at: null,
+        })
+        await audit('licence.payment.collection.processing', 'success', paymentOrder.id, {
+          providerMessage: providerErrorMessage(error),
+        })
+        return NextResponse.json({ payment: publicPayment(updated), processing: true }, { status: 202 })
+      }
+      if (collectionDeclined(error)) {
+        const updated = await persistCollectionState(paymentOrder.id, {
+          status: 'failed',
+          last_provider_status: 'declined',
+          failure_reason: providerErrorMessage(error).slice(0, 1000),
+          otp_pin_id: null,
+          otp_expires_at: null,
+        })
+        await audit('licence.payment.collection.declined', 'failed', paymentOrder.id, {
+          providerMessage: providerErrorMessage(error),
+        })
+        return NextResponse.json({ payment: publicPayment(updated), collectionFailed: true })
+      }
       await restoreOtpState(paymentOrder.id)
-      const invalidCode = error instanceof EversendApiError
-        && /otp|pin|code/i.test(error.providerMessage)
+      const invalidCode = invalidOtpCode(error)
       await audit('licence.payment.otp.verified', 'failed', paymentOrder.id, {
         error: safeError(error), attempt: attemptCount + 1,
       })
@@ -198,6 +223,17 @@ export async function POST(request: NextRequest) {
         { status: invalidCode ? 400 : 502 },
       )
     }
+  }
+
+  async function persistCollectionState(orderId: unknown, values: Record<string, unknown>) {
+    const { data, error } = await supabase
+      .from('faculty_assistant_payment_orders')
+      .update({ ...values, updated_at: new Date().toISOString() })
+      .eq('id', orderId)
+      .select('*')
+      .single()
+    if (error || !data) throw new Error(`payment_order_update_failed:${error?.message || 'no_order'}`)
+    return data as Record<string, unknown>
   }
 
   async function restoreOtpState(orderId: unknown) {
@@ -238,4 +274,25 @@ function publicPayment(order: Record<string, unknown>) {
 
 function safeError(error: unknown) {
   return error instanceof Error ? error.message.slice(0, 300) : 'unknown_provider_error'
+}
+
+function providerErrorMessage(error: unknown) {
+  return error instanceof EversendApiError
+    ? error.providerMessage
+    : error instanceof Error ? error.message : 'unknown_provider_error'
+}
+
+function invalidOtpCode(error: unknown) {
+  const message = providerErrorMessage(error)
+  return /(invalid|incorrect|wrong|expired).*(otp|pin|code)|(otp|pin|code).*(invalid|incorrect|wrong|expired)/i.test(message)
+}
+
+function collectionOutcomeUnknown(error: unknown) {
+  const message = providerErrorMessage(error)
+  return /timed?\s*out|timeout|aborted|already verified|transaction already exists/i.test(message)
+}
+
+function collectionDeclined(error: unknown) {
+  const message = providerErrorMessage(error)
+  return /insufficient|declined|rejected|cancelled|canceled|not enough funds/i.test(message)
 }
