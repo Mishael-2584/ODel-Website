@@ -14,7 +14,7 @@ import {
   type FacultyAssistantPaidPlan,
 } from '@/lib/faculty-assistant/plans'
 
-const allowedStatuses = new Set(['contacted', 'paid', 'declined'])
+const allowedStatuses = new Set(['contacted', 'paid'])
 const invoiceEligibleStatuses = new Set(['pending', 'contacted', 'paid'])
 
 export async function PATCH(
@@ -165,6 +165,38 @@ export async function PATCH(
       return NextResponse.json({ error: 'activation_failed' }, { status: 500 })
     }
     return NextResponse.json({ entitlement: data, status: 'activated' })
+  }
+
+  if (action === 'close' || action === 'declined') {
+    const { data, error } = await supabase.rpc(
+      'faculty_assistant_admin_close_request_for_retry',
+      {
+        p_request_id: upgradeRequest.id,
+        p_admin_notes: adminNotes,
+        p_admin_id: admin.id,
+        p_admin_email: admin.email,
+      },
+    )
+    if (error || !data) {
+      await writeFailedAdminAudit(
+        supabase,
+        admin,
+        'licence.request.closed_for_retry',
+        upgradeRequest,
+        error?.message || 'No result returned',
+      )
+      const conflict = [
+        'upgrade_request_not_closeable',
+        'paid_request_cannot_be_closed',
+        'payment_order_still_pending',
+      ]
+        .some((code) => error?.message?.includes(code))
+      return NextResponse.json(
+        { error: conflict ? 'request_cannot_be_closed' : 'request_close_failed' },
+        { status: conflict ? 409 : 500 },
+      )
+    }
+    return NextResponse.json(data)
   }
 
   if (!allowedStatuses.has(action)) {
