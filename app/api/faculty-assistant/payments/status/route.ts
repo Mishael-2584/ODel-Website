@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   const { data: order, error: paymentError } = await supabase
     .from('faculty_assistant_payment_orders')
     .select(
-      'id, account_reference, amount_kes, currency, status, checkout_url, '
+      'id, provider, account_reference, amount_kes, currency, status, checkout_url, '
       + 'stk_reference, last_provider_status, failure_reason, '
       + 'activation_email_status, paid_at, activated_at, updated_at',
     )
@@ -40,12 +40,13 @@ export async function GET(request: NextRequest) {
     request: upgradeRequest,
     payment: payment ? {
       orderId: payment.id,
+      provider: payment.provider,
       accountReference: payment.account_reference,
       amountKes: payment.amount_kes,
       currency: payment.currency,
       status: payment.status,
       checkoutUrl: payment.checkout_url,
-      stkStatus: payment.stk_reference ? 'initiated' : 'not_initiated',
+      stkStatus: payment.stk_reference || payment.status === 'pending' ? 'initiated' : 'not_initiated',
       providerStatus: payment.last_provider_status,
       failureReason: payment.failure_reason,
       activationEmailStatus: payment.activation_email_status,

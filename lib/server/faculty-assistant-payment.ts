@@ -6,6 +6,7 @@ import {
   normalizeKenyanPhone,
   payNexusConfigured,
 } from './paynexus'
+import { eversendConfigured, initiateEversendCollection } from './eversend'
 
 type StartPaymentOptions = {
   supabase: SupabaseClient
@@ -13,6 +14,7 @@ type StartPaymentOptions = {
   amountKes: number
   phone: string
   billingPeriod: 'monthly' | 'annual'
+  email: string
 }
 
 export type FacultyAssistantPaymentSummary = {
@@ -24,12 +26,14 @@ export type FacultyAssistantPaymentSummary = {
   checkoutUrl: string
   checkoutSessionId: string
   error: string
+  provider: 'eversend' | 'paynexus'
 }
 
 export async function startFacultyAssistantProfessionalPayment(
   options: StartPaymentOptions,
 ): Promise<FacultyAssistantPaymentSummary | null> {
-  if (!payNexusConfigured()) return null
+  const provider = facultyAssistantPaymentProvider()
+  if (!provider) return null
   const phone = normalizeKenyanPhone(options.phone)
   if (!phone) throw new Error('invalid_kenyan_mpesa_phone')
 
@@ -43,10 +47,17 @@ export async function startFacultyAssistantProfessionalPayment(
     return paymentSummary(existing)
   }
 
-  const accountReference = facultyAssistantPaymentReference(options.requestId)
+  const generatedReference = facultyAssistantPaymentReference(options.requestId)
+  const accountReference = provider === 'eversend'
+    ? generatedReference.replace(/[^A-Za-z0-9]/g, '')
+    : generatedReference
   const order = existing
-    ? await resetPaymentOrder(options, existing.id, phone)
-    : await createPaymentOrder(options, accountReference, phone)
+    ? await resetPaymentOrder(options, existing.id, phone, provider, accountReference)
+    : await createPaymentOrder(options, accountReference, phone, provider)
+
+  if (provider === 'eversend') {
+    return startEversendPayment(options, order, accountReference, phone)
+  }
 
   const returnOrigin = facultyAssistantPaymentReturnOrigin()
   const description = `Faculty Assistant Professional ${options.billingPeriod} - ${accountReference}`
@@ -84,6 +95,7 @@ export async function startFacultyAssistantProfessionalPayment(
       stk_checkout_request_id: stk?.checkout_request_id || null,
       last_provider_status: stk?.status || (checkout ? 'checkout_created' : 'failed'),
       failure_reason: failures.join(' | ').slice(0, 1000),
+      provider,
       updated_at: new Date().toISOString(),
     })
     .eq('id', order.id)
@@ -93,6 +105,57 @@ export async function startFacultyAssistantProfessionalPayment(
     throw new Error(`payment_order_update_failed:${updateError?.message || 'no_order'}`)
   }
   return paymentSummary(updated)
+}
+
+async function startEversendPayment(
+  options: StartPaymentOptions,
+  order: Record<string, unknown>,
+  accountReference: string,
+  phone: string,
+) {
+  try {
+    const collection = await initiateEversendCollection({
+      amount: options.amountKes,
+      phone,
+      email: options.email,
+      transactionRef: accountReference,
+    })
+    const providerStatus = collection.status.toLowerCase()
+    const rejected = ['failed', 'declined', 'rejected', 'error'].some((value) =>
+      providerStatus.includes(value),
+    )
+    const { data, error } = await options.supabase
+      .from('faculty_assistant_payment_orders')
+      .update({
+        provider: 'eversend',
+        status: rejected ? 'failed' : 'pending',
+        stk_reference: collection.reference || null,
+        last_provider_status: collection.status,
+        failure_reason: rejected ? `Eversend collection ${collection.status}`.slice(0, 1000) : '',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', order.id)
+      .select('*')
+      .single()
+    if (error || !data) throw new Error(`payment_order_update_failed:${error?.message || 'no_order'}`)
+    return paymentSummary(data)
+  } catch (error) {
+    const failure = errorMessage(error)
+    const { data, error: updateError } = await options.supabase
+      .from('faculty_assistant_payment_orders')
+      .update({
+        provider: 'eversend',
+        status: 'failed',
+        last_provider_status: 'initiation_failed',
+        failure_reason: failure.slice(0, 1000),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', order.id)
+      .select('*')
+      .single()
+    if (updateError || !data) throw error
+    return paymentSummary(data)
+  }
 }
 
 export function isRetryableFacultyAssistantPayment(status: unknown, updatedAt?: unknown) {
@@ -108,6 +171,7 @@ async function createPaymentOrder(
   options: StartPaymentOptions,
   accountReference: string,
   phone: string,
+  provider: 'eversend' | 'paynexus',
 ) {
   const { data, error } = await options.supabase
     .from('faculty_assistant_payment_orders')
@@ -118,6 +182,7 @@ async function createPaymentOrder(
       currency: 'KES',
       phone,
       status: 'created',
+      provider,
     })
     .select('*')
     .single()
@@ -131,6 +196,8 @@ async function resetPaymentOrder(
   options: StartPaymentOptions,
   orderId: unknown,
   phone: string,
+  provider: 'eversend' | 'paynexus',
+  accountReference: string,
 ) {
   const { data, error } = await options.supabase
     .from('faculty_assistant_payment_orders')
@@ -144,6 +211,8 @@ async function resetPaymentOrder(
       checkout_url: null,
       last_provider_status: 'retrying',
       failure_reason: '',
+      provider,
+      account_reference: accountReference,
       updated_at: new Date().toISOString(),
     })
     .eq('id', orderId)
@@ -156,18 +225,30 @@ async function resetPaymentOrder(
 }
 
 function paymentSummary(order: Record<string, unknown>): FacultyAssistantPaymentSummary {
+  const status = String(order.status || 'created')
+  const initiated = Boolean(order.stk_reference) || status === 'pending'
   return {
     orderId: String(order.id || ''),
     accountReference: String(order.account_reference || ''),
     amountKes: Number(order.amount_kes || 0),
-    status: String(order.status || 'created'),
-    stkStatus: order.stk_reference ? 'initiated' : order.failure_reason
+    status,
+    stkStatus: initiated ? 'initiated' : order.failure_reason
       ? 'failed'
       : 'not_configured',
     checkoutUrl: String(order.checkout_url || ''),
     checkoutSessionId: String(order.checkout_session_id || ''),
     error: String(order.failure_reason || ''),
+    provider: String(order.provider || 'paynexus') === 'eversend' ? 'eversend' : 'paynexus',
   }
+}
+
+export function facultyAssistantPaymentProvider(): 'eversend' | 'paynexus' | null {
+  const requested = process.env.FACULTY_ASSISTANT_PAYMENT_PROVIDER?.trim().toLowerCase()
+  if (requested === 'eversend') return eversendConfigured() ? 'eversend' : null
+  if (requested === 'paynexus') return payNexusConfigured() ? 'paynexus' : null
+  if (eversendConfigured()) return 'eversend'
+  if (payNexusConfigured()) return 'paynexus'
+  return null
 }
 
 function facultyAssistantPaymentReturnOrigin() {

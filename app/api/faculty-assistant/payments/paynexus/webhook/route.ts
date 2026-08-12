@@ -114,6 +114,7 @@ export async function POST(request: NextRequest) {
         billingPeriod: String(result.billingPeriod || ''),
         expiresAt: String(result.expiresAt || ''),
         paymentReference: providerReference || accountReference,
+        paymentProvider: 'paynexus',
       })
       await supabase
         .from('faculty_assistant_payment_orders')

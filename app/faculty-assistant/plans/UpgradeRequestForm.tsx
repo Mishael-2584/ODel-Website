@@ -27,6 +27,7 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
     accountReference: string
     amountKes: number
     activationEmailStatus?: string
+    provider?: 'eversend' | 'paynexus'
   } | null>(null)
 
   async function submit(event: FormEvent) {
@@ -132,7 +133,7 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
             <FaSyncAlt className={checking ? 'animate-spin' : ''} /> {checking ? 'Checking...' : 'Check payment status'}
           </button>
         )}
-        <p className="mt-3 text-xs opacity-75">Do not pay both the phone prompt and checkout link. They are two ways to complete the same licence order.</p>
+        {payment?.checkoutUrl && <p className="mt-3 text-xs opacity-75">Do not pay both the phone prompt and checkout link. They are two ways to complete the same licence order.</p>}
       </div>
     )
   }
@@ -141,7 +142,7 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
     <form onSubmit={submit} className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5">
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-700">Activate a paid licence</p>
       <h2 className="mt-2 text-2xl font-bold text-[#09264a]">Request an upgrade</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-600">Professional licences use secure PayNexus M-Pesa checkout. Institution requests remain agreement-led and are confirmed by the Licence Desk.</p>
+      <p className="mt-2 text-sm leading-6 text-slate-600">Professional licences use a secure Eversend M-Pesa prompt. Institution requests remain agreement-led and are confirmed by the Licence Desk.</p>
 
       <label className="mt-5 block text-sm font-bold text-slate-700">
         Plan
@@ -194,18 +195,23 @@ export default function UpgradeRequestForm({ defaultPlan }: { defaultPlan: strin
 function professionalPaymentMessage(payment: {
   stkStatus?: string
   checkoutUrl?: string
+  provider?: 'eversend' | 'paynexus'
 } | null) {
   if (!payment) {
     return 'Your request is recorded. A private invoice with payment instructions was sent to your verified institutional email. Manual Licence Desk verification applies while automated checkout is unavailable.'
   }
   if (payment.stkStatus === 'initiated' && payment.checkoutUrl) {
-    return 'An M-Pesa prompt was sent to your phone, and a private backup checkout link was emailed to you. Your licence activates automatically after PayNexus confirms payment.'
+    return `An M-Pesa prompt was sent to your phone, and a private backup checkout link was emailed to you. Your licence activates automatically after ${paymentProviderLabel(payment)} confirms payment.`
   }
   if (payment.stkStatus === 'initiated') {
-    return 'An M-Pesa prompt was sent to your phone. Your licence activates automatically after PayNexus confirms payment.'
+    return `An M-Pesa prompt was sent to your phone. Your licence activates automatically after ${paymentProviderLabel(payment)} confirms payment.`
   }
   if (payment.checkoutUrl) {
-    return 'A private M-Pesa checkout link was emailed to you. Your licence activates automatically after PayNexus confirms payment.'
+    return `A private M-Pesa checkout link was emailed to you. Your licence activates automatically after ${paymentProviderLabel(payment)} confirms payment.`
   }
   return 'Automated payment could not be started. Your request is recorded, and the Licence Desk can assist without creating a duplicate request.'
+}
+
+function paymentProviderLabel(payment: { provider?: 'eversend' | 'paynexus' }) {
+  return payment.provider === 'paynexus' ? 'PayNexus' : 'Eversend'
 }
