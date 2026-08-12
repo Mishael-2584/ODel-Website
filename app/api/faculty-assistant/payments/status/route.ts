@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     .select(
       'id, provider, account_reference, amount_kes, currency, status, checkout_url, '
       + 'stk_reference, last_provider_status, failure_reason, '
-      + 'activation_email_status, paid_at, activated_at, updated_at',
+      + 'activation_email_status, paid_at, activated_at, updated_at, otp_expires_at',
     )
     .eq('request_id', requestId)
     .maybeSingle()
@@ -53,6 +53,8 @@ export async function GET(request: NextRequest) {
       paidAt: payment.paid_at,
       activatedAt: payment.activated_at,
       updatedAt: payment.updated_at,
+      otpRequired: payment.last_provider_status === 'otp_required',
+      otpExpiresAt: payment.otp_expires_at,
     } : null,
   })
 }

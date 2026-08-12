@@ -9,6 +9,17 @@ export type EversendCollection = {
   raw: Record<string, unknown>
 }
 
+export class EversendApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly providerMessage: string,
+  ) {
+    super(message)
+    this.name = 'EversendApiError'
+  }
+}
+
 export function eversendConfigured() {
   return Boolean(
     process.env.EVERSEND_CLIENT_ID?.trim() &&
@@ -21,6 +32,7 @@ export async function initiateEversendCollection(options: {
   phone: string
   email: string
   transactionRef: string
+  otp?: { pinId: string; pin: string }
 }) {
   const payload = await eversendRequest('/v1/collections/momo', {
     method: 'POST',
@@ -31,6 +43,7 @@ export async function initiateEversendCollection(options: {
       currency: 'KES',
       customer: { email: options.email },
       transactionRef: options.transactionRef.replace(/[^A-Za-z0-9]/g, '').slice(0, 40),
+      ...(options.otp ? { otp: options.otp } : {}),
     }),
   })
   const body = objectPayload(payload)
@@ -41,6 +54,24 @@ export async function initiateEversendCollection(options: {
     status: firstValue(data, ['status', 'state']) || 'pending',
     raw: body,
   } satisfies EversendCollection
+}
+
+export async function requestEversendCollectionOtp(phone: string) {
+  const payload = await eversendRequest('/v1/collections/otp', {
+    method: 'POST',
+    body: JSON.stringify({ phone: phone.startsWith('+') ? phone : `+${phone}` }),
+  })
+  const body = objectPayload(payload)
+  const nested = objectPayload(body.data)
+  const data = Object.keys(nested).length ? nested : body
+  const pinId = firstValue(data, ['pinId', 'pin_id', 'id'])
+  if (!pinId) throw new Error('eversend_otp_response_invalid')
+  return { pinId }
+}
+
+export function eversendOtpRequired(error: unknown) {
+  return error instanceof EversendApiError
+    && /otp|pinid|pin id/i.test(error.providerMessage)
 }
 
 export function verifyEversendWebhook(rawBody: string, signature: string) {
@@ -76,7 +107,8 @@ async function eversendToken() {
     payload?.token || payload?.access_token || tokenData.token || tokenData.access_token || '',
   )
   if (!response.ok || !token) {
-    throw new Error(`eversend_auth_failed:${providerMessage(payload, response.status)}`)
+    const message = providerMessage(payload, response.status)
+    throw new EversendApiError(`eversend_auth_failed:${message}`, response.status, message)
   }
   const expiresIn = Number(
     payload?.expiresIn || payload?.expires_in || tokenData.expiresIn || tokenData.expires_in || 300,
@@ -103,7 +135,8 @@ async function eversendRequest(path: string, init: RequestInit) {
   })
   const payload = await response.json().catch(() => null) as Record<string, unknown> | null
   if (!response.ok || !payload) {
-    throw new Error(`eversend_request_failed:${providerMessage(payload, response.status)}`)
+    const message = providerMessage(payload, response.status)
+    throw new EversendApiError(`eversend_request_failed:${message}`, response.status, message)
   }
   return payload
 }

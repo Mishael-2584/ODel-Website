@@ -15,6 +15,7 @@ type InvoiceRequest = {
   billingPeriod: FacultyAssistantBillingPeriod
   paymentUrl?: string
   stkInitiated?: boolean
+  otpRequired?: boolean
   paymentProvider?: 'eversend' | 'paynexus'
 }
 
@@ -109,6 +110,13 @@ function professionalInvoice(request: InvoiceRequest) {
         <div class="payment">
           <p><strong>An M-Pesa prompt has been sent to your phone.</strong></p>
           <p>Complete the prompt once. Your licence activates automatically after ${escapeHtml(providerLabel(request.paymentProvider))} sends a verified payment confirmation.</p>
+        </div>
+      `
+    : request.otpRequired
+      ? `
+        <div class="payment">
+          <p><strong>Eversend sent a phone-verification code.</strong></p>
+          <p>Return to the secure Faculty Assistant upgrade page and enter the code. Eversend will then send the M-Pesa payment prompt. Never share the code by email or with support staff.</p>
         </div>
       `
     : paymentPhone && paymentRecipient
