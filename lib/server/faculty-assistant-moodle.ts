@@ -167,6 +167,13 @@ export async function importFacultyAssistantQuestions(options: {
   })
 }
 
+export class MoodleConnectorTimeoutError extends Error {
+  constructor() {
+    super('Moodle connector request timed out')
+    this.name = 'MoodleConnectorTimeoutError'
+  }
+}
+
 export async function getFacultyAssistantCourseBuilder(
   userId: number,
   courseId: number,
@@ -174,6 +181,7 @@ export async function getFacultyAssistantCourseBuilder(
   const result = await callMoodleConnector(
     'local_facultyassistant_get_course_builder',
     { userid: String(userId), courseid: String(courseId) },
+    20_000,
   )
   if (!result || typeof result !== 'object' || !('payloadjson' in result)) {
     throw new Error('Moodle returned an invalid Course Builder response')
@@ -213,6 +221,7 @@ export async function publishFacultyAssistantCourseBuilder(options: {
       expectedrevision: String(options.expectedRevision),
       payloadjson: payloadJson,
     },
+    60_000,
   )
   if (!result || typeof result !== 'object') {
     throw new Error('Moodle returned an invalid Course Builder publish response')
@@ -232,6 +241,7 @@ export async function publishFacultyAssistantCourseBuilder(options: {
 async function callMoodleConnector(
   wsfunction: string,
   values: Record<string, string>,
+  timeoutMs = 45_000,
 ) {
   const baseUrl = process.env.NEXT_PUBLIC_MOODLE_URL
   const token =
@@ -244,14 +254,24 @@ async function callMoodleConnector(
     moodlewsrestformat: 'json',
     ...values,
   })
-  const response = await fetch(`${baseUrl}/webservice/rest/server.php`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body,
-    cache: 'no-store',
-  })
-  if (!response.ok) throw new Error(`Moodle returned HTTP ${response.status}`)
-  const result = (await response.json()) as MoodleResponseError | unknown
+  let response: Response
+  let result: MoodleResponseError | unknown
+  try {
+    response = await fetch(`${baseUrl}/webservice/rest/server.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+      cache: 'no-store',
+      signal: AbortSignal.timeout(timeoutMs),
+    })
+    if (!response.ok) throw new Error(`Moodle returned HTTP ${response.status}`)
+    result = (await response.json()) as MoodleResponseError | unknown
+  } catch (error) {
+    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+      throw new MoodleConnectorTimeoutError()
+    }
+    throw error
+  }
   if (
     result &&
     typeof result === 'object' &&
