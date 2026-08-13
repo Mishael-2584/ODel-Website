@@ -6,6 +6,7 @@ import {
 } from '@/lib/server/faculty-assistant-auth'
 import {
   getFacultyAssistantCourseBuilder,
+  MoodleConnectorTimeoutError,
   publishFacultyAssistantCourseBuilder,
 } from '@/lib/server/faculty-assistant-moodle'
 
@@ -27,8 +28,16 @@ export async function GET(
     return NextResponse.json({ builder })
   } catch (error) {
     console.error('Faculty Assistant Course Builder load failed:', error)
-    await audit(authorization.identity, courseId, 'moodle.coursebuilder.read', 'failed')
-    return NextResponse.json({ error: 'course_builder_unavailable' }, { status: 502 })
+    const timedOut = error instanceof MoodleConnectorTimeoutError
+    await audit(authorization.identity, courseId, 'moodle.coursebuilder.read', 'failed', {
+      reason: timedOut ? 'moodle_timeout' : 'connector_error',
+    })
+    return NextResponse.json({
+      error: timedOut ? 'course_builder_timeout' : 'course_builder_unavailable',
+      error_description: timedOut
+        ? 'Moodle did not return the Course Builder revision in time.'
+        : 'The Course Builder could not be read from Moodle. Verify the installed block, external-service functions and service-role capability.',
+    }, { status: timedOut ? 504 : 502 })
   }
 }
 
