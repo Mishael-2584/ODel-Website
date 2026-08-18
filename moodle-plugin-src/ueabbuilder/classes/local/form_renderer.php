@@ -9,8 +9,9 @@ final class form_renderer {
         $rawsaved = $state['saved'] ?? [];
         $hassavedcontent = !empty($rawsaved) && empty($rawsaved['reset']);
         $saved = schema::normalise($rawsaved);
-        $saved['title'] = $hassavedcontent ? $saved['title'] : ($state['course_title'] ?? '');
-        $saved['shortname'] = $hassavedcontent ? $saved['shortname'] : ($state['course_shortname'] ?? '');
+        $caneditcourseidentity = !empty($state['can_edit_course_identity']);
+        $saved['title'] = $state['course_title'] ?? $saved['title'];
+        $saved['shortname'] = $state['course_shortname'] ?? $saved['shortname'];
         $saved['dept'] = $hassavedcontent ? $saved['dept'] : ($state['course_category'] ?? '');
         $saved['deptname'] = $hassavedcontent ? $saved['deptname'] : ($state['course_category'] ?? '');
         $saved['instructor'] = $hassavedcontent ? $saved['instructor'] : ($state['instructor'] ?? '');
@@ -43,9 +44,11 @@ final class form_renderer {
                 'One per line: Name | Email | Responsibility'), true);
 
         $course = self::details('3. Course details',
-            'Course identity is synchronized from the current Moodle course where possible.',
-            self::input('title', 'Module title')
-            . self::input('shortname', 'Course code / short name')
+            $caneditcourseidentity
+                ? 'Administrators may update Moodle course identity; all other details remain part of the module revision.'
+                : 'Course full name and short name are controlled by Moodle administrators and shown here as read-only.',
+            self::input('title', 'Course full name', 'text', '', '', !$caneditcourseidentity)
+            . self::input('shortname', 'Course short name', 'text', '', '', !$caneditcourseidentity)
             . '<input id="ubb-dept" type="hidden">'
             . self::grid(self::select('level', 'Academic level',
                 ['Certificate', 'Diploma', 'Undergraduate', 'MBA', 'Masters', 'PhD', 'Short Course']),
@@ -71,13 +74,13 @@ final class form_renderer {
             . self::input('outcomes_intro', 'Learning outcomes introduction')
             . self::textarea('outcomes', 'Intended learning outcomes', 'xlarge', 'One outcome per line'), true);
 
-        $courseoverview = self::details('5. Course overview and delivery',
-            'Large fields support paragraphs, lists, headings and Markdown-style tables.',
+        $courseoverview = self::details('5. Course outline and delivery',
+            'This follows the official module Course Outline sequence; large fields support headings, lists and tables.',
             self::textarea('course_overview', 'Course overview / topic map', 'xlarge')
             . self::textarea('faith_integration', 'Biblical or faith-integration basis', 'large')
             . self::textarea('course_purpose', 'Purpose of the course', 'large')
-            . self::textarea('syllabus', 'Syllabus / curriculum', 'xlarge')
-            . self::textarea('delivery_methods', 'Delivery methods', 'large', 'One method per line')
+            . self::textarea('syllabus', 'Course content / syllabus', 'xlarge')
+            . self::textarea('delivery_methods', 'Mode and methods of delivery', 'large', 'One method per line')
             . self::textarea('instructional_materials', 'Instructional materials and equipment', 'large')
             . self::textarea('odel_design_plan', 'ODeL design plan', 'large'));
 
@@ -93,22 +96,19 @@ final class form_renderer {
             . self::textarea('grading_scale', 'Grading scale', 'large',
                 'Use a Markdown table for structured scales, for example: | Score | Grade | Points |'));
 
-        $resources = self::details('7. Texts, media and online resources',
-            'Core and reference texts remain distinct in both storage and display.',
+        $coursecontext = self::details('7. Texts, resources and course policies',
+            'Core and reference texts remain distinct, followed by the policies learners need to find quickly.',
             self::textarea('core_texts', 'Core texts', 'large', 'One text per line')
             . self::textarea('reference_texts', 'Reference texts', 'large', 'One text per line')
             . self::textarea('media', 'Media and links', 'large',
-                'One per line: Type | Label | URL or location'));
-
-        $policies = self::details('8. Course policies and inclusion',
-            'Keep institutional policies explicit and easy for learners to find.',
-            self::textarea('attendance_policy', 'Attendance regulations', 'large')
+                'One per line: Type | Label | URL or location')
+            . self::textarea('attendance_policy', 'Attendance regulations', 'large')
             . self::textarea('tardiness_policy', 'Tardiness policy', 'large')
             . self::textarea('academic_integrity_policy', 'Academic integrity / dishonesty policy', 'xlarge')
             . self::textarea('special_needs_policy', 'Special needs and accommodation provisions', 'large'));
 
-        $support = self::details('9. Learner profile, support and quality assurance',
-            'Describe who the module serves, how learners are supported and how quality improves.',
+        $support = self::details('8. Significant features, learner support and quality assurance',
+            'This follows the template section after assessment: what is distinctive, who it serves and how quality improves.',
             self::textarea('significant_features', 'Significant features or elements of the module', 'large')
             . self::textarea('student_target', 'Target group of students', 'large')
             . self::textarea('student_skills', 'Skills students should already have', 'large')
@@ -119,7 +119,7 @@ final class form_renderer {
             . self::textarea('module_feedback_use', 'How student feedback improves the module', 'normal')
             . self::select('qa_certificate', 'Quality assurance certificate confirmed', ['Not confirmed', 'Yes', 'No']));
 
-        $topics = self::details('10. Topic-level templates',
+        $topics = self::details('9. Topic-level templates',
             'Each topic follows the exact UEAB topic template sequence. Topic hours are calculated automatically.',
             '<div id="ubb-topics-wrap"></div>');
 
@@ -136,7 +136,7 @@ final class form_renderer {
             . '<div class="ubb-context">Editing ' . self::e($state['course_title']) . '</div>'
             . '<div class="ubb-format-help"><strong>Structured content:</strong> use blank lines for paragraphs, <code>-</code> for bullets, '
             . '<code>1.</code> for numbered lists, <code>##</code> for headings, and rows such as <code>| Column | Column |</code> for tables.</div>'
-            . $institution . $authors . $course . $overview . $courseoverview . $assessment . $resources . $policies . $support . $topics
+            . $institution . $authors . $course . $overview . $courseoverview . $assessment . $coursecontext . $support . $topics
             . '<div class="ubb-actions"><button class="ubb-btn" id="ubb-save" type="button">Update this course</button>'
             . '<button class="ubb-btn ubb-secondary" id="ubb-reset" type="button">Reset saved form data</button></div>'
             . '<div id="ubb-status" class="ubb-status" role="status" aria-live="polite"></div></div>'
@@ -148,10 +148,19 @@ final class form_renderer {
             . '</span><small>' . self::e($description) . '</small></summary><div class="ubb-section-body">' . $content . '</div></details>';
     }
 
-    private static function input(string $id, string $label, string $type = 'text', string $min = '', string $max = ''): string {
+    private static function input(
+        string $id,
+        string $label,
+        string $type = 'text',
+        string $min = '',
+        string $max = '',
+        bool $readonly = false,
+    ): string {
         $limits = ($min !== '' ? ' min="' . self::e($min) . '"' : '') . ($max !== '' ? ' max="' . self::e($max) . '"' : '');
+        $readonlyattribute = $readonly ? ' readonly aria-readonly="true"' : '';
         return '<label class="ubb-field"><span>' . self::e($label) . '</span><input id="ubb-' . self::e($id)
-            . '" class="ubb-input" type="' . self::e($type) . '"' . $limits . '></label>';
+            . '" class="ubb-input' . ($readonly ? ' ubb-readonly' : '') . '" type="' . self::e($type) . '"'
+            . $limits . $readonlyattribute . '></label>';
     }
 
     private static function textarea(string $id, string $label, string $size = 'normal', string $hint = ''): string {
@@ -191,6 +200,7 @@ final class form_renderer {
 .ubb-wrap{font-family:"Segoe UI",Arial,sans-serif;color:#16253d;font-size:13px}.ubb-brand{display:flex;align-items:center;gap:10px;margin-bottom:8px}.ubb-brand>span{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#0b315f;color:#f0b928;font-weight:900}.ubb-brand strong,.ubb-brand small{display:block}.ubb-brand strong{font-size:16px;color:#0b315f}.ubb-brand small{color:#6f7d91}.ubb-context{padding:8px 10px;border-radius:8px;background:#edf5ff;color:#174b8b;font-weight:700}.ubb-format-help{margin:10px 0;padding:10px;border:1px solid #e3d6aa;border-radius:9px;background:#fff9e8;color:#5d4a13;line-height:1.5}.ubb-format-help code{background:#f4ecd2;padding:1px 4px;border-radius:4px}
 .ubb-section{margin:8px 0;border:1px solid #dce3ed;border-radius:10px;background:#fff;overflow:hidden}.ubb-section>summary{cursor:pointer;padding:12px 13px;list-style:none;background:#f7f9fc}.ubb-section>summary::-webkit-details-marker{display:none}.ubb-section>summary:after{content:"+";float:right;margin-top:-28px;color:#174b8b;font-size:18px;font-weight:800}.ubb-section[open]>summary:after{content:"-"}.ubb-section>summary span,.ubb-section>summary small{display:block;padding-right:24px}.ubb-section>summary span{font-weight:800;color:#0b315f}.ubb-section>summary small{margin-top:3px;color:#6f7d91;line-height:1.35}.ubb-section-body{padding:12px}
 .ubb-field{display:block;margin:0 0 10px}.ubb-field>span{display:block;margin-bottom:4px;color:#53627a;font-size:10px;font-weight:800;letter-spacing:.055em;text-transform:uppercase}.ubb-field>small{display:block;margin:-1px 0 5px;color:#7b8798;line-height:1.4}.ubb-input,.ubb-select,.ubb-textarea{width:100%;box-sizing:border-box;border:1.5px solid #ccd6e4;border-radius:7px;padding:7px 9px;background:#fff;color:#16253d;font:inherit}.ubb-input:focus,.ubb-select:focus,.ubb-textarea:focus{outline:2px solid rgba(23,75,139,.14);border-color:#174b8b}.ubb-textarea{min-height:72px;resize:vertical;line-height:1.55}.ubb-textarea.ubb-large{min-height:130px}.ubb-textarea.ubb-xlarge{min-height:210px}.ubb-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ubb-inline-status{margin:-3px 0 10px;font-size:11px;font-weight:700}.ubb-inline-status.good{color:#14764b}.ubb-inline-status.bad{color:#b12c2c}
+.ubb-input.ubb-readonly{border-color:#d9dee7;background:#f1f4f8;color:#526176;cursor:not-allowed}
 .ubb-palette-key{margin:-2px 0 12px;padding:10px;border:1px solid #dce3ed;border-radius:9px;background:#f8fafc}.ubb-palette-key>strong{display:block;margin-bottom:7px;color:#53627a;font-size:10px;letter-spacing:.055em;text-transform:uppercase}.ubb-palette-key>div{display:grid;gap:6px}.ubb-palette-item{display:grid;grid-template-columns:12px minmax(0,1fr);align-items:center;gap:7px;color:#53627a;font-size:11px;line-height:1.3}.ubb-palette-item i{width:12px;height:12px;border-radius:4px;background:var(--ubb-swatch);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 .ubb-topic{margin:9px 0;border:1px solid #d5dfed;border-radius:10px}.ubb-topic>summary{padding:10px 11px;background:#f2f6fb;color:#0b315f;font-weight:800;cursor:pointer}.ubb-topic-body{padding:11px}.ubb-topic-group{margin:12px 0 7px;padding-top:9px;border-top:1px solid #e6ebf2;color:#b77900;font-size:10px;font-weight:900;letter-spacing:.07em;text-transform:uppercase}.ubb-topic-total{padding:8px 10px;border-radius:7px;background:#edf7f2;color:#14764b;font-weight:800}
 .ubb-actions{position:sticky;bottom:0;display:grid;gap:7px;padding:10px 0;background:linear-gradient(transparent,#fff 18%)}.ubb-btn{width:100%;border:0;border-radius:8px;padding:11px;background:#0b315f;color:#fff;font-weight:800;cursor:pointer}.ubb-btn:disabled{opacity:.55;cursor:not-allowed}.ubb-secondary{background:#fff;color:#174b8b;border:1.5px solid #ccd6e4}.ubb-status{display:none;margin:8px 0;padding:9px 10px;border-radius:8px}.ubb-status.info{display:block;background:#edf5ff;color:#174b8b}.ubb-status.success{display:block;background:#e9f7ef;color:#14764b}.ubb-status.error{display:block;background:#fceceb;color:#a92a2a}

@@ -53,6 +53,10 @@ class get_course_builder extends external_api {
                 'email' => $lecturer->email,
             ];
         }
+        // Moodle administrators own course identity; a saved builder revision
+        // must never make a teacher's older title or short name authoritative.
+        $payload['title'] = (string)$course->fullname;
+        $payload['shortname'] = (string)$course->shortname;
         $payload = \block_ueabbuilder\local\schema::normalise($payload);
         $payload['revision'] = $savedrow ? (int)$savedrow->revision : 0;
 

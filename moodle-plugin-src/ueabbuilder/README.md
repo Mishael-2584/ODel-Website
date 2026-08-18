@@ -3,12 +3,18 @@
 UEAB Course Builder is a Moodle block for creating and maintaining a structured,
 learner-facing module home page and topic Pages inside an existing course.
 
-## Release 1.5.0
+## Release 1.7.1
 
-Version 1.5.0 aligns the block with the official UEAB module and topic templates.
-It adds the previously missing module welcome, learner support, structured author,
-delivery, assessment, reading, course-policy, quality-assurance and topic-design
-fields.
+Version 1.7.1 keeps Moodle course identity under administrator control. Course
+full name and short name are read-only for teachers, and the publisher replaces
+any teacher-submitted values with the current Moodle course values before it
+saves a revision. Site administrators retain course-identity control.
+
+Version 1.7.0 aligned the block form and published layout with the official UEAB
+module sequence. Large Course Outline content now has its own learner-facing
+section, while assessment tables, texts, policies and significant features remain
+separate and easy to review. Published guidance uses direct learner-facing `you`
+and `your` language, while field identifiers remain compatible with schema 2.
 
 The five configured schools are:
 

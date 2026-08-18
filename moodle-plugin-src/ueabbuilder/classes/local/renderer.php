@@ -153,16 +153,20 @@ final class renderer {
         $sections .= self::card('details', 'Course details', self::facts([
             'Academic level' => $p['level'], 'Credits' => $p['credits'],
             'Class contact hours' => $p['class_contact_hours'], 'Private/online study hours' => $p['private_study_hours'],
-            'Weeks of study' => $p['weeks'], 'Total student learning hours' => $p['total_learning_hours'],
+            'Weeks of study' => $p['weeks'], 'Your total learning hours' => $p['total_learning_hours'],
             'Units of study' => $p['units'], 'Programme(s)' => $p['programmes'],
             'Pre-requisite abilities and knowledge' => $p['prereq_abilities'],
             'Pre/co-requisite modules' => $p['prereq_modules'],
         ]));
         $sections .= self::card('overview', 'Module overview', self::subsections([
-            'Aim of the module' => $p['aim'], 'Brief description' => $p['module_description'],
-            'Intended learning outcomes' => self::numbered_lines($p['outcomes']),
-            'Course overview' => $p['course_overview'], 'Biblical and faith-integration basis' => $p['faith_integration'],
-            'Purpose of the course' => $p['course_purpose'], 'Syllabus / curriculum' => $p['syllabus'],
+            'Aim of the module' => $p['aim'],
+            'What you will be able to do' => self::numbered_lines($p['outcomes']),
+        ]));
+        $sections .= self::card('outline', 'Course outline', self::subsections([
+            'Course overview and topic map' => $p['course_overview'],
+            'Biblical and faith-integration basis' => $p['faith_integration'],
+            'Purpose of the course' => $p['course_purpose'],
+            'Course content / syllabus' => $p['syllabus'],
         ]));
         $sections .= self::card('delivery', 'Delivery and learning environment', self::subsections([
             'Delivery methods' => self::bullet_lines($p['delivery_methods']),
@@ -183,15 +187,15 @@ final class renderer {
             'Academic integrity and dishonesty policy' => $p['academic_integrity_policy'],
             'Special needs and accommodation' => $p['special_needs_policy'],
         ]));
-        $sections .= self::card('learners', 'Learner profile and support', self::subsections([
+        $sections .= self::card('learners', 'Your learning profile and support', self::subsections([
             'Significant features of the module' => $p['significant_features'],
-            'Target group' => $p['student_target'], 'Expected skills' => $p['student_skills'],
-            'Prior subject knowledge' => $p['student_knowledge'], 'Learner support provided' => $p['learner_support'],
+            'Who this module is for' => $p['student_target'], 'Skills you will need' => $p['student_skills'],
+            'What you should already know' => $p['student_knowledge'], 'Support available to you' => $p['learner_support'],
             'Support staff skills' => $p['support_staff_skills'],
         ]));
         $sections .= self::card('quality', 'Quality assurance', self::subsections([
-            'How module feedback is obtained' => $p['module_feedback_collection'],
-            'How feedback improves the module' => $p['module_feedback_use'],
+            'How we will gather your feedback' => $p['module_feedback_collection'],
+            'How your feedback improves the module' => $p['module_feedback_use'],
             'Quality assurance certificate' => $p['qa_certificate'],
         ]));
         $sections .= self::card('topics', 'Course map: topics', '<div class="ueab-topic-grid">' . $topiccards . '</div>');
@@ -207,13 +211,14 @@ final class renderer {
             . self::e($p['weeks']) . ' weeks</span><span>' . self::e($p['mode']) . '</span></div></div></header>'
             . self::summary_stats($p)
             . ($welcome ? '<section class="ueab-welcome"><strong>Welcome</strong>' . $welcome . '</section>' : '')
-            . '<nav class="ueab-nav"><a href="#overview">Overview</a><a href="#delivery">Delivery</a>'
+            . ($intro ? '<section class="ueab-lead">' . $intro . '</section>' : '')
+            . '<nav class="ueab-nav"><a href="#overview">Overview</a><a href="#outline">Course outline</a>'
+            . '<a href="#delivery">Delivery</a>'
             . '<a href="#assessment">Assessment</a><a href="#resources">Resources</a>'
             . '<a href="#learners">Learner support</a><a href="#topics">Topics</a>'
             . '<a href="#faq">Help and accessibility</a></nav>'
             . '<section class="ueab-identity"><div><small>School</small><strong>' . $school
             . '</strong></div><div><small>Department</small><strong>' . $department . '</strong></div></section>'
-            . ($intro ? '<section class="ueab-lead">' . $intro . '</section>' : '')
             . $sections . '</main>';
     }
 
@@ -223,34 +228,34 @@ final class renderer {
         $palette = self::palette($p['school']);
         $total = $t['pretopic_hours'] + $t['f2f_hours'] + $t['online_hours'] + $t['assessment_hours'];
         $welcome = self::rich($t['welcome_message']);
-        $cards = self::activity_card('Pre-topic activity', $t['pretopic_hours'], $t['pretopic_activity']);
-        $cards .= self::activity_card('Face-to-face activity', $t['f2f_hours'], $t['f2f_activity']);
-        $cards .= self::activity_card('Online activity', $t['online_hours'], $t['online_activity']);
-        $cards .= self::activity_card('Topic assessment', $t['assessment_hours'], $t['assessment_activity']);
+        $cards = self::activity_card('Before this topic', $t['pretopic_hours'], $t['pretopic_activity']);
+        $cards .= self::activity_card('Your face-to-face session', $t['f2f_hours'], $t['f2f_activity']);
+        $cards .= self::activity_card('Your online session', $t['online_hours'], $t['online_activity']);
+        $cards .= self::activity_card('Your topic assessment', $t['assessment_hours'], $t['assessment_activity']);
 
         $sections = '';
         $sections .= self::card('overview', 'Topic overview', self::subsections([
             'Aim / purpose' => $t['aim'], 'Brief description' => $t['description'],
-            'Intended learning outcomes' => self::numbered_lines($t['outcomes']),
+            'What you will be able to do' => self::numbered_lines($t['outcomes']),
         ]));
-        $sections .= self::card('content', 'Course content', self::rich($t['course_content']));
-        $sections .= self::card('activities', 'Student and teacher engagement',
-            self::subsections(['Overview of student activity' => $t['activity_overview'],
-                'Chronological engagement plan' => $t['engagement_plan']])
+        $sections .= self::card('content', 'What you will learn', self::rich($t['course_content']));
+        $sections .= self::card('activities', 'How you will learn and participate',
+            self::subsections(['What you will do' => $t['activity_overview'],
+                'Your learning sequence' => $t['engagement_plan']])
             . '<div class="ueab-activity-grid">' . $cards . '</div>'
-            . self::subsections(['What students should do' => $t['what'], 'Where they do it' => $t['where'],
-                'When it is due' => $t['when'], 'E-moderator / tutor role' => $t['tutor_role']]));
+            . self::subsections(['What you should do' => $t['what'], 'Where you will do it' => $t['where'],
+                'When you should complete it' => $t['when'], 'How your tutor will support you' => $t['tutor_role']]));
         $sections .= self::card('connections', 'Connections, resources and access', self::subsections([
             'Links to previous and following topics' => $t['topic_links'],
             'Learning resources and references' => $t['resources'],
-            'How learners access resources' => $t['resource_access'],
-            'Collaborative work' => $t['collaboration'],
-            'Inclusive learning and accessibility' => $t['inclusive_approach'],
+            'How you will access the resources' => $t['resource_access'],
+            'How you will collaborate' => $t['collaboration'],
+            'Accessibility and support available to you' => $t['inclusive_approach'],
         ]));
         $sections .= self::card('feedback', 'Feedback and improvement', self::subsections([
-            'How topic feedback is obtained' => $t['feedback_collection'],
-            'How feedback improves the topic' => $t['feedback_use'],
-            'Formative feedback points' => $t['formative_feedback'],
+            'How we will gather your feedback' => $t['feedback_collection'],
+            'How your feedback improves this topic' => $t['feedback_use'],
+            'When you will receive formative feedback' => $t['formative_feedback'],
         ]));
 
         return self::styles($palette) . '<main class="ueab-course ueab-topic" data-ueab-builder="topic">'

@@ -63,6 +63,7 @@ expect(count(schema::school_colours()) === 5, 'Each UEAB school has a published 
 $form = form_renderer::render([
     'saved' => [], 'course_id' => 4, 'course_title' => 'TEST 003',
     'course_shortname' => 'TEST003', 'course_category' => 'Management',
+    'can_edit_course_identity' => false,
     'instructor' => 'Test Teacher', 'email' => 'teacher@ueab.ac.ke',
     'generate_url' => '/blocks/ueabbuilder/generate.php',
     'reset_url' => '/blocks/ueabbuilder/reset.php', 'sesskey' => 'test',
@@ -71,6 +72,18 @@ foreach (schema::module_fields() as $field) {
     expect(str_contains($form, 'ubb-' . $field), "Form exposes module field: {$field}");
 }
 expect(str_contains($form, 'School colour key'), 'Course Builder form labels the school colour key');
+expect(strpos($form, '5. Course outline and delivery') < strpos($form, '6. Assessment and grading'),
+    'Form follows the official Course Outline then assessment sequence');
+expect(strpos($form, '6. Assessment and grading') < strpos($form, '8. Significant features'),
+    'Significant features follow assessment in the module flow');
+expect(str_contains($form, 'What should students do?'),
+    'Authoring form retains its familiar administrative student label');
+expect(str_contains($form, 'id="ubb-title" class="ubb-input ubb-readonly"'),
+    'Teacher form renders the Moodle course full name as read-only');
+expect(str_contains($form, 'id="ubb-shortname" class="ubb-input ubb-readonly"'),
+    'Teacher form renders the Moodle course short name as read-only');
+expect(substr_count($form, 'readonly aria-readonly="true"') === 2,
+    'Only the two administrator-owned course identity fields are read-only');
 foreach (schema::school_colours() as $colour) {
     expect(str_contains($form, $colour), 'Course Builder form renders school colour ' . $colour);
 }
@@ -121,6 +134,8 @@ expect(str_contains($homepage, 'Accessibility statement'), 'Accessibility guidan
 expect(str_contains($homepage, 'href="https://moodle.test/mod/page/view.php?id=701"'),
     'Course Topic card links to its generated Moodle Page');
 expect(str_contains($homepage, '<table'), 'Structured tables are rendered');
+expect(str_contains($homepage, 'id="outline"'), 'Course outline has a dedicated learner-facing section');
+expect(str_contains($homepage, 'href="#outline"'), 'Course navigation links directly to the Course outline');
 expect(!str_contains($homepage, '<script>alert(1)</script>'), 'Executable HTML is escaped');
 expect(str_contains($homepage, 'data-ueab-builder="module"'), 'Module ownership marker is rendered');
 $schoolpalettes = [
@@ -143,12 +158,16 @@ $topic = renderer::topic(1, $module, [
     'f2f_activity' => 'Join the seminar.', 'f2f_hours' => 2,
     'online_activity' => 'Post a reflection.', 'online_hours' => 3,
     'assessment_activity' => 'Complete the quiz.', 'assessment_hours' => 1,
+    'what' => 'Review the evidence and post your response.',
     'tutor_role' => 'Facilitate and respond.', 'inclusive_approach' => 'Provide captions.',
     'formative_feedback' => 'Immediate quiz feedback.',
 ]);
 expect(str_contains($topic, '7h total hours'), 'Topic total includes assessment time');
-expect(str_contains($topic, 'E-moderator / tutor role'), 'Tutor role is rendered');
-expect(str_contains($topic, 'Inclusive learning and accessibility'), 'Inclusive approach is rendered');
+expect(str_contains($topic, 'How your tutor will support you'), 'Tutor support uses direct learner-facing language');
+expect(str_contains($topic, 'Accessibility and support available to you'),
+    'Inclusive approach uses direct learner-facing language');
+expect(str_contains($topic, 'What you should do'), 'Topic instructions address the learner directly');
+expect(!str_contains($topic, 'What students should do'), 'Published Topic omits third-person student instructions');
 expect(str_contains($topic, 'data-ueab-builder="topic"'), 'Topic ownership marker is rendered');
 expect(str_contains($topic, 'class="ueab-hero ueab-topic-hero"'), 'Topic uses the balanced Topic hero');
 expect(str_contains($topic, 'class="ueab-hero-body"'), 'Topic hero content has an aligned inner container');
@@ -160,9 +179,13 @@ if ($xml !== false) {
 }
 
 $version = file_get_contents($root . '/version.php');
-expect(str_contains($version, "release   = '1.6.0'"), 'Release is 1.6.0');
+expect(str_contains($version, "release   = '1.7.1'"), 'Release is 1.7.1');
 $publisher = file_get_contents($root . '/classes/local/publisher.php');
 expect(str_contains($publisher, 'revision_conflict'), 'Publisher protects against stale revisions');
+expect(str_contains($publisher, 'is_siteadmin($actorid)'),
+    'Publisher reserves Moodle course identity changes for site administrators');
+expect(str_contains($publisher, "\$payload['title'] = (string)\$course->fullname"),
+    'Publisher replaces a teacher-supplied title with Moodle course identity');
 expect(str_contains($publisher, 'block_ueabbuilder_pages'), 'Publisher tracks builder-owned Pages');
 expect(str_contains($publisher, 'add_moduleinfo'), 'Publisher uses Moodle module creation API');
 $endpoint = file_get_contents($root . '/generate.php');
