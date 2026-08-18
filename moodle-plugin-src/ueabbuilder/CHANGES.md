@@ -1,5 +1,22 @@
 # Change log
 
+## 1.7.1 - 2026-08-18
+
+- Made Moodle course full name and short name read-only for teachers.
+- Enforced the same boundary in the canonical publisher so modified requests cannot bypass the form.
+- Kept site administrators able to update course identity while preserving all other teacher-editable module fields.
+
+## 1.7.0 - 2026-08-17
+
+- Reordered the authoring form and published module to follow the official Course Outline, assessment and significant-features sequence.
+- Added a dedicated learner-facing Course Outline section so large syllabi, lists and tables no longer crowd the course hero.
+- Kept all schema version 2 field identifiers stable for Faculty Assistant and existing saved courses.
+
+## 1.6.1 - 2026-08-13
+
+- Reworded published module and Topic guidance to speak directly to learners using `you` and `your`.
+- Kept Course Builder authoring labels and stored field identifiers unchanged for staff familiarity and compatibility.
+
 ## 1.5.2 - 2026-08-12
 
 - Fixed Course map Topic cards so they retain and open their generated Moodle Page URLs.

@@ -20,6 +20,11 @@ final class publisher {
         require_once($CFG->libdir . '/resourcelib.php');
 
         $payload = schema::normalise($rawpayload);
+        $caneditcourseidentity = is_siteadmin($actorid);
+        if (!$caneditcourseidentity) {
+            $payload['title'] = (string)$course->fullname;
+            $payload['shortname'] = (string)$course->shortname;
+        }
         $payload['source'] = in_array($source, ['block', 'facultyassistant'], true) ? $source : 'block';
         self::validate($payload);
 
@@ -54,7 +59,7 @@ final class publisher {
         $contenthash = hash('sha256', $contentjson);
         $transaction = $DB->start_delegated_transaction();
         try {
-            self::update_course_identity($course, $payload);
+            self::update_course_metadata($course, $payload, $caneditcourseidentity);
             $topiccount = (int)$payload['topics'];
             if (function_exists('course_create_sections_if_missing')) {
                 course_create_sections_if_missing($course, range(0, $topiccount));
@@ -143,15 +148,21 @@ final class publisher {
         }
     }
 
-    private static function update_course_identity(\stdClass $course, array $payload): void {
+    private static function update_course_metadata(
+        \stdClass $course,
+        array $payload,
+        bool $caneditcourseidentity,
+    ): void {
         global $DB;
-        if ($payload['shortname'] !== '' && $payload['shortname'] !== $course->shortname) {
-            if ($DB->record_exists_select('course', 'shortname = ? AND id <> ?', [$payload['shortname'], $course->id])) {
-                throw new publisher_exception('shortname_taken', 'The requested course short name is already in use.');
+        if ($caneditcourseidentity) {
+            if ($payload['shortname'] !== '' && $payload['shortname'] !== $course->shortname) {
+                if ($DB->record_exists_select('course', 'shortname = ? AND id <> ?', [$payload['shortname'], $course->id])) {
+                    throw new publisher_exception('shortname_taken', 'The requested course short name is already in use.');
+                }
+                $course->shortname = $payload['shortname'];
             }
-            $course->shortname = $payload['shortname'];
+            $course->fullname = $payload['title'];
         }
-        $course->fullname = $payload['title'];
         $summary = trim((string)preg_replace('/\s+/', ' ', strip_tags(
             (string)($payload['module_description'] ?: $payload['aim'])
         )));

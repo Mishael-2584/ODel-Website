@@ -56,6 +56,7 @@ class block_ueabbuilder extends block_base {
             'course_id' => (int)$COURSE->id,
             'course_title' => $COURSE->fullname,
             'course_shortname' => $COURSE->shortname,
+            'can_edit_course_identity' => is_siteadmin(),
             'course_category' => $category,
             'instructor' => $instructor,
             'email' => $email,
