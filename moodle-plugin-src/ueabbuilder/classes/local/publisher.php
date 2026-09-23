@@ -63,6 +63,7 @@ final class publisher {
             }
             $contenthash = hash('sha256', $contentjson);
             $renderpayload = self::with_media_urls($courseid, $payload);
+            $renderpayload['courseid'] = $courseid;
             self::update_course_metadata($course, $payload, $caneditcourseidentity);
             $topiccount = (int)$payload['topics'];
             if (function_exists('course_create_sections_if_missing')) {
@@ -278,6 +279,16 @@ final class publisher {
         }
         $name = "Topic {$number}: {$title}";
         $content = renderer::topic($number, $module, $topic);
+        $expectedimages = preg_match_all('/\[\[FA_IMAGE:[a-f0-9]{16,64}\]\]/',
+            (string)($topic['document_content'] ?? '')) ?: 0;
+        if ($expectedimages !== substr_count($content, 'class="ueab-figure"')) {
+            throw new publisher_exception(
+                'media_render_incomplete',
+                'One or more imported Word images could not be linked to the published Topic. Retry after upgrading the Course Builder block.',
+                max(0, (int)($module['revision'] ?? 1) - 1),
+                502,
+            );
+        }
         if ($cm) {
             $page = $DB->get_record('page', ['id' => $cm->instance], '*', MUST_EXIST);
             $page->coursemodule = $cm->id;

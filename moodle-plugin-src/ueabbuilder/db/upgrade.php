@@ -106,5 +106,9 @@ function xmldb_block_ueabbuilder_upgrade(int $oldversion): bool {
         // Semantic Word table rendering; no database schema change is required.
         upgrade_plugin_savepoint(true, 2026092301, 'block', 'ueabbuilder');
     }
+    if ($oldversion < 2026092302) {
+        // Protected media URL reconstruction; no database schema change is required.
+        upgrade_plugin_savepoint(true, 2026092302, 'block', 'ueabbuilder');
+    }
     return true;
 }

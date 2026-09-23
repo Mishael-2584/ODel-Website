@@ -255,7 +255,9 @@ final class renderer {
     }
 
     public static function topic(int $number, array $rawmodule, array $rawtopic): string {
+        $courseid = max(0, (int)($rawmodule['courseid'] ?? 0));
         $p = schema::normalise($rawmodule);
+        $p['assets'] = self::resolve_asset_urls($courseid, $p['assets']);
         $t = schema::normalise_topic($rawtopic, $number);
         $palette = self::palette($p['school']);
         $total = $t['pretopic_hours'] + $t['f2f_hours'] + $t['online_hours'] + $t['assessment_hours'];
@@ -308,6 +310,30 @@ final class renderer {
             . '<a href="#activities">Activities</a><a href="#connections">Resources</a><a href="#feedback">Feedback</a>'
             . (self::present($t['document_content']) ? '<a href="#study-material">Study material</a>' : '') . '</nav>'
             . $sections . '</main>';
+    }
+
+    /** Rebuild protected Moodle URLs from persisted file identities at render time. */
+    private static function resolve_asset_urls(int $courseid, array $assets): array {
+        if ($courseid <= 0 || !$assets) {
+            return $assets;
+        }
+        $context = \context_course::instance($courseid);
+        foreach ($assets as &$asset) {
+            if (!empty($asset['url']) || empty($asset['fileItemId']) || empty($asset['filename'])) {
+                continue;
+            }
+            $asset['url'] = \moodle_url::make_pluginfile_url(
+                $context->id,
+                'block_ueabbuilder',
+                'media',
+                (int)$asset['fileItemId'],
+                '/',
+                (string)$asset['filename'],
+                false,
+            )->out(false);
+        }
+        unset($asset);
+        return $assets;
     }
 
     private static function styles(array $palette): string {

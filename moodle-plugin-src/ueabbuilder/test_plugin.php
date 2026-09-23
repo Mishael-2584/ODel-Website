@@ -46,6 +46,33 @@ foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root)) as
 }
 
 define('MOODLE_INTERNAL', true);
+if (!class_exists('context_course')) {
+    class context_course {
+        public int $id;
+        public static function instance(int $courseid): self {
+            $context = new self();
+            $context->id = 1000 + $courseid;
+            return $context;
+        }
+    }
+}
+if (!class_exists('moodle_url')) {
+    class moodle_url {
+        public static function make_pluginfile_url(
+            int $contextid,
+            string $component,
+            string $filearea,
+            int $itemid,
+            string $filepath,
+            string $filename,
+            bool $forcedownload,
+        ): self {
+            return new self("https://moodle.test/pluginfile.php/{$contextid}/{$component}/{$filearea}/{$itemid}/{$filename}");
+        }
+        public function __construct(private string $url) {}
+        public function out(bool $escaped = true): string { return $this->url; }
+    }
+}
 require_once($root . '/classes/local/schema.php');
 require_once($root . '/classes/local/renderer.php');
 require_once($root . '/classes/local/form_renderer.php');
@@ -112,6 +139,7 @@ expect(schema::assessment_weight_total("Coursework | invalid | Work") === null,
     'Invalid assessment weights are rejected');
 
 $module = [
+    'courseid' => 4,
     'title' => '<script>alert(1)</script>', 'shortname' => 'TEST101',
     'school' => 'School of Business', 'deptname' => 'Management',
     'welcome_message' => 'Welcome to the module.', 'aim' => 'Build practical skills.',
@@ -126,7 +154,7 @@ $module = [
         'id' => '0123456789abcdef', 'filename' => '0123456789abcdef.png',
         'mimeType' => 'image/png', 'byteLength' => 1200, 'fileItemId' => 4,
         'altText' => 'Input and output diagram', 'caption' => 'The information-processing cycle',
-        'url' => 'https://moodle.test/pluginfile.php/7/block_ueabbuilder/media/4/0123456789abcdef.png',
+        'url' => '',
     ]],
 ];
 $homepage = renderer::homepage($module);
@@ -184,6 +212,8 @@ expect(str_contains($topic, 'class="ueab-hero ueab-topic-hero"'), 'Topic uses th
 expect(str_contains($topic, 'class="ueab-hero-body"'), 'Topic hero content has an aligned inner container');
 expect(str_contains($topic, 'Illustrated study material'), 'Imported Word study material has a dedicated Topic section');
 expect(str_contains($topic, 'loading="lazy"'), 'Imported Word images use responsive lazy loading');
+expect(str_contains($topic, 'https://moodle.test/pluginfile.php/1004/block_ueabbuilder/media/4/0123456789abcdef.png'),
+    'Persisted file identities rebuild protected Moodle media URLs during Topic rendering');
 expect(str_contains($topic, 'alt="Input and output diagram"'), 'Imported Word image alternative text is rendered');
 expect(str_contains($topic, 'Input → process → output'), 'Unicode symbols survive Topic rendering');
 expect(str_contains($topic, '<thead><tr><th scope="col">Generation</th>'),
@@ -198,7 +228,7 @@ if ($xml !== false) {
 }
 
 $version = file_get_contents($root . '/version.php');
-expect(str_contains($version, "release   = '1.8.1'"), 'Release is 1.8.1');
+expect(str_contains($version, "release   = '1.8.2'"), 'Release is 1.8.2');
 $publisher = file_get_contents($root . '/classes/local/publisher.php');
 expect(str_contains($publisher, 'revision_conflict'), 'Publisher protects against stale revisions');
 expect(str_contains($publisher, 'is_siteadmin($actorid)'),
@@ -207,6 +237,8 @@ expect(str_contains($publisher, "\$payload['title'] = (string)\$course->fullname
     'Publisher replaces a teacher-supplied title with Moodle course identity');
 expect(str_contains($publisher, 'block_ueabbuilder_pages'), 'Publisher tracks builder-owned Pages');
 expect(str_contains($publisher, 'add_moduleinfo'), 'Publisher uses Moodle module creation API');
+expect(str_contains($publisher, 'media_render_incomplete'),
+    'Publisher rejects a revision when any Word image placeholder cannot be rendered');
 $endpoint = file_get_contents($root . '/generate.php');
 expect(str_contains($endpoint, 'publisher::publish'), 'Block and integrations share the canonical publisher');
 
