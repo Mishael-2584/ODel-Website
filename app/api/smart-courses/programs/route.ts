@@ -4,6 +4,9 @@ import { moodleService } from '@/lib/moodle'
 
 const smartCourseDiscovery = new SmartCourseDiscovery(moodleService)
 
+// Program discovery depends on live Moodle data and must never run at build time.
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const programs = await smartCourseDiscovery.generateSmartPrograms()
