@@ -110,5 +110,9 @@ function xmldb_block_ueabbuilder_upgrade(int $oldversion): bool {
         // Protected media URL reconstruction; no database schema change is required.
         upgrade_plugin_savepoint(true, 2026092302, 'block', 'ueabbuilder');
     }
+    if ($oldversion < 2026092303) {
+        // Rich Word formatting and visible imported headings; no database schema change is required.
+        upgrade_plugin_savepoint(true, 2026092303, 'block', 'ueabbuilder');
+    }
     return true;
 }

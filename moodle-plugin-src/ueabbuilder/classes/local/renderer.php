@@ -43,7 +43,7 @@ final class renderer {
             if ($hasheader) {
                 $html .= '<thead><tr>';
                 foreach ($table[0] as $cell) {
-                    $html .= '<th scope="col">' . self::e($cell) . '</th>';
+                    $html .= '<th scope="col">' . self::inline($cell) . '</th>';
                 }
                 $html .= '</tr></thead>';
             }
@@ -54,7 +54,7 @@ final class renderer {
                 }
                 $html .= '<tr>';
                 foreach ($cells as $cell) {
-                    $html .= '<td>' . self::linkify(self::e($cell)) . '</td>';
+                    $html .= '<td>' . self::inline($cell) . '</td>';
                 }
                 $html .= '</tr>';
             }
@@ -83,7 +83,7 @@ final class renderer {
             if (preg_match('/^(#{1,3})\s+(.+)$/u', $line, $match)) {
                 $flushlist();
                 $level = min(4, strlen($match[1]) + 2);
-                $html .= "<h{$level}>" . self::e($match[2]) . "</h{$level}>";
+                $html .= "<h{$level}>" . self::inline($match[2]) . "</h{$level}>";
                 continue;
             }
             if (preg_match('/^[-*]\s+(.+)$/u', $line, $match)) {
@@ -92,7 +92,7 @@ final class renderer {
                     $list = 'ul';
                     $html .= '<ul>';
                 }
-                $html .= '<li>' . self::e($match[1]) . '</li>';
+                $html .= '<li>' . self::inline($match[1]) . '</li>';
                 continue;
             }
             if (preg_match('/^\d+[.)]\s+(.+)$/u', $line, $match)) {
@@ -101,11 +101,11 @@ final class renderer {
                     $list = 'ol';
                     $html .= '<ol>';
                 }
-                $html .= '<li>' . self::e($match[1]) . '</li>';
+                $html .= '<li>' . self::inline($match[1]) . '</li>';
                 continue;
             }
             $flushlist();
-            $html .= '<p>' . self::linkify(self::e($line)) . '</p>';
+            $html .= '<p>' . self::inline($line) . '</p>';
         }
         $flushlist();
         $flushtable();
@@ -351,7 +351,7 @@ final class renderer {
 .ueab-welcome,.ueab-lead{margin:16px 0;padding:20px 24px;border-radius:15px;background:linear-gradient(135deg,#fff,var(--ueab-tint));border:1px solid var(--ueab-soft);box-shadow:0 8px 22px rgba(17,35,64,.045)}.ueab-welcome{border-left:4px solid var(--ueab-accent)}.ueab-welcome>strong{display:block;color:var(--ueab-primary);text-transform:uppercase;letter-spacing:.08em;font-size:11px}.ueab-welcome p:last-child,.ueab-lead p:last-child{margin-bottom:0}
 .ueab-nav{position:sticky;top:0;z-index:2;display:flex;gap:6px;min-width:0;max-width:100%;overflow:auto;margin:14px 0;padding:9px 11px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:linear-gradient(100deg,var(--ueab-dark),var(--ueab-primary));box-shadow:0 10px 26px rgba(17,35,64,.12)}.ueab-nav a{padding:6px 10px;border:1px solid transparent;border-radius:999px;white-space:nowrap;color:#fff;font-size:12px;font-weight:750;text-decoration:none}.ueab-nav a:hover,.ueab-nav a:focus{border-color:rgba(255,255,255,.32);background:rgba(255,255,255,.14);outline:none}
 .ueab-identity{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:14px 0}.ueab-identity div{padding:14px 18px;border:1px solid var(--ueab-soft);border-radius:12px;background:var(--ueab-tint)}.ueab-identity small{display:block;text-transform:uppercase;letter-spacing:.08em;color:#718096}.ueab-identity strong{display:block;color:var(--ueab-dark)}
-.ueab-card{position:relative;margin:14px 0;padding:25px clamp(18px,4vw,32px);border:1px solid #e1e6ee;border-radius:17px;background:#fff;box-shadow:0 9px 28px rgba(17,35,64,.055)}.ueab-card:before{content:"";position:absolute;top:0;left:28px;width:56px;height:3px;border-radius:0 0 3px 3px;background:var(--ueab-accent)}.ueab-card h2{margin:0 0 19px;color:var(--ueab-primary);font-size:22px;letter-spacing:-.015em}.ueab-card h3{margin:18px 0 6px;color:var(--ueab-dark);font-size:15px}.ueab-card p{margin:0 0 10px}.ueab-card ul,.ueab-card ol{padding-left:22px}.ueab-card li{margin:5px 0}
+.ueab-card{position:relative;margin:14px 0;padding:25px clamp(18px,4vw,32px);border:1px solid #e1e6ee;border-radius:17px;background:#fff;box-shadow:0 9px 28px rgba(17,35,64,.055)}.ueab-card:before{content:"";position:absolute;top:0;left:28px;width:56px;height:3px;border-radius:0 0 3px 3px;background:var(--ueab-accent)}.ueab-card h2{margin:0 0 19px;color:var(--ueab-primary);font-size:22px;letter-spacing:-.015em}.ueab-card h3,.ueab-card h4,.ueab-card h5{margin:18px 0 6px;color:var(--ueab-dark)!important;font-size:15px;line-height:1.35}.ueab-card p{margin:0 0 10px}.ueab-card ul,.ueab-card ol{padding-left:22px}.ueab-card li{margin:5px 0}.ueab-card strong{color:inherit}
 .ueab-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.ueab-fact{padding:13px 15px;border:1px solid var(--ueab-soft);background:var(--ueab-tint);border-radius:11px}.ueab-fact small{display:block;color:#718096;text-transform:uppercase;letter-spacing:.06em}.ueab-fact strong{display:block;color:var(--ueab-dark);white-space:pre-line}
 .ueab-table-wrap{min-width:0;max-width:100%;overflow:auto;margin:18px 0;border:1px solid #d8e0eb;border-radius:14px;background:#fff;box-shadow:0 7px 20px rgba(17,35,64,.06)}.ueab-table{width:100%;min-width:560px;border-collapse:collapse;border-spacing:0}.ueab-table th{background:linear-gradient(120deg,var(--ueab-dark),var(--ueab-primary));color:#fff;text-align:left;font-size:12px;letter-spacing:.01em}.ueab-table th,.ueab-table td{padding:11px 13px;border-right:1px solid #e3e8f0;border-bottom:1px solid #e3e8f0;vertical-align:top;overflow-wrap:anywhere}.ueab-table th:last-child,.ueab-table td:last-child{border-right:0}.ueab-table tbody tr:nth-child(even) td{background:var(--ueab-tint)}.ueab-table tbody tr:hover td{background:var(--ueab-soft)}.ueab-table tbody tr:last-child td{border-bottom:0}.ueab-table td:first-child{font-weight:700;color:var(--ueab-dark)}.ueab-table td p{margin:0}
 .ueab-figure{max-width:860px;margin:26px auto;padding:10px;text-align:center;border:1px solid #e2e7ef;border-radius:16px;background:linear-gradient(145deg,#fff,var(--ueab-tint));box-shadow:0 10px 30px rgba(17,35,64,.08)}.ueab-figure img{display:block;width:auto;max-width:100%;height:auto;max-height:760px;margin:0 auto;border-radius:10px;background:#fff;object-fit:contain}.ueab-figure figcaption{max-width:720px;margin:9px auto 2px;color:#59667b;font-size:12px;line-height:1.5}.ueab-media-unavailable{padding:12px 14px;border:1px solid #ecd8a4;border-radius:10px;background:#fff8e6;color:#6d5420}
@@ -509,6 +509,14 @@ final class renderer {
 
     private static function is_table_separator(array $cells): bool {
         return count($cells) > 0 && count(array_filter($cells, fn($cell) => !preg_match('/^:?-{3,}:?$/', trim($cell)))) === 0;
+    }
+
+    private static function inline(string $value): string {
+        $escaped = self::e($value);
+        $escaped = preg_replace('/\*\*\*(.+?)\*\*\*/u', '<strong><em>$1</em></strong>', $escaped) ?? $escaped;
+        $escaped = preg_replace('/\*\*(.+?)\*\*/u', '<strong>$1</strong>', $escaped) ?? $escaped;
+        $escaped = preg_replace('/(?<!\*)\*([^*]+?)\*(?!\*)/u', '<em>$1</em>', $escaped) ?? $escaped;
+        return self::linkify($escaped);
     }
 
     private static function linkify(string $escaped): string {

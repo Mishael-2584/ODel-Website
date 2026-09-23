@@ -3,7 +3,11 @@
 UEAB Course Builder is a Moodle block for creating and maintaining a structured,
 learner-facing module home page and topic Pages inside an existing course.
 
-## Release 1.8.2
+## Release 1.8.3
+
+Version 1.8.3 renders Word bold and italic emphasis as safe semantic HTML and
+explicitly colours every imported heading level. This prevents Moodle theme
+rules from making illustrated-study headings invisible.
 
 Version 1.8.2 reconstructs every protected illustration URL from its persisted
 Moodle course context, file item and filename when Topic Pages are rendered. A
