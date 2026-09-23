@@ -187,7 +187,7 @@ foreach ($schoolpalettes as $schoolname => $primarycolour) {
 
 $topic = renderer::topic(1, $module, [
     'title' => 'Foundations', 'welcome_message' => 'Welcome to Topic 1.',
-    'course_content' => "## Concepts\n- Evidence\n- Decisions",
+    'course_content' => "## Concepts\nUse the **OLS estimator** *carefully*.\n- Evidence\n- Decisions",
     'pretopic_activity' => 'Read the orientation.', 'pretopic_hours' => 1,
     'f2f_activity' => 'Join the seminar.', 'f2f_hours' => 2,
     'online_activity' => 'Post a reflection.', 'online_hours' => 3,
@@ -206,6 +206,10 @@ expect(str_contains($topic, 'How your tutor will support you'), 'Tutor support u
 expect(str_contains($topic, 'Accessibility and support available to you'),
     'Inclusive approach uses direct learner-facing language');
 expect(str_contains($topic, 'What you should do'), 'Topic instructions address the learner directly');
+expect(str_contains($topic, '<strong>OLS estimator</strong>'), 'Imported Word bold emphasis is rendered safely');
+expect(str_contains($topic, '<em>carefully</em>'), 'Imported Word italic emphasis is rendered safely');
+expect(str_contains($topic, '.ueab-card h3,.ueab-card h4,.ueab-card h5'),
+    'All imported heading levels receive an explicit visible card colour');
 expect(!str_contains($topic, 'What students should do'), 'Published Topic omits third-person student instructions');
 expect(str_contains($topic, 'data-ueab-builder="topic"'), 'Topic ownership marker is rendered');
 expect(str_contains($topic, 'class="ueab-hero ueab-topic-hero"'), 'Topic uses the balanced Topic hero');
@@ -228,7 +232,7 @@ if ($xml !== false) {
 }
 
 $version = file_get_contents($root . '/version.php');
-expect(str_contains($version, "release   = '1.8.2'"), 'Release is 1.8.2');
+expect(str_contains($version, "release   = '1.8.3'"), 'Release is 1.8.3');
 $publisher = file_get_contents($root . '/classes/local/publisher.php');
 expect(str_contains($publisher, 'revision_conflict'), 'Publisher protects against stale revisions');
 expect(str_contains($publisher, 'is_siteadmin($actorid)'),

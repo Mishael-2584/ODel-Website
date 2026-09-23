@@ -1,5 +1,11 @@
 # Change log
 
+## 1.8.3 - 2026-09-23
+
+- Render Word bold and italic emphasis safely throughout module and Topic content.
+- Assign explicit visible colours to imported heading levels so Moodle themes cannot hide them.
+- Pair with Faculty Assistant's explicit Topic-number binding and broader grading-table import.
+
 ## 1.8.2 - 2026-09-23
 
 - Rebuild protected illustration URLs from persisted Moodle file identities when Topic Pages are rendered.
