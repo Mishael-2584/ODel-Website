@@ -1,5 +1,13 @@
 # Change log
 
+## 1.8.0 - 2026-09-23
+
+- Added secure Course Builder image publishing from Faculty Assistant Word imports.
+- Preserved ordered images and Unicode symbols in illustrated Topic material.
+- Stored image binaries in Moodle's file API instead of revision JSON or browser storage.
+- Added responsive, lazy-loaded figures with accessible alternative text and captions.
+- Preserved imported media when a lecturer later edits the module from the Moodle block.
+
 ## 1.7.1 - 2026-08-18
 
 - Made Moodle course full name and short name read-only for teachers.

@@ -52,6 +52,16 @@ if (!has_capability('block/ueabbuilder:generate', $context)
     ueabbuilder_response(['success' => false, 'error' => 'You do not have permission to publish this course.'], 403);
 }
 
+global $DB;
+$existingpayload = [];
+$existingrecord = $DB->get_record('block_ueabbuilder_data', ['courseid' => $courseid]);
+if ($existingrecord) {
+    $decodedexisting = json_decode((string)$existingrecord->datajson, true);
+    if (is_array($decodedexisting)) {
+        $existingpayload = schema::normalise($decodedexisting);
+    }
+}
+
 $numericfields = [
     'credits', 'class_contact_hours', 'private_study_hours', 'weeks',
     'total_learning_hours', 'units',
@@ -109,11 +119,16 @@ foreach ($decodedtopics as $index => $rawtopic) {
         }
     }
     $topics[$number] = schema::normalise_topic($sanitised, $number);
+    if (empty($topics[$number]['document_content'])
+            && !empty($existingpayload['topicsdata'][$number]['document_content'])) {
+        $topics[$number]['document_content'] = $existingpayload['topicsdata'][$number]['document_content'];
+    }
 }
 
 $input['topics'] = $topiccount;
 $input['lessons'] = $topiccount;
 $input['topicsdata'] = $topics;
+$input['assets'] = $existingpayload['assets'] ?? [];
 
 global $USER;
 try {

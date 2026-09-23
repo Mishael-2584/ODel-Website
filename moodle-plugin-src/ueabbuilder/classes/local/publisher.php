@@ -18,6 +18,7 @@ final class publisher {
         require_once($CFG->dirroot . '/course/modlib.php');
         require_once($CFG->dirroot . '/mod/page/lib.php');
         require_once($CFG->libdir . '/resourcelib.php');
+        require_once($CFG->libdir . '/filelib.php');
 
         $payload = schema::normalise($rawpayload);
         $caneditcourseidentity = is_siteadmin($actorid);
@@ -52,13 +53,16 @@ final class publisher {
             $payload['units'] = (int)$payload['topics'];
         }
 
-        $contentjson = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        if ($contentjson === false || strlen($contentjson) > schema::MAX_PAYLOAD_BYTES) {
-            throw new publisher_exception('payload_too_large', 'The module content is too large to publish safely.', 0, 413);
-        }
-        $contenthash = hash('sha256', $contentjson);
         $transaction = $DB->start_delegated_transaction();
         try {
+            $payload = self::persist_media($course, $payload);
+            unset($payload['media_draft_itemid']);
+            $contentjson = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            if ($contentjson === false || strlen($contentjson) > schema::MAX_PAYLOAD_BYTES) {
+                throw new publisher_exception('payload_too_large', 'The module content is too large to publish safely.', 0, 413);
+            }
+            $contenthash = hash('sha256', $contentjson);
+            $renderpayload = self::with_media_urls($courseid, $payload);
             self::update_course_metadata($course, $payload, $caneditcourseidentity);
             $topiccount = (int)$payload['topics'];
             if (function_exists('course_create_sections_if_missing')) {
@@ -67,13 +71,13 @@ final class publisher {
 
             $topiclinks = [];
             for ($number = 1; $number <= $topiccount; $number++) {
-                $topic = $payload['topicsdata'][$number] ?? schema::normalise_topic([], $number);
-                $cmid = self::publish_topic($course, $number, $payload, $topic);
+                $topic = $renderpayload['topicsdata'][$number] ?? schema::normalise_topic([], $number);
+                $cmid = self::publish_topic($course, $number, $renderpayload, $topic);
                 $topiclinks[$number] = (new \moodle_url('/mod/page/view.php', ['id' => $cmid]))->out(false);
             }
             self::hide_unused_topics($courseid, $topiccount);
 
-            $displaypayload = $payload;
+            $displaypayload = $renderpayload;
             $displaypayload['topiclinks'] = $topiclinks;
             $sectionzero = $DB->get_record('course_sections', ['course' => $courseid, 'section' => 0], '*', MUST_EXIST);
             $DB->update_record('course_sections', (object)[
@@ -123,6 +127,87 @@ final class publisher {
             $transaction->rollback($error);
             throw $error;
         }
+    }
+
+    private static function persist_media(\stdClass $course, array $payload): array {
+        $assets = $payload['assets'] ?? [];
+        if (!$assets) {
+            return $payload;
+        }
+        $pending = array_filter($assets, fn($asset) => empty($asset['fileItemId']));
+        $draftitemid = (int)($payload['media_draft_itemid'] ?? 0);
+        if ($pending && $draftitemid <= 0) {
+            throw new publisher_exception(
+                'media_upload_required',
+                'The imported Word images must finish uploading before this module can be published.',
+                (int)$payload['revision'] - 1,
+                400,
+            );
+        }
+        if (!$pending) {
+            return $payload;
+        }
+        $context = \context_course::instance((int)$course->id);
+        $revision = (int)$payload['revision'];
+        file_save_draft_area_files(
+            $draftitemid,
+            $context->id,
+            'block_ueabbuilder',
+            'media',
+            $revision,
+            [
+                'subdirs' => false,
+                'maxfiles' => schema::MAX_ASSETS,
+                'maxbytes' => schema::MAX_MEDIA_BYTES,
+                'accepted_types' => ['image'],
+            ],
+        );
+        $fs = get_file_storage();
+        foreach ($assets as &$asset) {
+            if (!empty($asset['fileItemId'])) {
+                continue;
+            }
+            $file = $fs->get_file(
+                $context->id,
+                'block_ueabbuilder',
+                'media',
+                $revision,
+                '/',
+                $asset['filename'],
+            );
+            if (!$file || $file->is_directory() || (int)$file->get_filesize() !== (int)$asset['byteLength']) {
+                throw new publisher_exception(
+                    'media_upload_incomplete',
+                    'One or more imported Word images did not reach Moodle. Retry the publish.',
+                    $revision - 1,
+                    502,
+                );
+            }
+            $asset['fileItemId'] = $revision;
+        }
+        unset($asset);
+        $payload['assets'] = $assets;
+        return $payload;
+    }
+
+    private static function with_media_urls(int $courseid, array $payload): array {
+        $context = \context_course::instance($courseid);
+        foreach ($payload['assets'] ?? [] as &$asset) {
+            if (empty($asset['fileItemId'])) {
+                continue;
+            }
+            $asset['url'] = \moodle_url::make_pluginfile_url(
+                $context->id,
+                'block_ueabbuilder',
+                'media',
+                (int)$asset['fileItemId'],
+                '/',
+                $asset['filename'],
+                false,
+            )->out(false);
+        }
+        unset($asset);
+        return $payload;
     }
 
     private static function validate(array $payload): void {

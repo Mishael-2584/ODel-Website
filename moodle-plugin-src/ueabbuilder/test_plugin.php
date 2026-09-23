@@ -26,7 +26,7 @@ echo "UEAB Course Builder pre-flight\n";
 echo str_repeat('=', 34) . "\n";
 
 $required = [
-    'version.php', 'block_ueabbuilder.php', 'generate.php', 'reset.php',
+    'version.php', 'block_ueabbuilder.php', 'generate.php', 'reset.php', 'lib.php',
     'db/access.php', 'db/install.xml', 'db/upgrade.php',
     'classes/local/schema.php', 'classes/local/renderer.php',
     'classes/local/publisher.php', 'classes/local/publisher_exception.php',
@@ -122,6 +122,12 @@ $module = [
     'topics' => 1,
     'topicsdata' => [1 => ['title' => 'Foundations', 'description' => 'Topic description']],
     'topiclinks' => [1 => 'https://moodle.test/mod/page/view.php?id=701'],
+    'assets' => [[
+        'id' => '0123456789abcdef', 'filename' => '0123456789abcdef.png',
+        'mimeType' => 'image/png', 'byteLength' => 1200, 'fileItemId' => 4,
+        'altText' => 'Input and output diagram', 'caption' => 'The information-processing cycle',
+        'url' => 'https://moodle.test/pluginfile.php/7/block_ueabbuilder/media/4/0123456789abcdef.png',
+    ]],
 ];
 $homepage = renderer::homepage($module);
 expect(str_contains($homepage, 'Virtual office hours'), 'Learner support is rendered');
@@ -161,6 +167,7 @@ $topic = renderer::topic(1, $module, [
     'what' => 'Review the evidence and post your response.',
     'tutor_role' => 'Facilitate and respond.', 'inclusive_approach' => 'Provide captions.',
     'formative_feedback' => 'Immediate quiz feedback.',
+    'document_content' => "## Visual explanation\nInput → process → output\n[[FA_IMAGE:0123456789abcdef]]",
 ]);
 expect(str_contains($topic, '7h total hours'), 'Topic total includes assessment time');
 expect(str_contains($topic, 'How your tutor will support you'), 'Tutor support uses direct learner-facing language');
@@ -171,6 +178,10 @@ expect(!str_contains($topic, 'What students should do'), 'Published Topic omits 
 expect(str_contains($topic, 'data-ueab-builder="topic"'), 'Topic ownership marker is rendered');
 expect(str_contains($topic, 'class="ueab-hero ueab-topic-hero"'), 'Topic uses the balanced Topic hero');
 expect(str_contains($topic, 'class="ueab-hero-body"'), 'Topic hero content has an aligned inner container');
+expect(str_contains($topic, 'Illustrated study material'), 'Imported Word study material has a dedicated Topic section');
+expect(str_contains($topic, 'loading="lazy"'), 'Imported Word images use responsive lazy loading');
+expect(str_contains($topic, 'alt="Input and output diagram"'), 'Imported Word image alternative text is rendered');
+expect(str_contains($topic, 'Input → process → output'), 'Unicode symbols survive Topic rendering');
 
 $xml = simplexml_load_file($root . '/db/install.xml');
 expect($xml !== false, 'install.xml is well-formed XML');
@@ -179,7 +190,7 @@ if ($xml !== false) {
 }
 
 $version = file_get_contents($root . '/version.php');
-expect(str_contains($version, "release   = '1.7.1'"), 'Release is 1.7.1');
+expect(str_contains($version, "release   = '1.8.0'"), 'Release is 1.8.0');
 $publisher = file_get_contents($root . '/classes/local/publisher.php');
 expect(str_contains($publisher, 'revision_conflict'), 'Publisher protects against stale revisions');
 expect(str_contains($publisher, 'is_siteadmin($actorid)'),

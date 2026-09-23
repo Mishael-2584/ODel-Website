@@ -110,7 +110,7 @@ After the upgrade:
 5. Keep the existing dedicated service token; no desktop token changes are
 required.
 
-Install `artifacts/moodle/block_ueabbuilder-1.6.0.zip` as the companion Block
+Install `artifacts/moodle/block_ueabbuilder-1.8.0.zip` as the companion Block
 plugin. Moodle should auto-detect `block_ueabbuilder`. Both archives are built
 from the tracked sources with:
 
@@ -121,17 +121,17 @@ from the tracked sources with:
 6. Keep `local/facultyassistant:useservice` on the dedicated service role. The
    grade endpoint separately verifies that the signed-in lecturer has
    `moodle/grade:viewall` in the requested course and respects separate groups.
-7. Install UEAB Course Builder `1.6.0`, then grant
+7. Install UEAB Course Builder `1.8.0`, then grant
    `local/facultyassistant:publishcoursebuilder` only to the dedicated service
    role. Confirm the service includes `local_facultyassistant_get_course_builder`
-   and `local_facultyassistant_publish_course_builder`.
+   and `local_facultyassistant_publish_course_builder`. Edit the external service
+   and enable **Can upload files** so imported Word illustrations can enter
+   Moodle's protected draft file area.
 
 Package SHA-256 values are printed by the build scripts. Verify them against
 the deployment artifacts rather than copying a hash from older documentation.
-Current verified packages:
-
-- `block_ueabbuilder-1.6.0.zip`: `0D04A8B2EF5DFCC173F37FDF82CE8EB8A3C5FE2684F1B8A5D092EB1302FA5329`
-- `local_facultyassistant-0.8.0.zip`: `81CD39BCBF985A0626D37BA65C721731BA43BE73460FD60C63087D84003BAFC4`
+Current package SHA-256 values are emitted by the build scripts. Use those
+fresh values instead of hashes from an older release.
 
 ## 3. Deploy ODeL
 

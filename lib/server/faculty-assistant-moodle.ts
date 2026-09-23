@@ -238,6 +238,43 @@ export async function publishFacultyAssistantCourseBuilder(options: {
   }
 }
 
+export async function uploadFacultyAssistantCourseBuilderAsset(options: {
+  itemId: number
+  filename: string
+  mimeType: string
+  bytes: Uint8Array
+}) {
+  const baseUrl = process.env.NEXT_PUBLIC_MOODLE_URL
+  const token = process.env.FACULTY_ASSISTANT_MOODLE_TOKEN || process.env.MOODLE_API_TOKEN
+  if (!baseUrl || !token) throw new Error('Moodle integration is not configured')
+  const body = new FormData()
+  const uploadBytes = new Uint8Array(options.bytes.byteLength)
+  uploadBytes.set(options.bytes)
+  body.set('token', token)
+  body.set('filepath', '/')
+  body.set('itemid', String(options.itemId))
+  body.set('file_1', new Blob([uploadBytes.buffer], { type: options.mimeType }), options.filename)
+  const response = await fetch(`${baseUrl.replace(/\/$/, '')}/webservice/upload.php`, {
+    method: 'POST',
+    body,
+    cache: 'no-store',
+    signal: AbortSignal.timeout(45_000),
+  })
+  const result = await response.json().catch(() => null) as Array<Record<string, unknown>> | null
+  if (!response.ok || !Array.isArray(result) || !result.length) {
+    throw new Error(`Moodle media upload failed${response.ok ? '' : ` with HTTP ${response.status}`}`)
+  }
+  const uploaded = result[0]
+  if (uploaded.error && !(uploaded.errortype === 'filenameexist' && options.itemId > 0)) {
+    throw new Error(String(uploaded.error || 'Moodle rejected the media upload'))
+  }
+  const itemId = Number(uploaded.itemid || options.itemId)
+  if (!Number.isSafeInteger(itemId) || itemId <= 0) {
+    throw new Error('Moodle returned an invalid media draft identifier')
+  }
+  return { itemId, filename: options.filename }
+}
+
 async function callMoodleConnector(
   wsfunction: string,
   values: Record<string, string>,
