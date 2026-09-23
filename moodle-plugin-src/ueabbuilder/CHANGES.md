@@ -1,5 +1,11 @@
 # Change log
 
+## 1.8.4 - 2026-09-23
+
+- Render imported unit activities and self-assessment lists as accessible attempt-first practice cards.
+- Provide clearly labelled unsaved response areas without pretending that static Moodle Page content submits or grades work.
+- Keep facilitator guidance and supplied model answers collapsed away from the initial learner attempt.
+
 ## 1.8.3 - 2026-09-23
 
 - Render Word bold and italic emphasis safely throughout module and Topic content.

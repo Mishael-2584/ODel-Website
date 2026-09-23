@@ -2,7 +2,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'block_ueabbuilder';
-$plugin->version   = 2026092303;
+$plugin->version   = 2026092304;
 $plugin->requires  = 2023042400; // Moodle 4.2+
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '1.8.3';
+$plugin->release   = '1.8.4';

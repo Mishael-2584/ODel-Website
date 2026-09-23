@@ -114,5 +114,9 @@ function xmldb_block_ueabbuilder_upgrade(int $oldversion): bool {
         // Rich Word formatting and visible imported headings; no database schema change is required.
         upgrade_plugin_savepoint(true, 2026092303, 'block', 'ueabbuilder');
     }
+    if ($oldversion < 2026092304) {
+        // Attempt-first self-assessment rendering; no database schema change is required.
+        upgrade_plugin_savepoint(true, 2026092304, 'block', 'ueabbuilder');
+    }
     return true;
 }
