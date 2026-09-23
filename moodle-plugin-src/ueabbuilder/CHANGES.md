@@ -1,5 +1,10 @@
 # Change log
 
+## 1.8.2 - 2026-09-23
+
+- Rebuild protected illustration URLs from persisted Moodle file identities when Topic Pages are rendered.
+- Reject a revision if any imported Word image placeholder cannot be resolved, avoiding false-success publications.
+
 ## 1.8.1 - 2026-09-23
 
 - Preserved nested Word tables as semantic Moodle tables instead of flattened paragraphs.
