@@ -102,5 +102,9 @@ function xmldb_block_ueabbuilder_upgrade(int $oldversion): bool {
         // Revision-managed Word media support; no database schema change is required.
         upgrade_plugin_savepoint(true, 2026092300, 'block', 'ueabbuilder');
     }
+    if ($oldversion < 2026092301) {
+        // Semantic Word table rendering; no database schema change is required.
+        upgrade_plugin_savepoint(true, 2026092301, 'block', 'ueabbuilder');
+    }
     return true;
 }

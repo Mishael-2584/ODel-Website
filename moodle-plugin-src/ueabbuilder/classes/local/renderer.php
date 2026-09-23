@@ -36,15 +36,25 @@ final class renderer {
             if (!$table) {
                 return;
             }
-            $html .= '<div class="ueab-table-wrap"><table class="ueab-table"><tbody>';
+            $hasheader = isset($table[1]) && self::is_table_separator($table[1]);
+            $columncount = max(array_map('count', $table));
+            $html .= '<div class="ueab-table-wrap"><table class="ueab-table" data-columns="'
+                . $columncount . '">';
+            if ($hasheader) {
+                $html .= '<thead><tr>';
+                foreach ($table[0] as $cell) {
+                    $html .= '<th scope="col">' . self::e($cell) . '</th>';
+                }
+                $html .= '</tr></thead>';
+            }
+            $html .= '<tbody>';
             foreach ($table as $index => $cells) {
-                if ($index === 1 && self::is_table_separator($cells)) {
+                if (($hasheader && $index < 2) || self::is_table_separator($cells)) {
                     continue;
                 }
-                $tag = $index === 0 && isset($table[1]) && self::is_table_separator($table[1]) ? 'th' : 'td';
                 $html .= '<tr>';
                 foreach ($cells as $cell) {
-                    $html .= "<{$tag}>" . self::e($cell) . "</{$tag}>";
+                    $html .= '<td>' . self::linkify(self::e($cell)) . '</td>';
                 }
                 $html .= '</tr>';
             }
@@ -317,11 +327,11 @@ final class renderer {
 .ueab-identity{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:14px 0}.ueab-identity div{padding:14px 18px;border:1px solid var(--ueab-soft);border-radius:12px;background:var(--ueab-tint)}.ueab-identity small{display:block;text-transform:uppercase;letter-spacing:.08em;color:#718096}.ueab-identity strong{display:block;color:var(--ueab-dark)}
 .ueab-card{position:relative;margin:14px 0;padding:25px clamp(18px,4vw,32px);border:1px solid #e1e6ee;border-radius:17px;background:#fff;box-shadow:0 9px 28px rgba(17,35,64,.055)}.ueab-card:before{content:"";position:absolute;top:0;left:28px;width:56px;height:3px;border-radius:0 0 3px 3px;background:var(--ueab-accent)}.ueab-card h2{margin:0 0 19px;color:var(--ueab-primary);font-size:22px;letter-spacing:-.015em}.ueab-card h3{margin:18px 0 6px;color:var(--ueab-dark);font-size:15px}.ueab-card p{margin:0 0 10px}.ueab-card ul,.ueab-card ol{padding-left:22px}.ueab-card li{margin:5px 0}
 .ueab-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.ueab-fact{padding:13px 15px;border:1px solid var(--ueab-soft);background:var(--ueab-tint);border-radius:11px}.ueab-fact small{display:block;color:#718096;text-transform:uppercase;letter-spacing:.06em}.ueab-fact strong{display:block;color:var(--ueab-dark);white-space:pre-line}
-.ueab-table-wrap{min-width:0;max-width:100%;overflow:auto;margin:12px 0}.ueab-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid #dfe5ee;border-radius:12px;overflow:hidden}.ueab-table th{background:var(--ueab-primary);color:#fff;text-align:left}.ueab-table th,.ueab-table td{padding:10px 12px;border-bottom:1px solid #e7ebf1;vertical-align:top;overflow-wrap:anywhere}.ueab-table td p{margin:0}.ueab-table tr:last-child td{border-bottom:0}
-.ueab-figure{max-width:820px;margin:24px auto;text-align:center}.ueab-figure img{display:block;width:auto;max-width:100%;height:auto;max-height:720px;margin:0 auto;border:1px solid #e1e6ee;border-radius:13px;background:#fff;box-shadow:0 10px 28px rgba(17,35,64,.1);object-fit:contain}.ueab-figure figcaption{max-width:720px;margin:8px auto 0;color:#657187;font-size:12px;line-height:1.45}.ueab-media-unavailable{padding:12px 14px;border:1px solid #ecd8a4;border-radius:10px;background:#fff8e6;color:#6d5420}
+.ueab-table-wrap{min-width:0;max-width:100%;overflow:auto;margin:18px 0;border:1px solid #d8e0eb;border-radius:14px;background:#fff;box-shadow:0 7px 20px rgba(17,35,64,.06)}.ueab-table{width:100%;min-width:560px;border-collapse:collapse;border-spacing:0}.ueab-table th{background:linear-gradient(120deg,var(--ueab-dark),var(--ueab-primary));color:#fff;text-align:left;font-size:12px;letter-spacing:.01em}.ueab-table th,.ueab-table td{padding:11px 13px;border-right:1px solid #e3e8f0;border-bottom:1px solid #e3e8f0;vertical-align:top;overflow-wrap:anywhere}.ueab-table th:last-child,.ueab-table td:last-child{border-right:0}.ueab-table tbody tr:nth-child(even) td{background:var(--ueab-tint)}.ueab-table tbody tr:hover td{background:var(--ueab-soft)}.ueab-table tbody tr:last-child td{border-bottom:0}.ueab-table td:first-child{font-weight:700;color:var(--ueab-dark)}.ueab-table td p{margin:0}
+.ueab-figure{max-width:860px;margin:26px auto;padding:10px;text-align:center;border:1px solid #e2e7ef;border-radius:16px;background:linear-gradient(145deg,#fff,var(--ueab-tint));box-shadow:0 10px 30px rgba(17,35,64,.08)}.ueab-figure img{display:block;width:auto;max-width:100%;height:auto;max-height:760px;margin:0 auto;border-radius:10px;background:#fff;object-fit:contain}.ueab-figure figcaption{max-width:720px;margin:9px auto 2px;color:#59667b;font-size:12px;line-height:1.5}.ueab-media-unavailable{padding:12px 14px;border:1px solid #ecd8a4;border-radius:10px;background:#fff8e6;color:#6d5420}
 .ueab-topic-grid,.ueab-activity-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.ueab-topic-card{display:grid;grid-template-columns:38px minmax(0,1fr) 22px;align-items:center;gap:12px;min-height:92px;padding:15px;border:1px solid var(--ueab-soft);border-left:4px solid var(--ueab-accent);border-radius:13px;background:linear-gradient(145deg,#fff,var(--ueab-tint));color:inherit;text-decoration:none;box-shadow:0 5px 16px rgba(17,35,64,.045);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}.ueab-topic-card:hover,.ueab-topic-card:focus{transform:translateY(-2px);border-color:var(--ueab-primary);box-shadow:0 12px 28px rgba(17,35,64,.12);outline:none}.ueab-topic-number{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:var(--ueab-primary);color:#fff;font-weight:850}.ueab-topic-arrow{color:var(--ueab-primary);font-size:20px;font-weight:800;transition:transform .16s ease}.ueab-topic-card:hover .ueab-topic-arrow,.ueab-topic-card:focus .ueab-topic-arrow{transform:translateX(3px)}.ueab-topic-card strong,.ueab-topic-card small{display:block}.ueab-topic-card strong{color:var(--ueab-dark);line-height:1.3}.ueab-topic-card small{margin-top:5px;color:#68748a;line-height:1.45}.ueab-activity{padding:15px;border-radius:12px;background:var(--ueab-tint);border-top:3px solid var(--ueab-accent)}.ueab-activity h3{display:flex;justify-content:space-between;margin-top:0}.ueab-activity h3 span{color:var(--ueab-primary)}
 .ueab-faq{margin:0}.ueab-faq dt{margin-top:16px;color:var(--ueab-dark);font-weight:800}.ueab-faq dt:first-child{margin-top:0}.ueab-faq dd{margin:4px 0 0}.ueab-support a{color:var(--ueab-primary);font-weight:700;overflow-wrap:anywhere}
-@media(max-width:620px){.ueab-hero-top{align-items:flex-start;flex-direction:column;gap:2px}.ueab-hero-top span:last-child{text-align:left}.ueab-topic-hero .ueab-hero-body{min-height:0;padding-top:22px;padding-bottom:24px}.ueab-topic-hero h1{font-size:clamp(25px,8vw,34px)}.ueab-nav{position:static}.ueab-card{padding:20px 18px}.ueab-stats{grid-template-columns:1fr 1fr}.ueab-activity-grid,.ueab-topic-grid{grid-template-columns:1fr}}
+@media(max-width:620px){.ueab-hero-top{align-items:flex-start;flex-direction:column;gap:2px}.ueab-hero-top span:last-child{text-align:left}.ueab-topic-hero .ueab-hero-body{min-height:0;padding-top:22px;padding-bottom:24px}.ueab-topic-hero h1{font-size:clamp(25px,8vw,34px)}.ueab-nav{position:static}.ueab-card{padding:20px 18px}.ueab-stats{grid-template-columns:1fr 1fr}.ueab-activity-grid,.ueab-topic-grid{grid-template-columns:1fr}.ueab-table th,.ueab-table td{padding:9px 10px}.ueab-figure{margin:20px 0;padding:7px}}
 @media print{.ueab-course{max-width:none;color:#000}.ueab-nav{display:none}.ueab-hero,.ueab-card,.ueab-welcome,.ueab-lead{box-shadow:none;break-inside:avoid}.ueab-topic-card,.ueab-fact,.ueab-activity{break-inside:avoid}.ueab-hero{print-color-adjust:exact;-webkit-print-color-adjust:exact}.ueab-card a{color:inherit;text-decoration:underline}}
 </style>';
     }
