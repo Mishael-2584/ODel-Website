@@ -98,5 +98,9 @@ function xmldb_block_ueabbuilder_upgrade(int $oldversion): bool {
         // Shared publishing engine for the block UI and Faculty Assistant.
         upgrade_plugin_savepoint(true, 2026081202, 'block', 'ueabbuilder');
     }
+    if ($oldversion < 2026092300) {
+        // Revision-managed Word media support; no database schema change is required.
+        upgrade_plugin_savepoint(true, 2026092300, 'block', 'ueabbuilder');
+    }
     return true;
 }

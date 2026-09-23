@@ -17,7 +17,7 @@ final class renderer {
      * Render structured plain text. Supports paragraphs, headings, lists and
      * Markdown-style tables without accepting executable HTML.
      */
-    public static function rich(string $text): string {
+    public static function rich(string $text, array $assets = []): string {
         $lines = preg_split('/\R/u', trim($text)) ?: [];
         if (!$lines || (count($lines) === 1 && trim($lines[0]) === '')) {
             return '';
@@ -54,6 +54,12 @@ final class renderer {
 
         foreach ($lines as $line) {
             $line = trim($line);
+            if (preg_match('/^\[\[FA_IMAGE:([a-f0-9]{16,64})\]\]$/', $line, $match)) {
+                $flushlist();
+                $flushtable();
+                $html .= self::figure($match[1], $assets);
+                continue;
+            }
             if (preg_match('/^\|.*\|$/u', $line)) {
                 $flushlist();
                 $table[] = array_map('trim', explode('|', trim($line, '|')));
@@ -94,6 +100,22 @@ final class renderer {
         $flushlist();
         $flushtable();
         return $html;
+    }
+
+    private static function figure(string $id, array $assets): string {
+        foreach ($assets as $asset) {
+            if (!is_array($asset) || ($asset['id'] ?? '') !== $id || empty($asset['url'])) {
+                continue;
+            }
+            $alt = trim((string)($asset['altText'] ?? '')) ?: 'Course illustration';
+            $caption = trim((string)($asset['caption'] ?? ''));
+            return '<figure class="ueab-figure"><img src="' . self::e($asset['url'])
+                . '" alt="' . self::e($alt) . '" loading="lazy" decoding="async">'
+                . ($caption !== '' ? '<figcaption>' . self::e($caption) . '</figcaption>' : '')
+                . '</figure>';
+        }
+        return '<p class="ueab-media-unavailable">An imported course illustration is unavailable. '
+            . 'Ask the lecturer to republish this Topic.</p>';
     }
 
     /** @param string[] $headers */
@@ -257,6 +279,13 @@ final class renderer {
             'How your feedback improves this topic' => $t['feedback_use'],
             'When you will receive formative feedback' => $t['formative_feedback'],
         ]));
+        if (self::present($t['document_content'])) {
+            $sections .= self::card(
+                'study-material',
+                'Illustrated study material',
+                self::rich($t['document_content'], $p['assets']),
+            );
+        }
 
         return self::styles($palette) . '<main class="ueab-course ueab-topic" data-ueab-builder="topic">'
             . '<header class="ueab-hero ueab-topic-hero"><div class="ueab-hero-top"><span>'
@@ -266,7 +295,8 @@ final class renderer {
             . self::hours($total) . ' total hours</span><span>' . self::e($p['mode']) . '</span></div></div></header>'
             . ($welcome ? '<section class="ueab-welcome"><strong>Welcome to this topic</strong>' . $welcome . '</section>' : '')
             . '<nav class="ueab-nav"><a href="#overview">Overview</a><a href="#content">Content</a>'
-            . '<a href="#activities">Activities</a><a href="#connections">Resources</a><a href="#feedback">Feedback</a></nav>'
+            . '<a href="#activities">Activities</a><a href="#connections">Resources</a><a href="#feedback">Feedback</a>'
+            . (self::present($t['document_content']) ? '<a href="#study-material">Study material</a>' : '') . '</nav>'
             . $sections . '</main>';
     }
 
@@ -288,6 +318,7 @@ final class renderer {
 .ueab-card{position:relative;margin:14px 0;padding:25px clamp(18px,4vw,32px);border:1px solid #e1e6ee;border-radius:17px;background:#fff;box-shadow:0 9px 28px rgba(17,35,64,.055)}.ueab-card:before{content:"";position:absolute;top:0;left:28px;width:56px;height:3px;border-radius:0 0 3px 3px;background:var(--ueab-accent)}.ueab-card h2{margin:0 0 19px;color:var(--ueab-primary);font-size:22px;letter-spacing:-.015em}.ueab-card h3{margin:18px 0 6px;color:var(--ueab-dark);font-size:15px}.ueab-card p{margin:0 0 10px}.ueab-card ul,.ueab-card ol{padding-left:22px}.ueab-card li{margin:5px 0}
 .ueab-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.ueab-fact{padding:13px 15px;border:1px solid var(--ueab-soft);background:var(--ueab-tint);border-radius:11px}.ueab-fact small{display:block;color:#718096;text-transform:uppercase;letter-spacing:.06em}.ueab-fact strong{display:block;color:var(--ueab-dark);white-space:pre-line}
 .ueab-table-wrap{min-width:0;max-width:100%;overflow:auto;margin:12px 0}.ueab-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid #dfe5ee;border-radius:12px;overflow:hidden}.ueab-table th{background:var(--ueab-primary);color:#fff;text-align:left}.ueab-table th,.ueab-table td{padding:10px 12px;border-bottom:1px solid #e7ebf1;vertical-align:top;overflow-wrap:anywhere}.ueab-table td p{margin:0}.ueab-table tr:last-child td{border-bottom:0}
+.ueab-figure{max-width:820px;margin:24px auto;text-align:center}.ueab-figure img{display:block;width:auto;max-width:100%;height:auto;max-height:720px;margin:0 auto;border:1px solid #e1e6ee;border-radius:13px;background:#fff;box-shadow:0 10px 28px rgba(17,35,64,.1);object-fit:contain}.ueab-figure figcaption{max-width:720px;margin:8px auto 0;color:#657187;font-size:12px;line-height:1.45}.ueab-media-unavailable{padding:12px 14px;border:1px solid #ecd8a4;border-radius:10px;background:#fff8e6;color:#6d5420}
 .ueab-topic-grid,.ueab-activity-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.ueab-topic-card{display:grid;grid-template-columns:38px minmax(0,1fr) 22px;align-items:center;gap:12px;min-height:92px;padding:15px;border:1px solid var(--ueab-soft);border-left:4px solid var(--ueab-accent);border-radius:13px;background:linear-gradient(145deg,#fff,var(--ueab-tint));color:inherit;text-decoration:none;box-shadow:0 5px 16px rgba(17,35,64,.045);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}.ueab-topic-card:hover,.ueab-topic-card:focus{transform:translateY(-2px);border-color:var(--ueab-primary);box-shadow:0 12px 28px rgba(17,35,64,.12);outline:none}.ueab-topic-number{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:var(--ueab-primary);color:#fff;font-weight:850}.ueab-topic-arrow{color:var(--ueab-primary);font-size:20px;font-weight:800;transition:transform .16s ease}.ueab-topic-card:hover .ueab-topic-arrow,.ueab-topic-card:focus .ueab-topic-arrow{transform:translateX(3px)}.ueab-topic-card strong,.ueab-topic-card small{display:block}.ueab-topic-card strong{color:var(--ueab-dark);line-height:1.3}.ueab-topic-card small{margin-top:5px;color:#68748a;line-height:1.45}.ueab-activity{padding:15px;border-radius:12px;background:var(--ueab-tint);border-top:3px solid var(--ueab-accent)}.ueab-activity h3{display:flex;justify-content:space-between;margin-top:0}.ueab-activity h3 span{color:var(--ueab-primary)}
 .ueab-faq{margin:0}.ueab-faq dt{margin-top:16px;color:var(--ueab-dark);font-weight:800}.ueab-faq dt:first-child{margin-top:0}.ueab-faq dd{margin:4px 0 0}.ueab-support a{color:var(--ueab-primary);font-weight:700;overflow-wrap:anywhere}
 @media(max-width:620px){.ueab-hero-top{align-items:flex-start;flex-direction:column;gap:2px}.ueab-hero-top span:last-child{text-align:left}.ueab-topic-hero .ueab-hero-body{min-height:0;padding-top:22px;padding-bottom:24px}.ueab-topic-hero h1{font-size:clamp(25px,8vw,34px)}.ueab-nav{position:static}.ueab-card{padding:20px 18px}.ueab-stats{grid-template-columns:1fr 1fr}.ueab-activity-grid,.ueab-topic-grid{grid-template-columns:1fr}}
@@ -344,7 +375,7 @@ final class renderer {
     }
 
     private static function card(string $id, string $title, string $content): string {
-        if (trim(strip_tags($content)) === '') {
+        if (trim(strip_tags($content)) === '' && !str_contains($content, '<img ')) {
             return '';
         }
         return '<section id="' . self::e($id) . '" class="ueab-card"><h2>' . self::e($title) . '</h2>' . $content . '</section>';

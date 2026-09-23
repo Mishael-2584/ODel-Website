@@ -10,6 +10,9 @@ final class schema {
     public const VERSION = 2;
     public const MAX_TOPICS = 12;
     public const MAX_PAYLOAD_BYTES = 5000000;
+    public const MAX_ASSETS = 200;
+    public const MAX_ASSET_BYTES = 2000000;
+    public const MAX_MEDIA_BYTES = 25000000;
 
     /** @return string[] */
     public static function schools(): array {
@@ -67,6 +70,7 @@ final class schema {
             'tutor_role', 'assessment_activity', 'assessment_hours', 'topic_links',
             'resources', 'resource_access', 'collaboration', 'inclusive_approach',
             'feedback_collection', 'feedback_use', 'formative_feedback',
+            'document_content',
         ];
     }
 
@@ -86,6 +90,8 @@ final class schema {
             'outcomes_intro' => 'By the end of this module, you will be able to:',
             'topicsdata' => [],
             'topiclinks' => [],
+            'assets' => [],
+            'media_draft_itemid' => 0,
         ]);
 
         // Backward-compatible aliases from version 1.x payloads.
@@ -110,6 +116,8 @@ final class schema {
         $normalised['lessons'] = $topiccount;
         $normalised['schema_version'] = self::VERSION;
         $normalised['revision'] = max(0, (int)($data['revision'] ?? 0));
+        $normalised['media_draft_itemid'] = max(0, (int)($data['media_draft_itemid'] ?? 0));
+        $normalised['assets'] = self::normalise_assets($data['assets'] ?? []);
 
         $rawtopics = $data['topicsdata'] ?? $data['lessonsdata'] ?? [];
         $normalised['topicsdata'] = [];
@@ -121,6 +129,50 @@ final class schema {
         $normalised['topiclinks'] = [];
         for ($i = 1; $i <= $topiccount; $i++) {
             $normalised['topiclinks'][$i] = trim((string)($rawlinks[$i] ?? $rawlinks[(string)$i] ?? ''));
+        }
+        return $normalised;
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    public static function normalise_assets(mixed $assets): array {
+        if (!is_array($assets) || count($assets) > self::MAX_ASSETS) {
+            return [];
+        }
+        $normalised = [];
+        $seen = [];
+        $totalbytes = 0;
+        foreach ($assets as $asset) {
+            if (!is_array($asset)) {
+                continue;
+            }
+            $id = strtolower(trim((string)($asset['id'] ?? '')));
+            $filename = preg_replace('/[^a-zA-Z0-9._-]/', '', (string)($asset['filename'] ?? ''));
+            $mimetype = strtolower(trim((string)($asset['mimeType'] ?? '')));
+            $bytes = (int)($asset['byteLength'] ?? 0);
+            $fileitemid = max(0, (int)($asset['fileItemId'] ?? 0));
+            $url = trim((string)($asset['url'] ?? ''));
+            $extension = $mimetype === 'image/jpeg' ? 'jpg' : substr($mimetype, 6);
+            if (!preg_match('/^[a-f0-9]{16,64}$/', $id) || isset($seen[$id])
+                    || !in_array($mimetype, ['image/png', 'image/jpeg', 'image/gif', 'image/webp'], true)
+                    || $filename !== "{$id}.{$extension}"
+                    || $bytes <= 0 || $bytes > self::MAX_ASSET_BYTES) {
+                continue;
+            }
+            $totalbytes += $bytes;
+            if ($totalbytes > self::MAX_MEDIA_BYTES) {
+                return [];
+            }
+            $seen[$id] = true;
+            $normalised[] = [
+                'id' => $id,
+                'filename' => $filename,
+                'mimeType' => $mimetype,
+                'byteLength' => $bytes,
+                'altText' => mb_substr(trim((string)($asset['altText'] ?? '')), 0, 500),
+                'caption' => mb_substr(trim((string)($asset['caption'] ?? '')), 0, 500),
+                'fileItemId' => $fileitemid,
+                'url' => preg_match('#^https?://#i', $url) ? $url : '',
+            ];
         }
         return $normalised;
     }

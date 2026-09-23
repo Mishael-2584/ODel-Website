@@ -3,7 +3,14 @@
 UEAB Course Builder is a Moodle block for creating and maintaining a structured,
 learner-facing module home page and topic Pages inside an existing course.
 
-## Release 1.7.1
+## Release 1.8.0
+
+Version 1.8.0 preserves illustrations and Unicode symbols from supported Word
+module imports. Faculty Assistant uploads the image binaries to Moodle's draft
+file area, and the block stores them in Moodle's protected file API when the
+revision is published. Topic Pages render responsive, lazy-loaded figures in
+their original document order. The files remain subject to course access and
+are not exposed as public URLs.
 
 Version 1.7.1 keeps Moodle course identity under administrator control. Course
 full name and short name are read-only for teachers, and the publisher replaces
@@ -89,6 +96,11 @@ directly inside that folder.
 After installation or upgrade, visit **Site administration > Notifications** and
 complete the database upgrade. Purge Moodle caches, then open a managed course
 and add the **UEAB Course Builder** block.
+
+For Faculty Assistant image publishing, open **Site administration > Server >
+Web services > External services**, edit **Faculty Assistant Connector**, and
+enable **Can upload files**. Keep the existing two Course Builder functions in
+that service; version 1.8.0 does not add another external function.
 
 ## Verification
 
