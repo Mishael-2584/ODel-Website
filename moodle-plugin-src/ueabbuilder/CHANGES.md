@@ -1,5 +1,11 @@
 # Change log
 
+## 1.8.1 - 2026-09-23
+
+- Preserved nested Word tables as semantic Moodle tables instead of flattened paragraphs.
+- Added clear table headers, alternating rows and responsive horizontal scrolling.
+- Refined imported figure framing and spacing across desktop and mobile layouts.
+
 ## 1.8.0 - 2026-09-23
 
 - Added secure Course Builder image publishing from Faculty Assistant Word imports.

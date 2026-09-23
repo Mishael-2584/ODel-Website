@@ -167,7 +167,11 @@ $topic = renderer::topic(1, $module, [
     'what' => 'Review the evidence and post your response.',
     'tutor_role' => 'Facilitate and respond.', 'inclusive_approach' => 'Provide captions.',
     'formative_feedback' => 'Immediate quiz feedback.',
-    'document_content' => "## Visual explanation\nInput → process → output\n[[FA_IMAGE:0123456789abcdef]]",
+    'document_content' => "## Visual explanation\nInput → process → output\n"
+        . "| Generation | Period | Technology Used | Examples | Characteristics |\n"
+        . "| --- | --- | --- | --- | --- |\n"
+        . "| 1st Generation | 1940–1956 | Vacuum tubes | ENIAC, UNIVAC | Large and power hungry |\n"
+        . "[[FA_IMAGE:0123456789abcdef]]",
 ]);
 expect(str_contains($topic, '7h total hours'), 'Topic total includes assessment time');
 expect(str_contains($topic, 'How your tutor will support you'), 'Tutor support uses direct learner-facing language');
@@ -182,6 +186,10 @@ expect(str_contains($topic, 'Illustrated study material'), 'Imported Word study 
 expect(str_contains($topic, 'loading="lazy"'), 'Imported Word images use responsive lazy loading');
 expect(str_contains($topic, 'alt="Input and output diagram"'), 'Imported Word image alternative text is rendered');
 expect(str_contains($topic, 'Input → process → output'), 'Unicode symbols survive Topic rendering');
+expect(str_contains($topic, '<thead><tr><th scope="col">Generation</th>'),
+    'Imported Word table headers render as a semantic table head');
+expect(str_contains($topic, '<td>Vacuum tubes</td>'), 'Imported Word table cells remain aligned');
+expect(!str_contains($topic, '<p>Generation</p>'), 'Imported Word tables are not flattened into paragraphs');
 
 $xml = simplexml_load_file($root . '/db/install.xml');
 expect($xml !== false, 'install.xml is well-formed XML');
@@ -190,7 +198,7 @@ if ($xml !== false) {
 }
 
 $version = file_get_contents($root . '/version.php');
-expect(str_contains($version, "release   = '1.8.0'"), 'Release is 1.8.0');
+expect(str_contains($version, "release   = '1.8.1'"), 'Release is 1.8.1');
 $publisher = file_get_contents($root . '/classes/local/publisher.php');
 expect(str_contains($publisher, 'revision_conflict'), 'Publisher protects against stale revisions');
 expect(str_contains($publisher, 'is_siteadmin($actorid)'),
