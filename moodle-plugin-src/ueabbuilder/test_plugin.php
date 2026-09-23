@@ -199,7 +199,13 @@ $topic = renderer::topic(1, $module, [
         . "| Generation | Period | Technology Used | Examples | Characteristics |\n"
         . "| --- | --- | --- | --- | --- |\n"
         . "| 1st Generation | 1940–1956 | Vacuum tubes | ENIAC, UNIVAC | Large and power hungry |\n"
-        . "[[FA_IMAGE:0123456789abcdef]]",
+        . "[[FA_IMAGE:0123456789abcdef]]\n"
+        . "## Unit Activity / Case Study\n### Case Study: Farm productivity\n"
+        . "Review the scenario, then attempt each prompt.\n### Discussion Tasks\n"
+        . "- Explain the likely relationship.\n- Propose an appropriate model.\n"
+        . "Suggested answer: A valid response should justify the selected variables.\n"
+        . "Facilitation note: Compare the proposed models in a plenary discussion.\n"
+        . "## Topic Summary\nThe Topic is complete.",
 ]);
 expect(str_contains($topic, '7h total hours'), 'Topic total includes assessment time');
 expect(str_contains($topic, 'How your tutor will support you'), 'Tutor support uses direct learner-facing language');
@@ -224,6 +230,18 @@ expect(str_contains($topic, '<thead><tr><th scope="col">Generation</th>'),
     'Imported Word table headers render as a semantic table head');
 expect(str_contains($topic, '<td>Vacuum tubes</td>'), 'Imported Word table cells remain aligned');
 expect(!str_contains($topic, '<p>Generation</p>'), 'Imported Word tables are not flattened into paragraphs');
+expect(str_contains($topic, 'class="ueab-practice"'), 'Unit activities render as an attempt-first practice panel');
+expect(substr_count($topic, 'class="ueab-practice-question"') === 2,
+    'Each imported practice prompt renders as a separate question card');
+expect(str_contains($topic, '<textarea rows="4"'), 'Practice cards provide an unsaved learner response area');
+expect(str_contains($topic, 'This practice response is not saved or submitted.'),
+    'Practice response persistence is described accurately');
+expect(str_contains($topic, '<summary>Facilitator guidance</summary>'),
+    'Facilitator guidance is collapsed instead of mixed into learner prompts');
+expect(str_contains($topic, '<summary>Compare your response</summary>'),
+    'Supplied answers remain collapsed until the learner chooses to compare');
+expect(strpos($topic, '</section><h4>Topic Summary</h4>') !== false,
+    'The practice panel closes before subsequent Topic content');
 
 $xml = simplexml_load_file($root . '/db/install.xml');
 expect($xml !== false, 'install.xml is well-formed XML');
@@ -232,7 +250,7 @@ if ($xml !== false) {
 }
 
 $version = file_get_contents($root . '/version.php');
-expect(str_contains($version, "release   = '1.8.3'"), 'Release is 1.8.3');
+expect(str_contains($version, "release   = '1.8.4'"), 'Release is 1.8.4');
 $publisher = file_get_contents($root . '/classes/local/publisher.php');
 expect(str_contains($publisher, 'revision_conflict'), 'Publisher protects against stale revisions');
 expect(str_contains($publisher, 'is_siteadmin($actorid)'),

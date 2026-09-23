@@ -26,6 +26,8 @@ final class renderer {
         $html = '';
         $list = null;
         $table = [];
+        $practice = false;
+        $practicequestion = 0;
         $flushlist = function() use (&$html, &$list): void {
             if ($list !== null) {
                 $html .= "</{$list}>";
@@ -61,6 +63,13 @@ final class renderer {
             $html .= '</tbody></table></div>';
             $table = [];
         };
+        $closepractice = function() use (&$html, &$practice, &$practicequestion): void {
+            if ($practice) {
+                $html .= '</section>';
+                $practice = false;
+                $practicequestion = 0;
+            }
+        };
 
         foreach ($lines as $line) {
             $line = trim($line);
@@ -82,11 +91,35 @@ final class renderer {
             }
             if (preg_match('/^(#{1,3})\s+(.+)$/u', $line, $match)) {
                 $flushlist();
+                $heading = self::plain_inline($match[2]);
+                if (self::is_practice_heading($heading)) {
+                    if (!$practice) {
+                        $practice = true;
+                        $practicequestion = 0;
+                        $html .= '<section class="ueab-practice"><header class="ueab-practice-header">'
+                            . '<span>Try it yourself</span><h3>' . self::inline($match[2]) . '</h3>'
+                            . '<p>Work through each prompt before comparing notes or continuing. '
+                            . 'Responses typed here are private scratch work and are not saved or submitted.</p></header>';
+                    } else {
+                        if (preg_match('/\b(?:questions?|tasks?|instructions?)\b/i', $heading)) {
+                            $practicequestion = 0;
+                        }
+                        $html .= '<h4 class="ueab-practice-subheading">' . self::inline($match[2]) . '</h4>';
+                    }
+                    continue;
+                }
+                $closepractice();
                 $level = min(4, strlen($match[1]) + 2);
                 $html .= "<h{$level}>" . self::inline($match[2]) . "</h{$level}>";
                 continue;
             }
             if (preg_match('/^[-*]\s+(.+)$/u', $line, $match)) {
+                if ($practice) {
+                    $flushlist();
+                    $practicequestion++;
+                    $html .= self::practice_question($practicequestion, $match[1]);
+                    continue;
+                }
                 if ($list !== 'ul') {
                     $flushlist();
                     $list = 'ul';
@@ -96,6 +129,12 @@ final class renderer {
                 continue;
             }
             if (preg_match('/^\d+[.)]\s+(.+)$/u', $line, $match)) {
+                if ($practice) {
+                    $flushlist();
+                    $practicequestion++;
+                    $html .= self::practice_question($practicequestion, $match[1]);
+                    continue;
+                }
                 if ($list !== 'ol') {
                     $flushlist();
                     $list = 'ol';
@@ -105,11 +144,43 @@ final class renderer {
                 continue;
             }
             $flushlist();
+            if ($practice && preg_match('/^Facilitat(?:ion|or)\s+note\s*:\s*(.+)$/iu', $line, $match)) {
+                $html .= '<details class="ueab-practice-guidance"><summary>Facilitator guidance</summary><p>'
+                    . self::inline($match[1]) . '</p></details>';
+                continue;
+            }
+            if ($practice && preg_match('/^(?:Suggested|Model)\s+answer\s*:\s*(.+)$/iu', $line, $match)) {
+                $html .= '<details class="ueab-practice-guidance"><summary>Compare your response</summary><p>'
+                    . self::inline($match[1]) . '</p></details>';
+                continue;
+            }
             $html .= '<p>' . self::inline($line) . '</p>';
         }
         $flushlist();
         $flushtable();
+        $closepractice();
         return $html;
+    }
+
+    private static function is_practice_heading(string $heading): bool {
+        return (bool)preg_match(
+            '/^(?:unit activity(?:\s*\/\s*case study)?|case study\b.*|activity instructions?|discussion tasks?'
+                . '|(?:five\s+)?unit questions?|self[ -]?assessment(?: questions?)?|practice questions?'
+                . '|review questions?|estimation exercise for learners)$/iu',
+            trim($heading),
+        );
+    }
+
+    private static function practice_question(int $number, string $prompt): string {
+        return '<details class="ueab-practice-question"><summary><span class="ueab-practice-number">Question '
+            . $number . '</span><span class="ueab-practice-prompt">' . self::inline($prompt) . '</span></summary>'
+            . '<div class="ueab-practice-response"><label>Draft your response'
+            . '<textarea rows="4" spellcheck="true" aria-label="Draft response to question ' . $number . '"></textarea>'
+            . '</label><small>This practice response is not saved or submitted.</small></div></details>';
+    }
+
+    private static function plain_inline(string $value): string {
+        return trim(preg_replace('/\*{1,3}(.+?)\*{1,3}/u', '$1', $value) ?? $value);
     }
 
     private static function figure(string $id, array $assets): string {
@@ -355,9 +426,10 @@ final class renderer {
 .ueab-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.ueab-fact{padding:13px 15px;border:1px solid var(--ueab-soft);background:var(--ueab-tint);border-radius:11px}.ueab-fact small{display:block;color:#718096;text-transform:uppercase;letter-spacing:.06em}.ueab-fact strong{display:block;color:var(--ueab-dark);white-space:pre-line}
 .ueab-table-wrap{min-width:0;max-width:100%;overflow:auto;margin:18px 0;border:1px solid #d8e0eb;border-radius:14px;background:#fff;box-shadow:0 7px 20px rgba(17,35,64,.06)}.ueab-table{width:100%;min-width:560px;border-collapse:collapse;border-spacing:0}.ueab-table th{background:linear-gradient(120deg,var(--ueab-dark),var(--ueab-primary));color:#fff;text-align:left;font-size:12px;letter-spacing:.01em}.ueab-table th,.ueab-table td{padding:11px 13px;border-right:1px solid #e3e8f0;border-bottom:1px solid #e3e8f0;vertical-align:top;overflow-wrap:anywhere}.ueab-table th:last-child,.ueab-table td:last-child{border-right:0}.ueab-table tbody tr:nth-child(even) td{background:var(--ueab-tint)}.ueab-table tbody tr:hover td{background:var(--ueab-soft)}.ueab-table tbody tr:last-child td{border-bottom:0}.ueab-table td:first-child{font-weight:700;color:var(--ueab-dark)}.ueab-table td p{margin:0}
 .ueab-figure{max-width:860px;margin:26px auto;padding:10px;text-align:center;border:1px solid #e2e7ef;border-radius:16px;background:linear-gradient(145deg,#fff,var(--ueab-tint));box-shadow:0 10px 30px rgba(17,35,64,.08)}.ueab-figure img{display:block;width:auto;max-width:100%;height:auto;max-height:760px;margin:0 auto;border-radius:10px;background:#fff;object-fit:contain}.ueab-figure figcaption{max-width:720px;margin:9px auto 2px;color:#59667b;font-size:12px;line-height:1.5}.ueab-media-unavailable{padding:12px 14px;border:1px solid #ecd8a4;border-radius:10px;background:#fff8e6;color:#6d5420}
+.ueab-practice{margin:24px 0;padding:clamp(16px,3vw,24px);border:1px solid var(--ueab-soft);border-radius:18px;background:linear-gradient(145deg,var(--ueab-tint),#fff);box-shadow:0 10px 28px rgba(17,35,64,.07)}.ueab-practice-header{margin:-1px -1px 18px;padding:18px 20px;border-radius:14px;background:linear-gradient(120deg,var(--ueab-dark),var(--ueab-primary));color:#fff}.ueab-practice-header>span{display:block;color:#ffe08a;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.ueab-practice-header h3{margin:4px 0 5px;color:#fff!important;font-size:21px}.ueab-practice-header p{margin:0;color:#fff;opacity:.88;font-size:13px}.ueab-practice-subheading{margin:20px 0 10px!important;padding-bottom:7px;border-bottom:1px solid var(--ueab-soft);color:var(--ueab-primary)!important;font-size:16px!important}.ueab-practice-question{margin:10px 0;border:1px solid #d9e1eb;border-radius:13px;background:#fff;overflow:hidden}.ueab-practice-question[open]{border-color:var(--ueab-primary);box-shadow:0 8px 22px rgba(17,35,64,.08)}.ueab-practice-question summary{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:11px;padding:14px 16px;cursor:pointer;list-style:none}.ueab-practice-question summary::-webkit-details-marker{display:none}.ueab-practice-question summary:after{content:"+";grid-column:1/-1;justify-self:end;margin-top:-26px;color:var(--ueab-primary);font-size:20px;font-weight:800}.ueab-practice-question[open] summary:after{content:"−"}.ueab-practice-number{padding:3px 8px;border-radius:999px;background:var(--ueab-soft);color:var(--ueab-dark);font-size:10px;font-weight:850;white-space:nowrap}.ueab-practice-prompt{padding-right:24px;color:#253147;font-weight:650;line-height:1.5}.ueab-practice-response{padding:0 16px 16px}.ueab-practice-response label{display:block;color:var(--ueab-dark);font-size:12px;font-weight:800}.ueab-practice-response textarea{display:block;width:100%;min-height:96px;margin-top:6px;padding:11px 12px;resize:vertical;border:1px solid #c9d3df;border-radius:10px;background:#fff;color:#172033;font:inherit;line-height:1.5}.ueab-practice-response textarea:focus{border-color:var(--ueab-primary);outline:3px solid var(--ueab-soft)}.ueab-practice-response small{display:block;margin-top:6px;color:#68748a}.ueab-practice-guidance{margin:12px 0;padding:10px 13px;border-left:3px solid var(--ueab-accent);border-radius:8px;background:#fff}.ueab-practice-guidance summary{cursor:pointer;color:var(--ueab-dark);font-weight:800}.ueab-practice-guidance p{margin:8px 0 0}
 .ueab-topic-grid,.ueab-activity-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.ueab-topic-card{display:grid;grid-template-columns:38px minmax(0,1fr) 22px;align-items:center;gap:12px;min-height:92px;padding:15px;border:1px solid var(--ueab-soft);border-left:4px solid var(--ueab-accent);border-radius:13px;background:linear-gradient(145deg,#fff,var(--ueab-tint));color:inherit;text-decoration:none;box-shadow:0 5px 16px rgba(17,35,64,.045);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}.ueab-topic-card:hover,.ueab-topic-card:focus{transform:translateY(-2px);border-color:var(--ueab-primary);box-shadow:0 12px 28px rgba(17,35,64,.12);outline:none}.ueab-topic-number{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:var(--ueab-primary);color:#fff;font-weight:850}.ueab-topic-arrow{color:var(--ueab-primary);font-size:20px;font-weight:800;transition:transform .16s ease}.ueab-topic-card:hover .ueab-topic-arrow,.ueab-topic-card:focus .ueab-topic-arrow{transform:translateX(3px)}.ueab-topic-card strong,.ueab-topic-card small{display:block}.ueab-topic-card strong{color:var(--ueab-dark);line-height:1.3}.ueab-topic-card small{margin-top:5px;color:#68748a;line-height:1.45}.ueab-activity{padding:15px;border-radius:12px;background:var(--ueab-tint);border-top:3px solid var(--ueab-accent)}.ueab-activity h3{display:flex;justify-content:space-between;margin-top:0}.ueab-activity h3 span{color:var(--ueab-primary)}
 .ueab-faq{margin:0}.ueab-faq dt{margin-top:16px;color:var(--ueab-dark);font-weight:800}.ueab-faq dt:first-child{margin-top:0}.ueab-faq dd{margin:4px 0 0}.ueab-support a{color:var(--ueab-primary);font-weight:700;overflow-wrap:anywhere}
-@media(max-width:620px){.ueab-hero-top{align-items:flex-start;flex-direction:column;gap:2px}.ueab-hero-top span:last-child{text-align:left}.ueab-topic-hero .ueab-hero-body{min-height:0;padding-top:22px;padding-bottom:24px}.ueab-topic-hero h1{font-size:clamp(25px,8vw,34px)}.ueab-nav{position:static}.ueab-card{padding:20px 18px}.ueab-stats{grid-template-columns:1fr 1fr}.ueab-activity-grid,.ueab-topic-grid{grid-template-columns:1fr}.ueab-table th,.ueab-table td{padding:9px 10px}.ueab-figure{margin:20px 0;padding:7px}}
+@media(max-width:620px){.ueab-hero-top{align-items:flex-start;flex-direction:column;gap:2px}.ueab-hero-top span:last-child{text-align:left}.ueab-topic-hero .ueab-hero-body{min-height:0;padding-top:22px;padding-bottom:24px}.ueab-topic-hero h1{font-size:clamp(25px,8vw,34px)}.ueab-nav{position:static}.ueab-card{padding:20px 18px}.ueab-stats{grid-template-columns:1fr 1fr}.ueab-activity-grid,.ueab-topic-grid{grid-template-columns:1fr}.ueab-table th,.ueab-table td{padding:9px 10px}.ueab-figure{margin:20px 0;padding:7px}.ueab-practice{padding:13px}.ueab-practice-question summary{grid-template-columns:1fr}.ueab-practice-number{justify-self:start}.ueab-practice-prompt{padding-right:20px}}
 @media print{.ueab-course{max-width:none;color:#000}.ueab-nav{display:none}.ueab-hero,.ueab-card,.ueab-welcome,.ueab-lead{box-shadow:none;break-inside:avoid}.ueab-topic-card,.ueab-fact,.ueab-activity{break-inside:avoid}.ueab-hero{print-color-adjust:exact;-webkit-print-color-adjust:exact}.ueab-card a{color:inherit;text-decoration:underline}}
 </style>';
     }
