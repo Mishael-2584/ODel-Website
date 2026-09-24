@@ -119,10 +119,6 @@ foreach ($decodedtopics as $index => $rawtopic) {
         }
     }
     $topics[$number] = schema::normalise_topic($sanitised, $number);
-    if (empty($topics[$number]['document_content'])
-            && !empty($existingpayload['topicsdata'][$number]['document_content'])) {
-        $topics[$number]['document_content'] = $existingpayload['topicsdata'][$number]['document_content'];
-    }
 }
 
 $input['topics'] = $topiccount;

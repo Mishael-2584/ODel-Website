@@ -28,6 +28,7 @@ final class renderer {
         $table = [];
         $practice = false;
         $practicequestion = 0;
+        $wordfigure = false;
         $flushlist = function() use (&$html, &$list): void {
             if ($list !== null) {
                 $html .= "</{$list}>";
@@ -70,9 +71,26 @@ final class renderer {
                 $practicequestion = 0;
             }
         };
+        $closewordfigure = function() use (&$html, &$wordfigure): void {
+            if ($wordfigure) {
+                $html .= '</blockquote></figure>';
+                $wordfigure = false;
+            }
+        };
 
         foreach ($lines as $line) {
             $line = trim($line);
+            if (preg_match('/^>\s?(.*)$/u', $line, $match)) {
+                $flushlist();
+                $flushtable();
+                if (!$wordfigure) {
+                    $html .= '<figure class="ueab-word-figure"><figcaption>Figure or equation</figcaption><blockquote>';
+                    $wordfigure = true;
+                }
+                $html .= '<p>' . self::inline($match[1]) . '</p>';
+                continue;
+            }
+            $closewordfigure();
             if (preg_match('/^\[\[FA_IMAGE:([a-f0-9]{16,64})\]\]$/', $line, $match)) {
                 $flushlist();
                 $flushtable();
@@ -159,6 +177,7 @@ final class renderer {
         $flushlist();
         $flushtable();
         $closepractice();
+        $closewordfigure();
         return $html;
     }
 
@@ -343,7 +362,7 @@ final class renderer {
             'Aim / purpose' => $t['aim'], 'Brief description' => $t['description'],
             'What you will be able to do' => self::numbered_lines($t['outcomes']),
         ]));
-        $sections .= self::card('content', 'What you will learn', self::rich($t['course_content']));
+        $sections .= self::card('content', 'What you will learn', self::rich($t['course_content'], $p['assets']));
         $sections .= self::card('activities', 'How you will learn and participate',
             self::subsections(['What you will do' => $t['activity_overview'],
                 'Your learning sequence' => $t['engagement_plan']])
@@ -362,14 +381,6 @@ final class renderer {
             'How your feedback improves this topic' => $t['feedback_use'],
             'When you will receive formative feedback' => $t['formative_feedback'],
         ]));
-        if (self::present($t['document_content'])) {
-            $sections .= self::card(
-                'study-material',
-                'Illustrated study material',
-                self::rich($t['document_content'], $p['assets']),
-            );
-        }
-
         return self::styles($palette) . '<main class="ueab-course ueab-topic" data-ueab-builder="topic">'
             . '<header class="ueab-hero ueab-topic-hero"><div class="ueab-hero-top"><span>'
             . self::e($p['shortname']) . '</span><span>' . self::e($p['school'])
@@ -378,8 +389,7 @@ final class renderer {
             . self::hours($total) . ' total hours</span><span>' . self::e($p['mode']) . '</span></div></div></header>'
             . ($welcome ? '<section class="ueab-welcome"><strong>Welcome to this topic</strong>' . $welcome . '</section>' : '')
             . '<nav class="ueab-nav"><a href="#overview">Overview</a><a href="#content">Content</a>'
-            . '<a href="#activities">Activities</a><a href="#connections">Resources</a><a href="#feedback">Feedback</a>'
-            . (self::present($t['document_content']) ? '<a href="#study-material">Study material</a>' : '') . '</nav>'
+            . '<a href="#activities">Activities</a><a href="#connections">Resources</a><a href="#feedback">Feedback</a></nav>'
             . $sections . '</main>';
     }
 
@@ -425,7 +435,7 @@ final class renderer {
 .ueab-card{position:relative;margin:14px 0;padding:25px clamp(18px,4vw,32px);border:1px solid #e1e6ee;border-radius:17px;background:#fff;box-shadow:0 9px 28px rgba(17,35,64,.055)}.ueab-card:before{content:"";position:absolute;top:0;left:28px;width:56px;height:3px;border-radius:0 0 3px 3px;background:var(--ueab-accent)}.ueab-card h2{margin:0 0 19px;color:var(--ueab-primary);font-size:22px;letter-spacing:-.015em}.ueab-card h3,.ueab-card h4,.ueab-card h5{margin:18px 0 6px;color:var(--ueab-dark)!important;font-size:15px;line-height:1.35}.ueab-card p{margin:0 0 10px}.ueab-card ul,.ueab-card ol{padding-left:22px}.ueab-card li{margin:5px 0}.ueab-card strong{color:inherit}
 .ueab-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.ueab-fact{padding:13px 15px;border:1px solid var(--ueab-soft);background:var(--ueab-tint);border-radius:11px}.ueab-fact small{display:block;color:#718096;text-transform:uppercase;letter-spacing:.06em}.ueab-fact strong{display:block;color:var(--ueab-dark);white-space:pre-line}
 .ueab-table-wrap{min-width:0;max-width:100%;overflow:auto;margin:18px 0;border:1px solid #d8e0eb;border-radius:14px;background:#fff;box-shadow:0 7px 20px rgba(17,35,64,.06)}.ueab-table{width:100%;min-width:560px;border-collapse:collapse;border-spacing:0}.ueab-table th{background:linear-gradient(120deg,var(--ueab-dark),var(--ueab-primary));color:#fff;text-align:left;font-size:12px;letter-spacing:.01em}.ueab-table th,.ueab-table td{padding:11px 13px;border-right:1px solid #e3e8f0;border-bottom:1px solid #e3e8f0;vertical-align:top;overflow-wrap:anywhere}.ueab-table th:last-child,.ueab-table td:last-child{border-right:0}.ueab-table tbody tr:nth-child(even) td{background:var(--ueab-tint)}.ueab-table tbody tr:hover td{background:var(--ueab-soft)}.ueab-table tbody tr:last-child td{border-bottom:0}.ueab-table td:first-child{font-weight:700;color:var(--ueab-dark)}.ueab-table td p{margin:0}
-.ueab-figure{max-width:860px;margin:26px auto;padding:10px;text-align:center;border:1px solid #e2e7ef;border-radius:16px;background:linear-gradient(145deg,#fff,var(--ueab-tint));box-shadow:0 10px 30px rgba(17,35,64,.08)}.ueab-figure img{display:block;width:auto;max-width:100%;height:auto;max-height:760px;margin:0 auto;border-radius:10px;background:#fff;object-fit:contain}.ueab-figure figcaption{max-width:720px;margin:9px auto 2px;color:#59667b;font-size:12px;line-height:1.5}.ueab-media-unavailable{padding:12px 14px;border:1px solid #ecd8a4;border-radius:10px;background:#fff8e6;color:#6d5420}
+.ueab-figure{max-width:860px;margin:26px auto;padding:10px;text-align:center;border:1px solid #e2e7ef;border-radius:16px;background:linear-gradient(145deg,#fff,var(--ueab-tint));box-shadow:0 10px 30px rgba(17,35,64,.08)}.ueab-figure img{display:block;width:auto;max-width:100%;height:auto;max-height:760px;margin:0 auto;border-radius:10px;background:#fff;object-fit:contain}.ueab-figure figcaption{max-width:720px;margin:9px auto 2px;color:#59667b;font-size:12px;line-height:1.5}.ueab-word-figure{max-width:860px;margin:20px auto;padding:12px 16px;border:1px solid var(--ueab-soft);border-left:4px solid var(--ueab-accent);border-radius:12px;background:linear-gradient(145deg,#fff,var(--ueab-tint));box-shadow:0 7px 20px rgba(17,35,64,.06)}.ueab-word-figure figcaption{margin:0 0 7px;color:var(--ueab-primary);font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.ueab-word-figure blockquote{margin:0;color:#24334a;font-size:15px;line-height:1.7;overflow-wrap:anywhere}.ueab-word-figure blockquote p{margin:0}.ueab-media-unavailable{padding:12px 14px;border:1px solid #ecd8a4;border-radius:10px;background:#fff8e6;color:#6d5420}
 .ueab-practice{margin:24px 0;padding:clamp(16px,3vw,24px);border:1px solid var(--ueab-soft);border-radius:18px;background:linear-gradient(145deg,var(--ueab-tint),#fff);box-shadow:0 10px 28px rgba(17,35,64,.07)}.ueab-practice-header{margin:-1px -1px 18px;padding:18px 20px;border-radius:14px;background:linear-gradient(120deg,var(--ueab-dark),var(--ueab-primary));color:#fff}.ueab-practice-header>span{display:block;color:#ffe08a;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.ueab-practice-header h3{margin:4px 0 5px;color:#fff!important;font-size:21px}.ueab-practice-header p{margin:0;color:#fff;opacity:.88;font-size:13px}.ueab-practice-subheading{margin:20px 0 10px!important;padding-bottom:7px;border-bottom:1px solid var(--ueab-soft);color:var(--ueab-primary)!important;font-size:16px!important}.ueab-practice-question{margin:10px 0;border:1px solid #d9e1eb;border-radius:13px;background:#fff;overflow:hidden}.ueab-practice-question[open]{border-color:var(--ueab-primary);box-shadow:0 8px 22px rgba(17,35,64,.08)}.ueab-practice-question summary{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:11px;padding:14px 16px;cursor:pointer;list-style:none}.ueab-practice-question summary::-webkit-details-marker{display:none}.ueab-practice-question summary:after{content:"+";grid-column:1/-1;justify-self:end;margin-top:-26px;color:var(--ueab-primary);font-size:20px;font-weight:800}.ueab-practice-question[open] summary:after{content:"−"}.ueab-practice-number{padding:3px 8px;border-radius:999px;background:var(--ueab-soft);color:var(--ueab-dark);font-size:10px;font-weight:850;white-space:nowrap}.ueab-practice-prompt{padding-right:24px;color:#253147;font-weight:650;line-height:1.5}.ueab-practice-response{padding:0 16px 16px}.ueab-practice-response label{display:block;color:var(--ueab-dark);font-size:12px;font-weight:800}.ueab-practice-response textarea{display:block;width:100%;min-height:96px;margin-top:6px;padding:11px 12px;resize:vertical;border:1px solid #c9d3df;border-radius:10px;background:#fff;color:#172033;font:inherit;line-height:1.5}.ueab-practice-response textarea:focus{border-color:var(--ueab-primary);outline:3px solid var(--ueab-soft)}.ueab-practice-response small{display:block;margin-top:6px;color:#68748a}.ueab-practice-guidance{margin:12px 0;padding:10px 13px;border-left:3px solid var(--ueab-accent);border-radius:8px;background:#fff}.ueab-practice-guidance summary{cursor:pointer;color:var(--ueab-dark);font-weight:800}.ueab-practice-guidance p{margin:8px 0 0}
 .ueab-topic-grid,.ueab-activity-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.ueab-topic-card{display:grid;grid-template-columns:38px minmax(0,1fr) 22px;align-items:center;gap:12px;min-height:92px;padding:15px;border:1px solid var(--ueab-soft);border-left:4px solid var(--ueab-accent);border-radius:13px;background:linear-gradient(145deg,#fff,var(--ueab-tint));color:inherit;text-decoration:none;box-shadow:0 5px 16px rgba(17,35,64,.045);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}.ueab-topic-card:hover,.ueab-topic-card:focus{transform:translateY(-2px);border-color:var(--ueab-primary);box-shadow:0 12px 28px rgba(17,35,64,.12);outline:none}.ueab-topic-number{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:var(--ueab-primary);color:#fff;font-weight:850}.ueab-topic-arrow{color:var(--ueab-primary);font-size:20px;font-weight:800;transition:transform .16s ease}.ueab-topic-card:hover .ueab-topic-arrow,.ueab-topic-card:focus .ueab-topic-arrow{transform:translateX(3px)}.ueab-topic-card strong,.ueab-topic-card small{display:block}.ueab-topic-card strong{color:var(--ueab-dark);line-height:1.3}.ueab-topic-card small{margin-top:5px;color:#68748a;line-height:1.45}.ueab-activity{padding:15px;border-radius:12px;background:var(--ueab-tint);border-top:3px solid var(--ueab-accent)}.ueab-activity h3{display:flex;justify-content:space-between;margin-top:0}.ueab-activity h3 span{color:var(--ueab-primary)}
 .ueab-faq{margin:0}.ueab-faq dt{margin-top:16px;color:var(--ueab-dark);font-weight:800}.ueab-faq dt:first-child{margin-top:0}.ueab-faq dd{margin:4px 0 0}.ueab-support a{color:var(--ueab-primary);font-weight:700;overflow-wrap:anywhere}

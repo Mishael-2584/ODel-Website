@@ -1,5 +1,11 @@
 # Change log
 
+## 1.8.5 - 2026-09-24
+
+- Render imported Topic study material once under `What you will learn` instead of duplicating a plain and illustrated copy.
+- Promote legacy rich Word content into the editable Course content field while preserving tables, formatting, symbols and images.
+- Raise the supported Topic count from 12 to 30 in the block form, publisher and schema.
+
 ## 1.8.4 - 2026-09-23
 
 - Render imported unit activities and self-assessment lists as accessible attempt-first practice cards.

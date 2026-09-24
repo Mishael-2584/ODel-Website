@@ -8,7 +8,7 @@ defined('MOODLE_INTERNAL') || die();
  */
 final class schema {
     public const VERSION = 2;
-    public const MAX_TOPICS = 12;
+    public const MAX_TOPICS = 30;
     public const MAX_PAYLOAD_BYTES = 5000000;
     public const MAX_ASSETS = 200;
     public const MAX_ASSET_BYTES = 2000000;
@@ -214,6 +214,13 @@ final class schema {
         // Backward-compatible aliases from the lesson schema.
         if (empty($topic['course_content']) && !empty($topic['syllabus'])) {
             $topic['course_content'] = $topic['syllabus'];
+        }
+        if (!empty($topic['document_content'])) {
+            // Older desktop imports stored the same syllabus twice: plain in
+            // course_content and rich (with tables/images) in document_content.
+            // Promote the richer editable value so Moodle renders one section.
+            $topic['course_content'] = $topic['document_content'];
+            $topic['document_content'] = '';
         }
         if (empty($topic['engagement_plan']) && !empty($topic['over_to_you'])) {
             $topic['engagement_plan'] = $topic['over_to_you'];

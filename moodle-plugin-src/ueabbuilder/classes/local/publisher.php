@@ -280,7 +280,7 @@ final class publisher {
         $name = "Topic {$number}: {$title}";
         $content = renderer::topic($number, $module, $topic);
         $expectedimages = preg_match_all('/\[\[FA_IMAGE:[a-f0-9]{16,64}\]\]/',
-            (string)($topic['document_content'] ?? '')) ?: 0;
+            (string)($topic['course_content'] ?? '') . "\n" . (string)($topic['document_content'] ?? '')) ?: 0;
         if ($expectedimages !== substr_count($content, 'class="ueab-figure"')) {
             throw new publisher_exception(
                 'media_render_incomplete',

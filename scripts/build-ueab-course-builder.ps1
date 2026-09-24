@@ -1,6 +1,6 @@
 param(
     [string]$Source = (Join-Path (Split-Path $PSScriptRoot -Parent) 'moodle-plugin-src\ueabbuilder'),
-    [string]$OutputPath = (Join-Path (Split-Path $PSScriptRoot -Parent) 'artifacts\moodle\block_ueabbuilder-1.8.4.zip')
+    [string]$OutputPath = (Join-Path (Split-Path $PSScriptRoot -Parent) 'artifacts\moodle\block_ueabbuilder-1.8.5.zip')
 )
 
 $ErrorActionPreference = 'Stop'
