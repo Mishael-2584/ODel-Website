@@ -118,5 +118,9 @@ function xmldb_block_ueabbuilder_upgrade(int $oldversion): bool {
         // Attempt-first self-assessment rendering; no database schema change is required.
         upgrade_plugin_savepoint(true, 2026092304, 'block', 'ueabbuilder');
     }
+    if ($oldversion < 2026092400) {
+        // Canonical rich Topic content and duplicate-section removal; no database schema change is required.
+        upgrade_plugin_savepoint(true, 2026092400, 'block', 'ueabbuilder');
+    }
     return true;
 }

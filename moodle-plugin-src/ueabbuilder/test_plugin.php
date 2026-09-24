@@ -82,6 +82,9 @@ use block_ueabbuilder\local\schema;
 use block_ueabbuilder\local\form_renderer;
 
 $schools = schema::schools();
+expect(schema::MAX_TOPICS === 30, 'Course Builder supports up to 30 Topics');
+expect(schema::normalise(['topics' => 15])['topics'] === 15,
+    'A fifteen-Topic module is not truncated during normalisation');
 expect(count($schools) === 5, 'Exactly five UEAB schools are configured');
 expect(in_array('School of Education, Humanities and Social Sciences', $schools, true),
     'Education, Humanities and Social Sciences is one school');
@@ -187,7 +190,7 @@ foreach ($schoolpalettes as $schoolname => $primarycolour) {
 
 $topic = renderer::topic(1, $module, [
     'title' => 'Foundations', 'welcome_message' => 'Welcome to Topic 1.',
-    'course_content' => "## Concepts\nUse the **OLS estimator** *carefully*.\n- Evidence\n- Decisions",
+    'course_content' => "Concepts\nUse the OLS estimator carefully.\nEvidence\nDecisions",
     'pretopic_activity' => 'Read the orientation.', 'pretopic_hours' => 1,
     'f2f_activity' => 'Join the seminar.', 'f2f_hours' => 2,
     'online_activity' => 'Post a reflection.', 'online_hours' => 3,
@@ -195,7 +198,9 @@ $topic = renderer::topic(1, $module, [
     'what' => 'Review the evidence and post your response.',
     'tutor_role' => 'Facilitate and respond.', 'inclusive_approach' => 'Provide captions.',
     'formative_feedback' => 'Immediate quiz feedback.',
-    'document_content' => "## Visual explanation\nInput → process → output\n"
+    'document_content' => "## Concepts\nUse the **OLS estimator** *carefully*.\n- Evidence\n- Decisions\n"
+        . "## Visual explanation\nInput → process → output\n"
+        . "> Assets = Liabilities + Equity\n"
         . "| Generation | Period | Technology Used | Examples | Characteristics |\n"
         . "| --- | --- | --- | --- | --- |\n"
         . "| 1st Generation | 1940–1956 | Vacuum tubes | ENIAC, UNIVAC | Large and power hungry |\n"
@@ -220,12 +225,18 @@ expect(!str_contains($topic, 'What students should do'), 'Published Topic omits 
 expect(str_contains($topic, 'data-ueab-builder="topic"'), 'Topic ownership marker is rendered');
 expect(str_contains($topic, 'class="ueab-hero ueab-topic-hero"'), 'Topic uses the balanced Topic hero');
 expect(str_contains($topic, 'class="ueab-hero-body"'), 'Topic hero content has an aligned inner container');
-expect(str_contains($topic, 'Illustrated study material'), 'Imported Word study material has a dedicated Topic section');
+expect(substr_count($topic, 'What you will learn') === 1,
+    'Topic content contains one canonical What you will learn section');
+expect(!str_contains($topic, 'Illustrated study material'),
+    'Rich imported study material is not repeated under a second heading');
 expect(str_contains($topic, 'loading="lazy"'), 'Imported Word images use responsive lazy loading');
 expect(str_contains($topic, 'https://moodle.test/pluginfile.php/1004/block_ueabbuilder/media/4/0123456789abcdef.png'),
     'Persisted file identities rebuild protected Moodle media URLs during Topic rendering');
 expect(str_contains($topic, 'alt="Input and output diagram"'), 'Imported Word image alternative text is rendered');
 expect(str_contains($topic, 'Input → process → output'), 'Unicode symbols survive Topic rendering');
+expect(str_contains($topic,
+    '<figure class="ueab-word-figure"><figcaption>Figure or equation</figcaption><blockquote><p>Assets = Liabilities + Equity</p></blockquote></figure>'),
+    'Native Word text drawings render as visually distinct accessible figure blocks');
 expect(str_contains($topic, '<thead><tr><th scope="col">Generation</th>'),
     'Imported Word table headers render as a semantic table head');
 expect(str_contains($topic, '<td>Vacuum tubes</td>'), 'Imported Word table cells remain aligned');
@@ -243,6 +254,15 @@ expect(str_contains($topic, '<summary>Compare your response</summary>'),
 expect(strpos($topic, '</section><h4>Topic Summary</h4>') !== false,
     'The practice panel closes before subsequent Topic content');
 
+$migratedtopic = schema::normalise_topic([
+    'course_content' => 'Plain duplicate',
+    'document_content' => "## Rich content\n[[FA_IMAGE:0123456789abcdef]]",
+], 1);
+expect($migratedtopic['course_content'] === "## Rich content\n[[FA_IMAGE:0123456789abcdef]]",
+    'Legacy illustrated content is promoted into the editable Course content field');
+expect($migratedtopic['document_content'] === '',
+    'Legacy hidden illustrated content is cleared after migration');
+
 $xml = simplexml_load_file($root . '/db/install.xml');
 expect($xml !== false, 'install.xml is well-formed XML');
 if ($xml !== false) {
@@ -250,7 +270,7 @@ if ($xml !== false) {
 }
 
 $version = file_get_contents($root . '/version.php');
-expect(str_contains($version, "release   = '1.8.4'"), 'Release is 1.8.4');
+expect(str_contains($version, "release   = '1.8.5'"), 'Release is 1.8.5');
 $publisher = file_get_contents($root . '/classes/local/publisher.php');
 expect(str_contains($publisher, 'revision_conflict'), 'Publisher protects against stale revisions');
 expect(str_contains($publisher, 'is_siteadmin($actorid)'),

@@ -110,7 +110,7 @@ After the upgrade:
 5. Keep the existing dedicated service token; no desktop token changes are
 required.
 
-Install `artifacts/moodle/block_ueabbuilder-1.8.4.zip` as the companion Block
+Install `artifacts/moodle/block_ueabbuilder-1.8.5.zip` as the companion Block
 plugin. Moodle should auto-detect `block_ueabbuilder`. Both archives are built
 from the tracked sources with:
 
@@ -121,7 +121,7 @@ from the tracked sources with:
 6. Keep `local/facultyassistant:useservice` on the dedicated service role. The
    grade endpoint separately verifies that the signed-in lecturer has
    `moodle/grade:viewall` in the requested course and respects separate groups.
-7. Install UEAB Course Builder `1.8.4`, then grant
+7. Install UEAB Course Builder `1.8.5`, then grant
    `local/facultyassistant:publishcoursebuilder` only to the dedicated service
    role. Confirm the service includes `local_facultyassistant_get_course_builder`
    and `local_facultyassistant_publish_course_builder`. Edit the external service
