@@ -1,5 +1,49 @@
 # Change log
 
+## 1.9.2 - 2026-10-01
+
+- Render self-assessment, review and practice questions as individual learner practice cards.
+- Support mixed question formats, including multiple choice, true/false, fill-in-the-blank and open responses.
+- Match labelled and detached answer keys to questions, keeping answers hidden until learners choose to reveal them.
+- Preserve question emphasis and avoid converting question-like content inside tables into practice controls.
+
+## 1.9.1 - 2026-09-26
+
+- Include the Topic number and expected/rendered image counts when Moodle cannot render every imported image.
+- Report unresolved image asset IDs so media upload/persistence failures can be diagnosed without losing the draft.
+- Preserve an explicit Topic heading when copied syllabus content contains a stale heading.
+
+## 1.9.0 - 2026-09-25
+
+- Apply the same canonical UEAB grading scale to every course, independent of level or programme metadata.
+- Always render the scale section, including when the source module has no grading-scale value.
+- Remove embedded duplicate scale sections and retain Other symbols notes in one place.
+
+## 1.8.9 - 2026-09-24
+
+- Strip embedded grading-scale sections from narrative module fields during Moodle rendering.
+- Keep the canonical scale to one visible instance and preserve Other symbols notes.
+
+## 1.8.8 - 2026-09-24
+
+- Make matched answer disclosures explicit and explain when an MCQ answer key was not detected.
+- Accept a bare `Answers` heading and an unnumbered first key followed by numbered answers.
+- Render the canonical UEAB undergraduate grading scale once instead of trusting duplicated imported tables.
+- Keep postgraduate grading scales course-specific and preserve `Other symbols` notes.
+
+## 1.8.7 - 2026-09-24
+
+- Detect Word-auto-numbered/bulleted self-assessment headings and case-insensitive variants.
+- Render lettered, compact inline and unlabelled multiple-choice options as accessible radio choices.
+- Match detached answer keys, including compact `1.B, 2.C` formats, to question numbers; keep answers collapsed.
+- Keep open-ended practice prompts as unsaved scratch responses.
+
+## 1.8.6 - 2026-09-24
+
+- Recognise case-insensitive review, revision, self-assessment, self-check and knowledge-check headings, including headings that mention answer keys.
+- Turn `Question 1` / `Q1` prompt-and-answer paragraphs into separate practice cards.
+- Keep `Answer`, `Answer key`, `Correct answer`, `Suggested answer`, `Model answer`, `Sample answer` and `Solution` content hidden until the learner chooses to compare.
+
 ## 1.8.5 - 2026-09-24
 
 - Render imported Topic study material once under `What you will learn` instead of duplicating a plain and illustrated copy.

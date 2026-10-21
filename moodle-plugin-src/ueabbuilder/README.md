@@ -3,6 +3,45 @@
 UEAB Course Builder is a Moodle block for creating and maintaining a structured,
 learner-facing module home page and topic Pages inside an existing course.
 
+## Release 1.9.1
+
+Version 1.9.1 includes specific Topic/image counts and unresolved image asset IDs
+in media-render failures, making it easier to diagnose Moodle draft-file and
+renderer problems. The Faculty Assistant API now forwards Moodle's diagnostic
+message to the desktop app.
+
+## Release 1.9.0
+
+Version 1.9.0 uses the canonical UEAB grading scale for every course level and
+renders it even when imported scale data is absent. Embedded copies in course
+overview, syllabus, and assessment narratives are removed; Other symbols notes
+are retained once with the standard scale.
+
+## Release 1.8.6
+
+Version 1.8.6 recognises common question heading and answer-key formats regardless
+of heading case. Word-style `Question 1` / `Q1` labels followed by a prompt and
+an `Answer:` or similar answer-key paragraph become individual practice cards.
+Answers stay collapsed until the learner chooses to compare. Responses remain
+private scratch work and are not saved or graded.
+
+## Release 1.8.7
+
+Version 1.8.7 recognises self-assessment headings even when Word imports them as
+numbered or bulleted paragraphs. It renders lettered, compact inline, and
+unlabelled multiple-choice options as selectable radio choices, and matches
+detached answer keys to question numbers. Open-ended questions retain a private
+scratch-response area; all supplied answers stay collapsed until requested.
+
+## Release 1.8.8
+
+Version 1.8.8 labels the answer disclosure as `Reveal answer and explanation`
+and tells learners when an MCQ has no matching key. Undergraduate courses use
+the standard UEAB grading scale once, regardless of repeated or inconsistent
+scale tables in an imported template. Postgraduate scales remain course-specific.
+The answer parser also accepts a plain `Answers` heading and an unnumbered first
+letter followed by numbered entries, as used in some UEAB modules.
+
 ## Release 1.8.5
 
 Version 1.8.5 makes imported rich Word material the canonical editable Course

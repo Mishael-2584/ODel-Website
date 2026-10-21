@@ -279,12 +279,30 @@ final class publisher {
         }
         $name = "Topic {$number}: {$title}";
         $content = renderer::topic($number, $module, $topic);
-        $expectedimages = preg_match_all('/\[\[FA_IMAGE:[a-f0-9]{16,64}\]\]/',
-            (string)($topic['course_content'] ?? '') . "\n" . (string)($topic['document_content'] ?? '')) ?: 0;
-        if ($expectedimages !== substr_count($content, 'class="ueab-figure"')) {
+        $topictext = (string)($topic['course_content'] ?? '') . "\n" . (string)($topic['document_content'] ?? '');
+        preg_match_all('/\[\[FA_IMAGE:([a-f0-9]{16,64})\]\]/', $topictext, $imagematches);
+        $expectedimages = count($imagematches[0]);
+        $renderedimages = substr_count($content, 'class="ueab-figure"');
+        if ($expectedimages !== $renderedimages) {
+            $assetsbyid = [];
+            foreach ($module['assets'] ?? [] as $asset) {
+                if (is_array($asset) && !empty($asset['id'])) {
+                    $assetsbyid[(string)$asset['id']] = $asset;
+                }
+            }
+            $unavailable = [];
+            foreach (array_unique($imagematches[1] ?? []) as $imageid) {
+                if (empty($assetsbyid[$imageid]['url'])) {
+                    $unavailable[] = $imageid;
+                }
+            }
+            $details = "Topic {$number}: expected {$expectedimages} image figure(s), rendered {$renderedimages}.";
+            if ($unavailable) {
+                $details .= ' Unresolved image asset ID(s): ' . implode(', ', array_slice($unavailable, 0, 8)) . '.';
+            }
             throw new publisher_exception(
                 'media_render_incomplete',
-                'One or more imported Word images could not be linked to the published Topic. Retry after upgrading the Course Builder block.',
+                $details . ' The Moodle Course Builder could not link every imported Word image.',
                 max(0, (int)($module['revision'] ?? 1) - 1),
                 502,
             );

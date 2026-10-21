@@ -67,12 +67,18 @@ export async function POST(
       payload: payload as Record<string, unknown>,
     })
     if (!result.success) {
-      const status = result.code === 'revision_conflict' ? 409 : 400
+      const status = result.code === 'revision_conflict'
+        ? 409
+        : result.code.startsWith('media_') ? 502 : 400
       await audit(authorization.identity, courseId, 'moodle.coursebuilder.publish', 'failed', {
         code: result.code,
         revision: result.revision,
       })
-      return NextResponse.json({ error: result.code || 'course_builder_rejected', result }, { status })
+      return NextResponse.json({
+        error: result.code || 'course_builder_rejected',
+        error_description: result.message || 'Moodle rejected the Course Builder publish request.',
+        result,
+      }, { status })
     }
     await audit(authorization.identity, courseId, 'moodle.coursebuilder.publish', 'success', {
       revision: result.revision,

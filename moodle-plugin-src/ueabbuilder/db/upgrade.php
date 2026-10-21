@@ -122,5 +122,25 @@ function xmldb_block_ueabbuilder_upgrade(int $oldversion): bool {
         // Canonical rich Topic content and duplicate-section removal; no database schema change is required.
         upgrade_plugin_savepoint(true, 2026092400, 'block', 'ueabbuilder');
     }
+    if ($oldversion < 2026092401) {
+        // Broader question-and-answer formats in formative Topic practice; no schema change is required.
+        upgrade_plugin_savepoint(true, 2026092401, 'block', 'ueabbuilder');
+    }
+    if ($oldversion < 2026092402) {
+        // Interactive multiple-choice rendering and answer-key matching; no schema change is required.
+        upgrade_plugin_savepoint(true, 2026092402, 'block', 'ueabbuilder');
+    }
+    if ($oldversion < 2026092403) {
+        // Clear answer-reveal messaging and canonical undergraduate grading scale; no schema change is required.
+        upgrade_plugin_savepoint(true, 2026092403, 'block', 'ueabbuilder');
+    }
+    if ($oldversion < 2026092404) {
+        // Remove repeated embedded undergraduate grade scales from published module content.
+        upgrade_plugin_savepoint(true, 2026092404, 'block', 'ueabbuilder');
+    }
+    if ($oldversion < 2026092500) {
+        // Apply one canonical UEAB grading scale at every academic level.
+        upgrade_plugin_savepoint(true, 2026092500, 'block', 'ueabbuilder');
+    }
     return true;
 }
