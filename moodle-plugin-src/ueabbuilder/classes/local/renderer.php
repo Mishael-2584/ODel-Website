@@ -23,11 +23,17 @@ final class renderer {
             return '';
         }
 
+        $answerkeys = self::practice_answer_keys($lines);
         $html = '';
         $list = null;
         $table = [];
         $practice = false;
         $practicequestion = 0;
+        $practicegroup = -1;
+        $pendingpracticequestion = null;
+        $practicehasanswers = false;
+        $practicedefaulttype = '';
+        $inanswerkey = false;
         $wordfigure = false;
         $flushlist = function() use (&$html, &$list): void {
             if ($list !== null) {
@@ -64,12 +70,116 @@ final class renderer {
             $html .= '</tbody></table></div>';
             $table = [];
         };
-        $closepractice = function() use (&$html, &$practice, &$practicequestion): void {
+        $flushpracticequestion = function() use (
+            &$html,
+            &$practicequestion,
+            &$practicegroup,
+            &$pendingpracticequestion,
+            &$practicehasanswers,
+            $answerkeys,
+        ): void {
+            if ($pendingpracticequestion === null) {
+                return;
+            }
+            $number = $pendingpracticequestion['number'] ?? ($practicequestion + 1);
+            $practicequestion = max($practicequestion, $number);
+            $options = $pendingpracticequestion['options'];
+            $unlabelledoptions = $pendingpracticequestion['unlabelledoptions'];
+            $answer = trim($pendingpracticequestion['answer']);
+            if ($answer === '' && $practicehasanswers && $unlabelledoptions
+                && ($pendingpracticequestion['type'] ?? '') !== 'multiple-choice') {
+                $answer = implode("\n", $unlabelledoptions);
+                $unlabelledoptions = [];
+            }
+            if (!$options && count($unlabelledoptions) >= 2
+                && count($unlabelledoptions) <= 8) {
+                foreach ($unlabelledoptions as $index => $option) {
+                    $options[chr(65 + $index)] = $option;
+                }
+            }
+            if ($answer === '') {
+                $answer = (string)($answerkeys[$practicegroup][$number] ?? '');
+            }
+            $type = $pendingpracticequestion['type'] ?? '';
+            if ($type === 'true-false' && !$options) {
+                $options = ['A' => 'True', 'B' => 'False'];
+                if ($answer !== '' && !preg_match('/^[A-B]$/i', $answer)) {
+                    $answer = preg_match('/^(?:false|f)\b/i', $answer) ? 'B' : 'A';
+                }
+            }
+            if ($type === '' && count($options) >= 2) {
+                $type = 'multiple-choice';
+            } elseif ($type === '') {
+                $type = preg_match('/^(?:explain|discuss|describe|compare|contrast|differentiate|evaluate|analyse|analyze|assess|justify|outline|examine|critique|develop|recommend|propose)\b/iu', $pendingpracticequestion['prompt'])
+                    ? 'essay'
+                    : 'short-answer';
+            }
+            if ($options && preg_match('/^([A-H])(?:[).:]\s*.+)?$/iu', $answer, $answerlabel)) {
+                $answer = strtoupper($answerlabel[1]);
+            }
+            $html .= self::practice_question(
+                $number,
+                trim($pendingpracticequestion['prompt']),
+                $answer,
+                $options,
+                max(0, $practicegroup),
+                $type,
+            );
+            $pendingpracticequestion = null;
+        };
+        $closepractice = function() use (&$html, &$practice, &$practicequestion, $flushpracticequestion): void {
             if ($practice) {
+                $flushpracticequestion();
                 $html .= '</section>';
                 $practice = false;
                 $practicequestion = 0;
             }
+        };
+        $openpractice = function(string $heading) use (
+            &$html,
+            &$practice,
+            &$practicequestion,
+            &$practicegroup,
+            &$practicehasanswers,
+            &$practicedefaulttype,
+            $flushpracticequestion,
+        ): void {
+            $flushpracticequestion();
+            $practicehasanswers = (bool)preg_match('/\banswers?\b/iu', self::plain_inline($heading));
+            $plainheading = self::plain_inline($heading);
+            $practicedefaulttype = preg_match('/\btrue\s*(?:or|\/)\s*false\b/iu', $plainheading)
+                ? 'true-false'
+                : (preg_match('/\b(?:multiple\s+choice|mcq)\b/iu', $plainheading)
+                    ? 'multiple-choice'
+                    : (preg_match('/\b(?:short\s+answer|fill\s+(?:(?:in\s+)?(?:the\s+)?)blanks?)\b/iu', $plainheading)
+                        ? 'short-answer'
+                        : ''));
+            if (!$practice) {
+                $practice = true;
+                $practicequestion = 0;
+                $html .= '<section class="ueab-practice"><header class="ueab-practice-header">'
+                    . '<span>Try it yourself</span><h3>' . self::inline($heading) . '</h3>'
+                    . '<p>Work through each prompt before comparing notes or continuing. '
+                    . 'Responses typed here are private scratch work and are not saved or submitted.</p></header>';
+            } else {
+                $html .= '<h4 class="ueab-practice-subheading">' . self::inline($heading) . '</h4>';
+            }
+            if (self::is_question_practice_heading($heading)) {
+                $practicegroup++;
+                $practicequestion = 0;
+            }
+        };
+        $beginpracticequestion = function(array $question) use (&$pendingpracticequestion, &$practicedefaulttype, $flushpracticequestion): void {
+            $flushpracticequestion();
+            $pendingpracticequestion = [
+                'number' => $question['number'] ?? null,
+                'prompt' => $question['prompt'] ?? '',
+                'answer' => $question['answer'] ?? '',
+                'answerstarted' => !empty($question['answer']),
+                'options' => $question['options'] ?? [],
+                'unlabelledoptions' => [],
+                'type' => $question['type'] ?? $practicedefaulttype,
+            ];
         };
         $closewordfigure = function() use (&$html, &$wordfigure): void {
             if ($wordfigure) {
@@ -80,6 +190,19 @@ final class renderer {
 
         foreach ($lines as $line) {
             $line = trim($line);
+            $keyline = self::plain_inline(preg_replace('/^(?:#{1,3}\s+|[-*]\s+)/u', '', $line) ?? $line);
+            if (self::is_answer_key_heading($keyline)) {
+                $flushpracticequestion();
+                $closepractice();
+                $inanswerkey = true;
+                continue;
+            }
+            if ($inanswerkey) {
+                if ($line === '' || self::parse_answer_key_entries($keyline)) {
+                    continue;
+                }
+                $inanswerkey = false;
+            }
             if (preg_match('/^>\s?(.*)$/u', $line, $match)) {
                 $flushlist();
                 $flushtable();
@@ -110,20 +233,30 @@ final class renderer {
             if (preg_match('/^(#{1,3})\s+(.+)$/u', $line, $match)) {
                 $flushlist();
                 $heading = self::plain_inline($match[2]);
+                if ($practice && ($question = self::practice_question_item($heading)) !== null) {
+                    $beginpracticequestion($question);
+                    continue;
+                }
+                if ($practice && $practicehasanswers && self::is_practice_prompt($heading)) {
+                    $beginpracticequestion(['number' => null, 'prompt' => $heading]);
+                    continue;
+                }
+                if ($practice && ($answer = self::practice_answer_text($heading)) !== null
+                    && $pendingpracticequestion !== null) {
+                    $pendingpracticequestion['answer'] = trim($answer);
+                    $pendingpracticequestion['answerstarted'] = true;
+                    continue;
+                }
+                if ($practice && $practicehasanswers && $pendingpracticequestion !== null
+                    && !self::is_practice_heading($heading)
+                    && !preg_match('/^(?:(?:topic|unit|chapter|module|course)\s+(?:summary|conclusion|content)|summary|references|further reading|key takeaways)\b/iu', $heading)) {
+                    $pendingpracticequestion['answer'] = trim($heading);
+                    $pendingpracticequestion['answerstarted'] = true;
+                    continue;
+                }
+                $flushpracticequestion();
                 if (self::is_practice_heading($heading)) {
-                    if (!$practice) {
-                        $practice = true;
-                        $practicequestion = 0;
-                        $html .= '<section class="ueab-practice"><header class="ueab-practice-header">'
-                            . '<span>Try it yourself</span><h3>' . self::inline($match[2]) . '</h3>'
-                            . '<p>Work through each prompt before comparing notes or continuing. '
-                            . 'Responses typed here are private scratch work and are not saved or submitted.</p></header>';
-                    } else {
-                        if (preg_match('/\b(?:questions?|tasks?|instructions?)\b/i', $heading)) {
-                            $practicequestion = 0;
-                        }
-                        $html .= '<h4 class="ueab-practice-subheading">' . self::inline($match[2]) . '</h4>';
-                    }
+                    $openpractice($match[2]);
                     continue;
                 }
                 $closepractice();
@@ -132,10 +265,47 @@ final class renderer {
                 continue;
             }
             if (preg_match('/^[-*]\s+(.+)$/u', $line, $match)) {
+                $item = trim($match[1]);
+                $plainitem = self::plain_inline($item);
+                if (self::is_practice_heading($plainitem)) {
+                    $flushlist();
+                    $openpractice($item);
+                    continue;
+                }
+                if (preg_match('/^\d+[.)]\s+(.+)$/u', $plainitem, $numberedheading)
+                    && self::is_practice_heading(self::plain_inline($numberedheading[1]))) {
+                    $flushlist();
+                    $openpractice($numberedheading[1]);
+                    continue;
+                }
                 if ($practice) {
                     $flushlist();
-                    $practicequestion++;
-                    $html .= self::practice_question($practicequestion, $match[1]);
+                    $question = self::practice_question_item($item);
+                    if ($question !== null) {
+                        $beginpracticequestion($question);
+                    } elseif ($pendingpracticequestion !== null
+                        && ($answer = self::practice_answer_text($item)) !== null) {
+                        $pendingpracticequestion['answer'] = $answer;
+                        $pendingpracticequestion['answerstarted'] = true;
+                    } elseif ($pendingpracticequestion !== null && $practicehasanswers
+                        && self::is_practice_prompt($item)) {
+                        $beginpracticequestion(['number' => null, 'prompt' => $item]);
+                    } elseif ($pendingpracticequestion !== null) {
+                        $option = self::practice_option($item);
+                        if ($option !== null) {
+                            $pendingpracticequestion['options'][$option['label']] = $option['text'];
+                        } elseif ($pendingpracticequestion['answerstarted']) {
+                            $pendingpracticequestion['answer'] .= "\n" . $item;
+                        } elseif ($practicehasanswers && ($pendingpracticequestion['type'] ?? '') !== 'multiple-choice') {
+                            $pendingpracticequestion['answer'] = $item;
+                            $pendingpracticequestion['answerstarted'] = true;
+                        } else {
+                            $pendingpracticequestion['unlabelledoptions'][] = $item;
+                        }
+                    } else {
+                        $inline = self::split_inline_practice_options($item);
+                        $beginpracticequestion($inline ?? ['number' => null, 'prompt' => $item, 'options' => []]);
+                    }
                     continue;
                 }
                 if ($list !== 'ul') {
@@ -147,10 +317,15 @@ final class renderer {
                 continue;
             }
             if (preg_match('/^\d+[.)]\s+(.+)$/u', $line, $match)) {
+                if (!$practice && self::is_practice_heading(self::plain_inline($match[1]))) {
+                    $flushlist();
+                    $openpractice($match[1]);
+                    continue;
+                }
                 if ($practice) {
                     $flushlist();
-                    $practicequestion++;
-                    $html .= self::practice_question($practicequestion, $match[1]);
+                    $question = self::practice_question_item($line);
+                    $beginpracticequestion($question ?? ['number' => null, 'prompt' => $match[1], 'options' => []]);
                     continue;
                 }
                 if ($list !== 'ol') {
@@ -162,13 +337,60 @@ final class renderer {
                 continue;
             }
             $flushlist();
-            if ($practice && preg_match('/^Facilitat(?:ion|or)\s+note\s*:\s*(.+)$/iu', $line, $match)) {
-                $html .= '<details class="ueab-practice-guidance"><summary>Facilitator guidance</summary><p>'
-                    . self::inline($match[1]) . '</p></details>';
+            $plainline = self::plain_inline($line);
+            if (!$practice && self::is_practice_heading($plainline)) {
+                $openpractice($plainline);
                 continue;
             }
-            if ($practice && preg_match('/^(?:Suggested|Model)\s+answer\s*:\s*(.+)$/iu', $line, $match)) {
-                $html .= '<details class="ueab-practice-guidance"><summary>Compare your response</summary><p>'
+            if ($practice && ($question = self::practice_question_item($plainline)) !== null) {
+                $beginpracticequestion($question);
+                continue;
+            }
+            if ($practice && $practicehasanswers && self::is_practice_prompt($plainline)) {
+                $beginpracticequestion(['number' => null, 'prompt' => $plainline]);
+                continue;
+            }
+            if ($practice && ($answer = self::practice_answer_text($plainline)) !== null) {
+                if ($pendingpracticequestion !== null) {
+                    $pendingpracticequestion['answer'] = trim($answer);
+                    $pendingpracticequestion['answerstarted'] = true;
+                } else {
+                    $html .= '<details class="ueab-practice-guidance"><summary>Reveal answer and explanation</summary><p>'
+                        . self::inline($answer) . '</p></details>';
+                }
+                continue;
+            }
+            if ($practice && $pendingpracticequestion !== null) {
+                if ($pendingpracticequestion['answerstarted']) {
+                    $pendingpracticequestion['answer'] .= "\n" . $line;
+                } elseif ($pendingpracticequestion['prompt'] === '') {
+                    $inline = self::split_inline_practice_options($line);
+                    if ($inline !== null) {
+                        $pendingpracticequestion['prompt'] = $inline['prompt'];
+                        $pendingpracticequestion['options'] = $inline['options'];
+                    } else {
+                        $pendingpracticequestion['prompt'] = $line;
+                    }
+                } else {
+                    $option = self::practice_option($line);
+                    if ($option !== null) {
+                        $pendingpracticequestion['options'][$option['label']] = $option['text'];
+                    } elseif ($practicehasanswers && ($pendingpracticequestion['type'] ?? '') !== 'multiple-choice') {
+                        $pendingpracticequestion['answer'] = $line;
+                        $pendingpracticequestion['answerstarted'] = true;
+                    } else {
+                        $inline = self::split_inline_practice_options($line);
+                        if ($inline !== null && trim($inline['prompt']) === '') {
+                            $pendingpracticequestion['options'] += $inline['options'];
+                        } else {
+                            $pendingpracticequestion['unlabelledoptions'][] = $line;
+                        }
+                    }
+                }
+                continue;
+            }
+            if ($practice && preg_match('/^Facilitat(?:ion|or)\s+note\s*:\s*(.+)$/iu', $line, $match)) {
+                $html .= '<details class="ueab-practice-guidance"><summary>Facilitator guidance</summary><p>'
                     . self::inline($match[1]) . '</p></details>';
                 continue;
             }
@@ -182,20 +404,256 @@ final class renderer {
     }
 
     private static function is_practice_heading(string $heading): bool {
+        $heading = trim(preg_replace('/^\d+(?:\.\d+)*[.)]?\s*/u', '', $heading) ?? $heading);
+        $heading = trim(preg_replace('/^section\s+(?:review|practice|self[ -]?assessment)\s*:\s*/iu', '', $heading) ?? $heading);
         return (bool)preg_match(
-            '/^(?:unit activity(?:\s*\/\s*case study)?|case study\b.*|activity instructions?|discussion tasks?'
-                . '|(?:five\s+)?unit questions?|self[ -]?assessment(?: questions?)?|practice questions?'
-                . '|review questions?|estimation exercise for learners)$/iu',
+            '/^(?:true\s*(?:or|\/)\s*false\s+questions?|short\s+answer\s+questions?|fill\s+(?:(?:in\s+)?(?:the\s+)?)blanks?\s+questions?|'
+                . 'multiple[ -]?choice questions?|essay questions?|unit activity(?:\s*\/\s*case study)?|case study\b.*|activity instructions?|discussion tasks?'
+                . '|(?:five\s+)?unit questions?|estimation exercise for learners|'
+                . 'self[ -]?assessment(?:\s+questions?)?|self[ -]?check(?:\s+questions?)?|'
+                . 'knowledge check(?:\s+questions?)?|check (?:your )?understanding|test yourself|'
+                . 'multiple[ -]?choice questions?|'
+                . '(?:(?:unit|topic|chapter|end of (?:unit|topic|chapter))\s+)?'
+                . '(?:(?:review|practice|revision|self[ -]?assessment|self[ -]?check|knowledge check|multiple[ -]?choice)\s+)?'
+                . 'questions?(?:\s+(?:for|to)\s+(?:review|practice|discussion))?'
+                . '(?:\s+(?:and|with)\s+(?:(?:suggested|model|sample|correct|answer key)\s+)?answers?)?'
+                . ')$/iu',
             trim($heading),
         );
     }
 
-    private static function practice_question(int $number, string $prompt): string {
-        return '<details class="ueab-practice-question"><summary><span class="ueab-practice-number">Question '
-            . $number . '</span><span class="ueab-practice-prompt">' . self::inline($prompt) . '</span></summary>'
-            . '<div class="ueab-practice-response"><label>Draft your response'
-            . '<textarea rows="4" spellcheck="true" aria-label="Draft response to question ' . $number . '"></textarea>'
-            . '</label><small>This practice response is not saved or submitted.</small></div></details>';
+    private static function is_question_practice_heading(string $heading): bool {
+        return (bool)preg_match('/(?:questions?|self[ -]?assessment|self[ -]?check|quiz|knowledge check)/iu', $heading);
+    }
+
+    private static function is_answer_key_heading(string $line): bool {
+        return (bool)preg_match(
+            '/^(?:\d+(?:\.\d+)?\s*)?(?:answers?\s+(?:to\s+)?(?:self[ -]?assessment|review|practice|unit|topic|chapter)\s+questions?'
+                . '|(?:(?:suggested|model|sample|correct)\s+)?answers?|(?:answer\s+keys?|key\s+answers?|solutions?)(?:\s+(?:for|to)\s+(?:the\s+)?(?:questions?|self[ -]?assessment))?'
+                . '|answers?)\s*:?$/iu',
+            trim($line),
+        );
+    }
+
+    private static function practice_answer_keys(array $lines): array {
+        $keys = [];
+        $current = null;
+        foreach ($lines as $line) {
+            if (preg_match('/^\s*\|.*\|\s*$/u', $line)) {
+                $current = null;
+                continue;
+            }
+            $plain = self::plain_inline(preg_replace('/^(?:#{1,3}\s+|[-*]\s+)/u', '', trim($line)) ?? trim($line));
+            if (self::is_answer_key_heading($plain)) {
+                $keys[] = [];
+                $current = count($keys) - 1;
+                continue;
+            }
+            if ($current === null || $plain === '') {
+                continue;
+            }
+            $entries = self::parse_answer_key_entries($plain);
+            if ($entries) {
+                if (isset($entries[0])) {
+                    $nextnumber = $keys[$current] ? max(array_keys($keys[$current])) + 1 : 1;
+                    $entries[$nextnumber] = $entries[0];
+                    unset($entries[0]);
+                }
+                $keys[$current] = array_replace($keys[$current], $entries);
+                continue;
+            }
+            if (preg_match('/^(?:#{1,3}\s|[-*]\s)/u', trim($line))) {
+                $current = null;
+            }
+        }
+        return $keys;
+    }
+
+    private static function parse_answer_key_entries(string $line): array {
+        $entries = [];
+        $line = trim($line);
+        if (preg_match('/^([A-H])(?=\s+\d{1,3}\s*[).:\-]?\s*[A-H]\b)/iu', $line, $first)) {
+            $entries[1] = strtoupper($first[1]);
+        } elseif (preg_match('/^([A-H])$/iu', $line, $only)) {
+            return [0 => strtoupper($only[1])];
+        }
+        if (preg_match('/^\|\s*(\d+)\s*\|\s*([A-H])\s*\|/iu', trim($line), $row)) {
+            $entries[(int)$row[1]] = strtoupper($row[2]);
+            return $entries;
+        }
+        preg_match_all(
+            '/(?:^|[,;|\s])(?:q(?:uestion)?\s*)?(\d{1,3})\s*[).:\-]?\s*([A-H])(?=$|[\s,;|.])/iu',
+            trim($line),
+            $matches,
+            PREG_SET_ORDER,
+        );
+        foreach ($matches as $match) {
+            $entries[(int)$match[1]] = strtoupper($match[2]);
+        }
+        if (!$entries && preg_match('/^(?:q(?:uestion)?\s*)?(\d{1,3})\s*[).:\-]\s*(.+)$/iu', $line, $textanswer)) {
+            $entries[(int)$textanswer[1]] = trim($textanswer[2]);
+        }
+        return $entries;
+    }
+
+    private static function practice_answer_text(string $line): ?string {
+        if (!preg_match(
+            '/^(?:ans(?:wer)?(?:\s*(?:key|guide|to\s+question\s*\d+|\d+))?|key\s+answer|correct\s+answer|'
+                . 'suggested\s+answer|model\s+answer|sample\s+answer|solution)\s*[:.)\-–—]?\s*(.*)$/iu',
+            trim($line),
+            $match,
+        )) {
+            return null;
+        }
+        return trim($match[1]);
+    }
+
+    private static function practice_question_item(string $line): ?array {
+        $line = trim($line);
+        $number = null;
+        if (preg_match('/^(\d{1,3})[.)]\s*(.+)$/u', $line, $numbered)) {
+            $number = (int)$numbered[1];
+            $line = trim($numbered[2]);
+        }
+        $type = '';
+        if (preg_match('/^(fill\s+(?:(?:in\s+)?(?:the\s+)?)blanks?|multiple\s+choice|mcq|true\s*(?:or|\/)\s*false|true\s*false|short\s+(?:answer|response)|application\s+question|scenario\s+question|essay\s+question|long\s+answer\s+question)\s*:\s*(.+)$/iu', $line, $typed)) {
+            $label = mb_strtolower(preg_replace('/\s+/u', ' ', trim($typed[1])) ?? trim($typed[1]));
+            if (str_contains($label, 'multiple') || $label === 'mcq') {
+                $type = 'multiple-choice';
+            } elseif (str_contains($label, 'true')) {
+                $type = 'true-false';
+            } elseif (str_contains($label, 'application') || str_contains($label, 'scenario') || str_contains($label, 'essay') || str_contains($label, 'long answer')) {
+                $type = 'essay';
+            } else {
+                $type = 'short-answer';
+            }
+            $line = trim($typed[2]);
+        }
+        $answer = '';
+        if (preg_match('/\s+(?:correct\s+answer|correct\s+option|answer|ans)\s*:\s*(.+)$/iu', $line, $answermatch, PREG_OFFSET_CAPTURE)) {
+            $answer = trim($answermatch[1][0]);
+            $line = trim(substr($line, 0, $answermatch[0][1]));
+        }
+        $heading = self::practice_question_heading($line);
+        if ($heading !== null) {
+            $number = $number ?? $heading['number'];
+            $line = trim($heading['prompt']);
+        } elseif (!$type && $number === null) {
+            return null;
+        }
+        $split = self::split_inline_practice_options($line);
+        return [
+            'number' => $number,
+            'prompt' => $split['prompt'] ?? $line,
+            'options' => $split['options'] ?? [],
+            'answer' => $answer,
+            'type' => $type,
+        ];
+    }
+
+    private static function practice_option(string $line): ?array {
+        if (!preg_match('/^\s*(?:\(([A-H])\)|([A-H])[).:])\s*(.*?)\s*$/iu', trim($line), $match)) {
+            return null;
+        }
+        return ['label' => strtoupper($match[1] !== '' ? $match[1] : $match[2]), 'text' => trim($match[3])];
+    }
+
+    private static function split_inline_practice_options(string $line): ?array {
+        preg_match_all(
+            '/(?:\(([A-H])\)|([A-H])[).:])\s*/iu',
+            $line,
+            $matches,
+            PREG_SET_ORDER | PREG_OFFSET_CAPTURE,
+        );
+        if (count($matches) < 2) {
+            return null;
+        }
+        for ($start = 0; $start < count($matches); $start++) {
+            $label = strtoupper($matches[$start][1][0] !== '' ? $matches[$start][1][0] : $matches[$start][2][0]);
+            if ($label !== 'A') {
+                continue;
+            }
+            $sequence = [];
+            for ($index = $start; $index < count($matches); $index++) {
+                $current = strtoupper($matches[$index][1][0] !== '' ? $matches[$index][1][0] : $matches[$index][2][0]);
+                if ($current !== chr(65 + count($sequence))) {
+                    break;
+                }
+                $sequence[] = $index;
+            }
+            if (count($sequence) < 2) {
+                continue;
+            }
+            $options = [];
+            foreach ($sequence as $offset => $matchindex) {
+                $marker = $matches[$matchindex][0][1];
+                $bodystart = $marker + strlen($matches[$matchindex][0][0]);
+                $bodyend = isset($sequence[$offset + 1])
+                    ? $matches[$sequence[$offset + 1]][0][1]
+                    : strlen($line);
+                $options[chr(65 + $offset)] = trim(substr($line, $bodystart, $bodyend - $bodystart));
+            }
+            return ['prompt' => rtrim(substr($line, 0, $matches[$start][0][1])), 'options' => $options];
+        }
+        return null;
+    }
+
+    private static function practice_question_heading(string $line): ?array {
+        if (!preg_match('/^(?:question|q)\s*#?\s*(\d+)\s*(?:[:.)\-–—]\s*(.*))?$/iu', trim($line), $match)) {
+            return null;
+        }
+        return ['number' => (int)$match[1], 'prompt' => trim($match[2] ?? '')];
+    }
+
+    private static function is_practice_prompt(string $line): bool {
+        $line = trim(preg_replace('/^(?:[-*]\s*|\d{1,3}[.)]\s*)/u', '', self::plain_inline($line)) ?? $line);
+        return str_ends_with($line, '?') || (bool)preg_match(
+            '/^(?:what|which|who|whom|whose|when|where|why|how|define|identify|state|name|list|give|mention|complete|fill|explain|describe|discuss|compare|contrast|calculate|compute|determine|evaluate|analyse|analyze|assess|justify|outline|distinguish|examine|critique|develop|recommend|propose|select|choose|match)\b/iu',
+            $line,
+        );
+    }
+
+    private static function practice_question(
+        int $number,
+        string $prompt,
+        string $answer = '',
+        array $options = [],
+        int $group = 0,
+        string $type = '',
+    ): string {
+        $answertext = trim($answer);
+        if ($options && preg_match('/^[A-H]$/i', $answertext)) {
+            $label = strtoupper($answertext);
+            $answertext = 'Correct answer: ' . $label . '. ' . (string)($options[$label] ?? '');
+        }
+        $answerhtml = $answertext === '' ? ''
+            : '<details class="ueab-practice-guidance"><summary>Reveal answer and explanation</summary><p>'
+                . self::inline($answertext) . '</p></details>';
+        if ($options) {
+            $responsehtml = '<fieldset class="ueab-practice-options"><legend>Select one answer</legend>';
+            foreach ($options as $label => $option) {
+                $label = strtoupper((string)$label);
+                if (!preg_match('/^[A-H]$/', $label)) {
+                    continue;
+                }
+                $id = 'ueab-practice-' . $group . '-q' . $number . '-' . $label;
+                $responsehtml .= '<label for="' . $id . '"><input id="' . $id . '" type="radio" name="ueab-practice-'
+                    . $group . '-q' . $number . '" value="' . $label . '"><span><strong>' . $label . '.</strong> '
+                    . self::inline((string)$option) . '</span></label>';
+            }
+            $responsehtml .= '</fieldset>';
+        } else {
+            $responsehtml = '<label>Draft your response<textarea rows="4" spellcheck="true" aria-label="Draft response to question '
+                . $number . '"></textarea></label>';
+        }
+        if ($options && $answertext === '') {
+            $responsehtml .= '<p class="ueab-practice-answer-missing">No matching answer key was detected for this question.</p>';
+        }
+        $kind = $type !== '' ? '<span class="ueab-practice-kind">' . self::e(ucwords(str_replace('-', ' ', $type))) . '</span>' : '';
+        return '<details class="ueab-practice-question"><summary><span class="ueab-practice-meta"><span class="ueab-practice-number">Question '
+            . $number . '</span>' . $kind . '</span><span class="ueab-practice-prompt">' . self::inline($prompt) . '</span></summary>'
+            . '<div class="ueab-practice-response">' . $responsehtml
+            . '<small>This practice response is not saved or submitted.</small>' . $answerhtml . '</div></details>';
     }
 
     private static function plain_inline(string $value): string {
@@ -241,6 +699,18 @@ final class renderer {
 
     public static function homepage(array $raw): string {
         $p = schema::normalise($raw);
+        $notes = [];
+        foreach (['course_overview', 'syllabus', 'continuous_assessment_structure', 'final_assessment'] as $field) {
+            $content = (string)($p[$field] ?? '');
+            if (preg_match_all('/^\s*Other symbols\b[^\r\n]*/imu', $content, $matches)) {
+                $notes = array_merge($notes, $matches[0]);
+            }
+            $p[$field] = self::remove_embedded_grading_scale($content);
+        }
+        $notes = array_values(array_unique(array_map('trim', $notes)));
+        if ($notes) {
+            $p['grading_scale'] = trim((string)($p['grading_scale'] ?? '') . "\n" . implode("\n", $notes));
+        }
         $palette = self::palette($p['school']);
         $title = self::e($p['title']);
         $code = self::e($p['shortname']);
@@ -299,7 +769,7 @@ final class renderer {
             $assessment . self::subsections([
                 'Continuous assessment structure' => $p['continuous_assessment_structure'],
                 'Final / summative assessment' => $p['final_assessment'],
-            ]) . $assessmentmap . self::subsections(['Grading scale' => $p['grading_scale']]));
+            ]) . $assessmentmap . self::subsections(['Grading scale' => self::grading_scale($p)]));
         $sections .= self::card('resources', 'Texts and online resources', self::subsections([
             'Core texts' => self::bullet_lines($p['core_texts']),
             'Reference texts' => self::bullet_lines($p['reference_texts']),
@@ -436,11 +906,13 @@ final class renderer {
 .ueab-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.ueab-fact{padding:13px 15px;border:1px solid var(--ueab-soft);background:var(--ueab-tint);border-radius:11px}.ueab-fact small{display:block;color:#718096;text-transform:uppercase;letter-spacing:.06em}.ueab-fact strong{display:block;color:var(--ueab-dark);white-space:pre-line}
 .ueab-table-wrap{min-width:0;max-width:100%;overflow:auto;margin:18px 0;border:1px solid #d8e0eb;border-radius:14px;background:#fff;box-shadow:0 7px 20px rgba(17,35,64,.06)}.ueab-table{width:100%;min-width:560px;border-collapse:collapse;border-spacing:0}.ueab-table th{background:linear-gradient(120deg,var(--ueab-dark),var(--ueab-primary));color:#fff;text-align:left;font-size:12px;letter-spacing:.01em}.ueab-table th,.ueab-table td{padding:11px 13px;border-right:1px solid #e3e8f0;border-bottom:1px solid #e3e8f0;vertical-align:top;overflow-wrap:anywhere}.ueab-table th:last-child,.ueab-table td:last-child{border-right:0}.ueab-table tbody tr:nth-child(even) td{background:var(--ueab-tint)}.ueab-table tbody tr:hover td{background:var(--ueab-soft)}.ueab-table tbody tr:last-child td{border-bottom:0}.ueab-table td:first-child{font-weight:700;color:var(--ueab-dark)}.ueab-table td p{margin:0}
 .ueab-figure{max-width:860px;margin:26px auto;padding:10px;text-align:center;border:1px solid #e2e7ef;border-radius:16px;background:linear-gradient(145deg,#fff,var(--ueab-tint));box-shadow:0 10px 30px rgba(17,35,64,.08)}.ueab-figure img{display:block;width:auto;max-width:100%;height:auto;max-height:760px;margin:0 auto;border-radius:10px;background:#fff;object-fit:contain}.ueab-figure figcaption{max-width:720px;margin:9px auto 2px;color:#59667b;font-size:12px;line-height:1.5}.ueab-word-figure{max-width:860px;margin:20px auto;padding:12px 16px;border:1px solid var(--ueab-soft);border-left:4px solid var(--ueab-accent);border-radius:12px;background:linear-gradient(145deg,#fff,var(--ueab-tint));box-shadow:0 7px 20px rgba(17,35,64,.06)}.ueab-word-figure figcaption{margin:0 0 7px;color:var(--ueab-primary);font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.ueab-word-figure blockquote{margin:0;color:#24334a;font-size:15px;line-height:1.7;overflow-wrap:anywhere}.ueab-word-figure blockquote p{margin:0}.ueab-media-unavailable{padding:12px 14px;border:1px solid #ecd8a4;border-radius:10px;background:#fff8e6;color:#6d5420}
-.ueab-practice{margin:24px 0;padding:clamp(16px,3vw,24px);border:1px solid var(--ueab-soft);border-radius:18px;background:linear-gradient(145deg,var(--ueab-tint),#fff);box-shadow:0 10px 28px rgba(17,35,64,.07)}.ueab-practice-header{margin:-1px -1px 18px;padding:18px 20px;border-radius:14px;background:linear-gradient(120deg,var(--ueab-dark),var(--ueab-primary));color:#fff}.ueab-practice-header>span{display:block;color:#ffe08a;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.ueab-practice-header h3{margin:4px 0 5px;color:#fff!important;font-size:21px}.ueab-practice-header p{margin:0;color:#fff;opacity:.88;font-size:13px}.ueab-practice-subheading{margin:20px 0 10px!important;padding-bottom:7px;border-bottom:1px solid var(--ueab-soft);color:var(--ueab-primary)!important;font-size:16px!important}.ueab-practice-question{margin:10px 0;border:1px solid #d9e1eb;border-radius:13px;background:#fff;overflow:hidden}.ueab-practice-question[open]{border-color:var(--ueab-primary);box-shadow:0 8px 22px rgba(17,35,64,.08)}.ueab-practice-question summary{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:11px;padding:14px 16px;cursor:pointer;list-style:none}.ueab-practice-question summary::-webkit-details-marker{display:none}.ueab-practice-question summary:after{content:"+";grid-column:1/-1;justify-self:end;margin-top:-26px;color:var(--ueab-primary);font-size:20px;font-weight:800}.ueab-practice-question[open] summary:after{content:"−"}.ueab-practice-number{padding:3px 8px;border-radius:999px;background:var(--ueab-soft);color:var(--ueab-dark);font-size:10px;font-weight:850;white-space:nowrap}.ueab-practice-prompt{padding-right:24px;color:#253147;font-weight:650;line-height:1.5}.ueab-practice-response{padding:0 16px 16px}.ueab-practice-response label{display:block;color:var(--ueab-dark);font-size:12px;font-weight:800}.ueab-practice-response textarea{display:block;width:100%;min-height:96px;margin-top:6px;padding:11px 12px;resize:vertical;border:1px solid #c9d3df;border-radius:10px;background:#fff;color:#172033;font:inherit;line-height:1.5}.ueab-practice-response textarea:focus{border-color:var(--ueab-primary);outline:3px solid var(--ueab-soft)}.ueab-practice-response small{display:block;margin-top:6px;color:#68748a}.ueab-practice-guidance{margin:12px 0;padding:10px 13px;border-left:3px solid var(--ueab-accent);border-radius:8px;background:#fff}.ueab-practice-guidance summary{cursor:pointer;color:var(--ueab-dark);font-weight:800}.ueab-practice-guidance p{margin:8px 0 0}
+.ueab-practice{margin:24px 0;padding:clamp(16px,3vw,24px);border:1px solid var(--ueab-soft);border-radius:18px;background:linear-gradient(145deg,var(--ueab-tint),#fff);box-shadow:0 10px 28px rgba(17,35,64,.07)}.ueab-practice-header{margin:-1px -1px 18px;padding:18px 20px;border-radius:14px;background:linear-gradient(120deg,var(--ueab-dark),var(--ueab-primary));color:#fff}.ueab-practice-header>span{display:block;color:#ffe08a;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.ueab-practice-header h3{margin:4px 0 5px;color:#fff!important;font-size:21px}.ueab-practice-header p{margin:0;color:#fff;opacity:.88;font-size:13px}.ueab-practice-subheading{margin:20px 0 10px!important;padding-bottom:7px;border-bottom:1px solid var(--ueab-soft);color:var(--ueab-primary)!important;font-size:16px!important}.ueab-practice-question{margin:10px 0;border:1px solid #d9e1eb;border-radius:13px;background:#fff;overflow:hidden}.ueab-practice-question[open]{border-color:var(--ueab-primary);box-shadow:0 8px 22px rgba(17,35,64,.08)}.ueab-practice-question summary{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:11px;padding:14px 16px;cursor:pointer;list-style:none}.ueab-practice-question summary::-webkit-details-marker{display:none}.ueab-practice-question summary:after{content:"+";grid-column:1/-1;justify-self:end;margin-top:-26px;color:var(--ueab-primary);font-size:20px;font-weight:800}.ueab-practice-question[open] summary:after{content:"−"}.ueab-practice-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.ueab-practice-number{padding:3px 8px;border-radius:999px;background:var(--ueab-soft);color:var(--ueab-dark);font-size:10px;font-weight:850;white-space:nowrap}.ueab-practice-kind{color:var(--ueab-primary);font-size:10px;font-weight:800;white-space:nowrap}.ueab-practice-prompt{padding-right:24px;color:#253147;font-weight:650;line-height:1.5}.ueab-practice-response{padding:0 16px 16px}.ueab-practice-response label{display:block;color:var(--ueab-dark);font-size:12px;font-weight:800}.ueab-practice-response textarea{display:block;width:100%;min-height:96px;margin-top:6px;padding:11px 12px;resize:vertical;border:1px solid #c9d3df;border-radius:10px;background:#fff;color:#172033;font:inherit;line-height:1.5}.ueab-practice-response textarea:focus{border-color:var(--ueab-primary);outline:3px solid var(--ueab-soft)}.ueab-practice-response small{display:block;margin-top:6px;color:#68748a}.ueab-practice-guidance{margin:12px 0;padding:10px 13px;border-left:3px solid var(--ueab-accent);border-radius:8px;background:#fff}.ueab-practice-guidance summary{cursor:pointer;color:var(--ueab-dark);font-weight:800}.ueab-practice-guidance p{margin:8px 0 0}
 .ueab-topic-grid,.ueab-activity-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.ueab-topic-card{display:grid;grid-template-columns:38px minmax(0,1fr) 22px;align-items:center;gap:12px;min-height:92px;padding:15px;border:1px solid var(--ueab-soft);border-left:4px solid var(--ueab-accent);border-radius:13px;background:linear-gradient(145deg,#fff,var(--ueab-tint));color:inherit;text-decoration:none;box-shadow:0 5px 16px rgba(17,35,64,.045);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}.ueab-topic-card:hover,.ueab-topic-card:focus{transform:translateY(-2px);border-color:var(--ueab-primary);box-shadow:0 12px 28px rgba(17,35,64,.12);outline:none}.ueab-topic-number{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:var(--ueab-primary);color:#fff;font-weight:850}.ueab-topic-arrow{color:var(--ueab-primary);font-size:20px;font-weight:800;transition:transform .16s ease}.ueab-topic-card:hover .ueab-topic-arrow,.ueab-topic-card:focus .ueab-topic-arrow{transform:translateX(3px)}.ueab-topic-card strong,.ueab-topic-card small{display:block}.ueab-topic-card strong{color:var(--ueab-dark);line-height:1.3}.ueab-topic-card small{margin-top:5px;color:#68748a;line-height:1.45}.ueab-activity{padding:15px;border-radius:12px;background:var(--ueab-tint);border-top:3px solid var(--ueab-accent)}.ueab-activity h3{display:flex;justify-content:space-between;margin-top:0}.ueab-activity h3 span{color:var(--ueab-primary)}
 .ueab-faq{margin:0}.ueab-faq dt{margin-top:16px;color:var(--ueab-dark);font-weight:800}.ueab-faq dt:first-child{margin-top:0}.ueab-faq dd{margin:4px 0 0}.ueab-support a{color:var(--ueab-primary);font-weight:700;overflow-wrap:anywhere}
 @media(max-width:620px){.ueab-hero-top{align-items:flex-start;flex-direction:column;gap:2px}.ueab-hero-top span:last-child{text-align:left}.ueab-topic-hero .ueab-hero-body{min-height:0;padding-top:22px;padding-bottom:24px}.ueab-topic-hero h1{font-size:clamp(25px,8vw,34px)}.ueab-nav{position:static}.ueab-card{padding:20px 18px}.ueab-stats{grid-template-columns:1fr 1fr}.ueab-activity-grid,.ueab-topic-grid{grid-template-columns:1fr}.ueab-table th,.ueab-table td{padding:9px 10px}.ueab-figure{margin:20px 0;padding:7px}.ueab-practice{padding:13px}.ueab-practice-question summary{grid-template-columns:1fr}.ueab-practice-number{justify-self:start}.ueab-practice-prompt{padding-right:20px}}
 @media print{.ueab-course{max-width:none;color:#000}.ueab-nav{display:none}.ueab-hero,.ueab-card,.ueab-welcome,.ueab-lead{box-shadow:none;break-inside:avoid}.ueab-topic-card,.ueab-fact,.ueab-activity{break-inside:avoid}.ueab-hero{print-color-adjust:exact;-webkit-print-color-adjust:exact}.ueab-card a{color:inherit;text-decoration:underline}}
+.ueab-practice-options{display:grid;gap:8px;margin:12px 0;padding:0;border:0}.ueab-practice-options legend{margin-bottom:7px;color:var(--ueab-dark);font-size:12px;font-weight:800}.ueab-practice-options label{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #d9e1eb;border-radius:10px;background:#fff;color:#253147;cursor:pointer;line-height:1.5}.ueab-practice-options label:has(input:checked){border-color:var(--ueab-primary);background:var(--ueab-tint);box-shadow:0 0 0 2px var(--ueab-soft)}.ueab-practice-options input{flex:0 0 auto;margin:4px 0 0;accent-color:var(--ueab-primary)}.ueab-practice-options label:focus-within{outline:3px solid var(--ueab-soft);outline-offset:2px}
+.ueab-practice-answer-missing{margin:12px 0;padding:9px 11px;border-radius:8px;background:#fff8e6;color:#6d5420;font-size:12px}
 </style>';
     }
 
@@ -490,6 +962,55 @@ final class renderer {
         return self::card('faq', 'Frequently asked questions', $faqhtml)
             . self::card('support', 'Contact and support information', $support)
             . self::card('accessibility', 'Accessibility statement', '<div class="ueab-support">' . $accessibility . '</div>');
+    }
+
+    private static function grading_scale(array $module): string {
+        $standard = implode("\n", [
+            '| Percentage | Letter grade | Grade point |',
+            '| --- | --- | --- |',
+            '| 80–100 | A | 4.00 |',
+            '| 75–79 | A- | 3.67 |',
+            '| 70–74 | B+ | 3.33 |',
+            '| 65–69 | B | 3.00 |',
+            '| 60–64 | B- | 2.67 |',
+            '| 55–59 | C+ | 2.33 |',
+            '| 50–54 | C | 2.00 |',
+            '| 45–49 | C- | 1.67 |',
+            '| 40–44 | D | 1.00 |',
+            '| Below 40 | F | 0.00 |',
+        ]);
+        $notes = array_values(array_unique(array_filter(
+            preg_split('/\R/u', (string)($module['grading_scale'] ?? '')) ?: [],
+            static fn(string $line): bool => (bool)preg_match('/^\s*Other symbols\b/iu', trim($line)),
+        )));
+        return $standard . ($notes ? "\n\n" . implode("\n", $notes) : '');
+    }
+
+    private static function remove_embedded_grading_scale(string $content): string {
+        $lines = preg_split('/\R/u', $content) ?: [];
+        $kept = [];
+        $removing = false;
+        foreach ($lines as $line) {
+            $plain = trim(preg_replace('/^\s*#{1,6}\s*/u', '', $line) ?? $line);
+            $plain = trim(preg_replace('/^\*\*(.*)\*\*\s*:?\s*$/u', '$1', $plain) ?? $plain);
+            $heading = trim(preg_replace('/^\d+(?:\.\d+)*\s*[.)]?\s*/u', '', $plain) ?? $plain);
+            $heading = rtrim($heading, ':');
+            if (!$removing && preg_match('/^(?:grading|grade)\s+(?:scale|system)\b/iu', $heading)) {
+                $removing = true;
+                continue;
+            }
+            if ($removing) {
+                if (preg_match('/^\s*#{1,6}\s+/u', $line)
+                    || preg_match('/^\s*\d+(?:\.\d+)*\s*[.)]?\s+[\pL]/u', $line)) {
+                    $removing = false;
+                } else {
+                    continue;
+                }
+            }
+            $kept[] = $line;
+        }
+        $joined = implode("\n", $kept);
+        return trim(preg_replace('/\n{3,}/u', "\n\n", $joined) ?? $joined);
     }
 
     private static function card(string $id, string $title, string $content): string {

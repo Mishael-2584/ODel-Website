@@ -171,6 +171,37 @@ expect(str_contains($homepage, 'Accessibility statement'), 'Accessibility guidan
 expect(str_contains($homepage, 'href="https://moodle.test/mod/page/view.php?id=701"'),
     'Course Topic card links to its generated Moodle Page');
 expect(str_contains($homepage, '<table'), 'Structured tables are rendered');
+expect(substr_count($homepage, '<th scope="col">Percentage</th>') === 1
+    && str_contains($homepage, '<td>80–100</td>'),
+    'Courses without an academic level still show the canonical grading scale');
+$undergraduatepage = renderer::homepage(array_merge($module, [
+    'level' => '3rd Year', 'programmes' => 'Bachelor of Business Administration',
+    'grading_scale' => "| Score | Grade |\n| --- | --- |\n| Incorrect scale | Z |\n| Incorrect scale | Z |",
+    'course_overview' => "## Topic map\n- Topic one\n## 8. Grading Scale\n| Marks | Grade |\n| 80–100 | A |\nOther symbols: I = Incomplete\n## 9. Significant features\nApplied business cases.",
+]));
+expect(substr_count($undergraduatepage, '<th scope="col">Percentage</th>') === 1,
+    'Courses render one canonical grading scale, ignoring duplicate imported scales');
+expect(!str_contains($undergraduatepage, 'Incorrect scale'),
+    'Incorrect or duplicated imported scales are not published');
+expect(!str_contains($undergraduatepage, '| Marks | Grade |')
+    && str_contains($undergraduatepage, 'Applied business cases.'),
+    'Embedded scale tables are removed without dropping the following course-overview section');
+expect(substr_count($undergraduatepage, 'Other symbols: I = Incomplete') === 1,
+    'Other-symbol notes move from embedded sections to the one canonical scale');
+$postgraduatepage = renderer::homepage(array_merge($module, [
+    'level' => 'Master of Business Administration',
+    'grading_scale' => "| Score | Grade |\n| --- | --- |\n| 70–100 | Pass |",
+]));
+expect(str_contains($postgraduatepage, '<th scope="col">Percentage</th>')
+    && str_contains($postgraduatepage, '<td>80–100</td>')
+    && !str_contains($postgraduatepage, '70–100'),
+    'Postgraduate courses use the same canonical UEAB grading scale');
+$unclassifiedpage = renderer::homepage(array_merge($module, [
+    'level' => '', 'programmes' => '', 'grading_scale' => '',
+]));
+expect(str_contains($unclassifiedpage, '<th scope="col">Percentage</th>')
+    && str_contains($unclassifiedpage, '<td>80–100</td>'),
+    'Courses without level metadata still render the standard grading scale');
 expect(str_contains($homepage, 'id="outline"'), 'Course outline has a dedicated learner-facing section');
 expect(str_contains($homepage, 'href="#outline"'), 'Course navigation links directly to the Course outline');
 expect(!str_contains($homepage, '<script>alert(1)</script>'), 'Executable HTML is escaped');
@@ -210,6 +241,18 @@ $topic = renderer::topic(1, $module, [
         . "- Explain the likely relationship.\n- Propose an appropriate model.\n"
         . "Suggested answer: A valid response should justify the selected variables.\n"
         . "Facilitation note: Compare the proposed models in a plenary discussion.\n"
+        . "## rEvIeW QUESTIONS AND SUGGESTED ANSWERS\n"
+        . "### Question 1\n**What is financial management?**\n"
+        . "**Answer:** It is the planning and management of an organization's financial resources.\n"
+        . "### Q2: Name two core decisions.\nAnswer key - Investment and financing.\n"
+        . "## Answer Key for Review Questions\n1. B\n"
+        . "- sELf-aSsessment\n"
+        . "- 1. Which option describes an evidence-based decision?\n"
+        . "- a) Guessing\n- b) Checking evidence\n- c) Ignoring data\n- d) Choosing randomly\n"
+        . "2. What is the probability of a certain event?A) 0B) 0.5C) 1D) 2\n"
+        . "- 3. Which statement is correct?\n"
+        . "- A result is always positive\n- Results depend on evidence\n- Data is never useful\n"
+        . "## Answers to Self-assessment questions\n1.B, 2. C, 3-D\n"
         . "## Topic Summary\nThe Topic is complete.",
 ]);
 expect(str_contains($topic, '7h total hours'), 'Topic total includes assessment time');
@@ -242,17 +285,121 @@ expect(str_contains($topic, '<thead><tr><th scope="col">Generation</th>'),
 expect(str_contains($topic, '<td>Vacuum tubes</td>'), 'Imported Word table cells remain aligned');
 expect(!str_contains($topic, '<p>Generation</p>'), 'Imported Word tables are not flattened into paragraphs');
 expect(str_contains($topic, 'class="ueab-practice"'), 'Unit activities render as an attempt-first practice panel');
-expect(substr_count($topic, 'class="ueab-practice-question"') === 2,
-    'Each imported practice prompt renders as a separate question card');
-expect(str_contains($topic, '<textarea rows="4"'), 'Practice cards provide an unsaved learner response area');
+expect(substr_count($topic, 'class="ueab-practice-question"') === 7,
+    'List prompts, numbered questions and mixed-format self-assessments render as separate practice cards');
+expect(substr_count($topic, 'type="radio"') === 11,
+    'Lettered, compact inline and unlabelled multiple-choice options render as selectable answers');
+expect(str_contains($topic, 'type="radio" name="ueab-practice-1-q1" value="B"'),
+    'Self-assessment choices are grouped per question and can be selected independently');
+expect(str_contains($topic, 'Correct answer: B. Checking evidence'),
+    'Detached answer keys are matched to the correct multiple-choice question');
+expect(str_contains($topic, 'Correct answer: C. 1'),
+    'Compact inline choices retain their answer-key match');
+expect(str_contains($topic, '<textarea rows="4"'), 'Open-ended practice cards provide an unsaved response area');
 expect(str_contains($topic, 'This practice response is not saved or submitted.'),
     'Practice response persistence is described accurately');
 expect(str_contains($topic, '<summary>Facilitator guidance</summary>'),
     'Facilitator guidance is collapsed instead of mixed into learner prompts');
-expect(str_contains($topic, '<summary>Compare your response</summary>'),
-    'Supplied answers remain collapsed until the learner chooses to compare');
+expect(str_contains($topic, '<summary>Reveal answer and explanation</summary>'),
+    'Answer disclosure has an explicit reveal action inside the expanded question card');
+expect(str_contains($topic, 'It is the planning and management of an organization'),
+    'Answer-labelled Word paragraphs are retained inside the collapsed answer reveal');
+expect(str_contains($topic, 'Name two core decisions.'),
+    'Inline Q-number headings are accepted as question prompts');
+expect(!str_contains($topic, '<p><strong>Answer:</strong>'),
+    'Answer keys are not exposed as ordinary visible practice text');
 expect(strpos($topic, '</section><h4>Topic Summary</h4>') !== false,
     'The practice panel closes before subsequent Topic content');
+$boldpractice = renderer::rich(
+    "**SELF ASSESSMENT**\n1. Choose the correct response.\na) Yes\nb) No\n"
+        . "Answers to Self Assessment Questions\n1.A",
+);
+expect(str_contains($boldpractice, 'class="ueab-practice"') && str_contains($boldpractice, 'type="radio"'),
+    'A bold standalone case-insensitive assessment label starts interactive practice');
+expect(str_contains($boldpractice, 'Correct answer: A. Yes'),
+    'A one-line numbered key maps to a bold-label assessment');
+$mixedformatpractice = renderer::rich(
+    "## 4.9 Section Review: Questions and Answers\n"
+        . "**Fill in the blank:** The characteristic of law that changes with society is _____.\n"
+        . "**Answer:** **Dynamic nature of law.**\n"
+        . "**Multiple Choice:** Which characteristic allows legal rules to be enforced?\n"
+        . "A. Morality B. Flexibility C. Enforceability D. Tradition\n"
+        . "**Answer:** **C. Enforceability.**\n"
+        . "**True or False:** Legal rules may be upheld through courts.\n"
+        . "**Answer:** True\n"
+        . "**Application Question:** A new practice is not covered by current law. What characteristic matters?\n"
+        . "**Answer:** The dynamic nature of law.",
+);
+expect(substr_count($mixedformatpractice, 'class="ueab-practice-question"') === 4,
+    'Inline typed review prompts become separate learner practice questions');
+expect(substr_count($mixedformatpractice, 'type="radio"') === 6,
+    'Multiple-choice and True/False prompts render selectable response options');
+expect(str_contains($mixedformatpractice, 'Correct answer: C. Enforceability'),
+    'A labelled inline MCQ key resolves to the selected choice text');
+expect(str_contains($mixedformatpractice, 'Dynamic nature of law.'),
+    'A short-answer key remains associated with its fill-in prompt');
+expect(str_contains($mixedformatpractice, 'Correct answer: A. True'),
+    'True/False answer keys normalize to the correct option');
+$typedsectionpractice = renderer::rich(
+    "## True or False Questions\n1. The heart has three chambers.\nAnswer: False\n"
+        . "## Multiple Choice Questions\n1. Which organ filters blood?\nA. Heart\nB. Kidney\nAnswer: B",
+);
+expect(substr_count($typedsectionpractice, 'class="ueab-practice-question"') === 2
+    && substr_count($typedsectionpractice, 'type="radio"') === 4
+    && str_contains($typedsectionpractice, 'Correct answer: B. False')
+    && str_contains($typedsectionpractice, 'Correct answer: B. Kidney'),
+    'Question-type section headings classify unlabelled True/False and MCQ prompts');
+$implicitanswerpractice = renderer::rich(
+    "## Unit Questions and Answers\n1. What does the epidermis do?\n"
+        . "It forms the protective outer layer of the skin.\n"
+        . "2. What is keratin?\nA structural protein that strengthens and waterproofs the skin.",
+);
+expect(str_contains($implicitanswerpractice, 'It forms the protective outer layer of the skin.')
+    && str_contains($implicitanswerpractice, 'A structural protein that strengthens and waterproofs the skin.'),
+    'Unlabelled model-answer paragraphs remain associated with their numbered Q&A prompts');
+$boldparagraphpractice = renderer::rich(
+    "## Unit Questions and Answers\n### 1. What is homeostasis?\n"
+        . "### Answer: The maintenance of a stable internal environment.\n"
+        . "### 2. Define tissue.\n### A group of cells working together.",
+);
+expect(substr_count($boldparagraphpractice, 'class="ueab-practice-question"') === 2
+    && str_contains($boldparagraphpractice, 'The maintenance of a stable internal environment.')
+    && str_contains($boldparagraphpractice, 'A group of cells working together.'),
+    'Bold question and answer paragraphs converted to headings still pair correctly');
+$bulletquestionpractice = renderer::rich(
+    "## Review Questions and Answers\n- Name two functions of the skin.\n"
+        . "**Answer:** Protection and temperature regulation.\n"
+        . "- State the functional unit of the kidney.\nThe nephron.",
+);
+expect(substr_count($bulletquestionpractice, 'class="ueab-practice-question"') === 2
+    && str_contains($bulletquestionpractice, 'Protection and temperature regulation.')
+    && str_contains($bulletquestionpractice, 'The nephron.'),
+    'Unnumbered review prompts in bullet and paragraph formats keep their individual answers');
+$tablepractice = renderer::rich(
+    "| Self-assessment | Answer |\n| --- | --- |\n| 1. What is a cell? | Answer: the basic unit of life |",
+);
+expect(!str_contains($tablepractice, 'class="ueab-practice"'),
+    'Question-like labels inside a data table are not turned into learner practice widgets');
+$compactanswerkey = renderer::rich(
+    "Self-assessment\n1. First?\na) No\nb) Yes\n2. Second?\na) A\nb) B\nc) C\n"
+        . "Answers\nB 2.C",
+);
+expect(str_contains($compactanswerkey, 'Correct answer: B. Yes')
+    && str_contains($compactanswerkey, 'Correct answer: C. C'),
+    'A bare Answers heading and unnumbered first key are matched to the question sequence');
+$textanswerkey = renderer::rich(
+    "## Unit Review Questions\n1. What is homeostasis?\n"
+        . "## Suggested Answers\n1. The maintenance of a stable internal environment.",
+);
+expect(str_contains($textanswerkey, 'The maintenance of a stable internal environment.'),
+    'A separate free-text answer key is linked to a short-answer practice question');
+$unkeyedpractice = renderer::rich("Self-assessment\n1. Choose one.\na) Yes\nb) No");
+expect(str_contains($unkeyedpractice, 'No matching answer key was detected for this question.'),
+    'MCQs without a matched key explain why no answer reveal is available');
+$numberedpractice = renderer::rich("1. SELF-ASSESSMENT\n1. Choose one.\nA) Yes\nB) No");
+expect(str_contains($numberedpractice, 'class="ueab-practice"')
+    && str_contains($numberedpractice, 'type="radio"'),
+    'A literal numbered assessment heading also starts interactive practice');
 
 $migratedtopic = schema::normalise_topic([
     'course_content' => 'Plain duplicate',
@@ -270,7 +417,7 @@ if ($xml !== false) {
 }
 
 $version = file_get_contents($root . '/version.php');
-expect(str_contains($version, "release   = '1.8.5'"), 'Release is 1.8.5');
+expect(str_contains($version, "release   = '1.9.2'"), 'Release is 1.9.2');
 $publisher = file_get_contents($root . '/classes/local/publisher.php');
 expect(str_contains($publisher, 'revision_conflict'), 'Publisher protects against stale revisions');
 expect(str_contains($publisher, 'is_siteadmin($actorid)'),
